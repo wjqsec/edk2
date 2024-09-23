@@ -30,7 +30,7 @@
   # -D FLAG=VALUE
   #
   DEFINE SECURE_BOOT_ENABLE      = FALSE
-  DEFINE SMM_REQUIRE             = FALSE
+  DEFINE SMM_REQUIRE             = TRUE
   DEFINE SOURCE_DEBUG_ENABLE     = FALSE
   DEFINE CC_MEASUREMENT_ENABLE   = TRUE
 
@@ -987,6 +987,7 @@
   OvmfPkg/SmmAccess/SmmAccess2Dxe.inf
   OvmfPkg/SmmControl2Dxe/SmmControl2Dxe.inf
   OvmfPkg/CpuS3DataDxe/CpuS3DataDxe.inf
+  MdeModulePkg/Universal/SmmCommunicationBufferDxe/SmmCommunicationBufferDxe.inf
 
   #
   # SMM Initial Program Load (a DXE_RUNTIME_DRIVER)
