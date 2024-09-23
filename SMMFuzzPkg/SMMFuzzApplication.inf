@@ -1,0 +1,33 @@
+[Defines]
+  INF_VERSION                    = 1.25
+  BASE_NAME                      = SMMFuzzApplication
+  FILE_GUID                      = db9614f2-b421-4fa1-a324-e9a6cbfc611d
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = UefiMain
+  VALID_ARCHITECTURES            = X64
+
+
+[Sources]
+  SMMFuzzApplication.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  MemoryAllocationLib
+
+[Guids]
+  gEdkiiMemoryProfileGuid
+  gEdkiiPiSmmCommunicationRegionTableGuid
+  gEfiSmmLockBoxCommunicationGuid
+  
+
+
+[Protocols]
+  gEfiSmmCommunicationProtocolGuid
+  gEfiDxeSmmReadyToLockProtocolGuid
+  
