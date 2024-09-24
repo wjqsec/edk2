@@ -25,7 +25,7 @@
   gEdkiiMemoryProfileGuid
   gEdkiiPiSmmCommunicationRegionTableGuid
   gEfiSmmLockBoxCommunicationGuid
-
+  gEfiSmmReportSmmHandlersGuid
   
 
 
@@ -33,4 +33,5 @@
   gEfiSmmCommunicationProtocolGuid
   gEfiDxeSmmReadyToLockProtocolGuid
   gEfiCpuArchProtocolGuid
+  
   

@@ -87,6 +87,7 @@ SMM_CORE_SMI_HANDLERS  mSmmCoreSmiHandlers[] = {
   { SmmExitBootServicesHandler, &gEfiEventExitBootServicesGuid,     NULL, FALSE },
   { SmmReadyToBootHandler,      &gEfiEventReadyToBootGuid,          NULL, FALSE },
   { SmmEndOfDxeHandler,         &gEfiEndOfDxeEventGroupGuid,        NULL, TRUE  },
+  { SmmReportHandler,           &gEfiSmmReportSmmHandlersGuid,      NULL, FALSE },
   { NULL,                       NULL,                               NULL, FALSE }
 };
 
@@ -868,6 +869,42 @@ SmmCoreInstallLoadedImage (
   ASSERT_EFI_ERROR (Status);
 
   return;
+}
+extern LIST_ENTRY  mSmiEntryList;
+extern LIST_ENTRY  mDiscoveredList;
+
+EFI_STATUS
+EFIAPI
+SmmReportHandler (
+  IN     EFI_HANDLE  DispatchHandle,
+  IN     CONST VOID  *Context         OPTIONAL,
+  IN OUT VOID        *CommBuffer      OPTIONAL,
+  IN OUT UINTN       *CommBufferSize  OPTIONAL
+  )
+{
+  SMM_REPORT_DATA *data = (SMM_REPORT_DATA*)CommBuffer;
+  data->NumHandlers = 0;
+  data->NumNonLoadedModules = 0;
+  LIST_ENTRY  *Link;
+  SMI_ENTRY   *SmiEntry = NULL;
+  EFI_SMM_DRIVER_ENTRY  *DriverEntry;
+
+
+  for (Link = mSmiEntryList.ForwardLink;
+       Link != &mSmiEntryList;
+       Link = Link->ForwardLink)
+  { 
+    SmiEntry = CR (Link, SMI_ENTRY, AllEntries, SMI_ENTRY_SIGNATURE);
+    CopyGuid(&data->Handlers[data->NumHandlers++], &SmiEntry->HandlerType);
+  }
+
+  for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
+    DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
+    if (DriverEntry->Dependent) {
+      CopyGuid(&data->NonLoadedModules[data->NumNonLoadedModules++], &DriverEntry->FileName);
+    }
+  }
+  return EFI_SUCCESS;
 }
 
 /**

@@ -88,6 +88,8 @@
   gEdkiiSmmMemoryAttributeProtocolGuid          ## CONSUMES
   gEfiSmmSxDispatch2ProtocolGuid                ## SOMETIMES_CONSUMES
 
+  
+
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressSmmCodePageNumber     ## SOMETIMES_CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadModuleAtFixAddressEnable        ## CONSUMES
@@ -120,6 +122,8 @@
   gSmiHandlerProfileGuid
   gEdkiiEndOfS3ResumeGuid ## SOMETIMES_PRODUCES ## GUID # Install protocol
   gEdkiiS3SmmInitDoneGuid ## SOMETIMES_PRODUCES ## GUID # Install protocol
+
+  gEfiSmmReportSmmHandlersGuid
 
 [UserExtensions.TianoCore."ExtraFiles"]
   PiSmmCoreExtra.uni

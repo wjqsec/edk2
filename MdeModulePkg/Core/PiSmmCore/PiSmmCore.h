@@ -1352,4 +1352,25 @@ SmmEntryPointMemoryManagementHook (
   VOID
   );
 
+
+#define EFI_SMM_REPORT_SMM_HANDLERS_PROTOCOL_GUID { 0x050a25d2, 0x797b, 0x4666, { 0x1a, 0x93, 0x2a, 0x46, 0xba, 0xe2, 0xf5, 0x08 } }
+
+extern EFI_GUID gEfiSmmReportSmmHandlersGuid;
+
+typedef struct _SMM_REPORT_DATA {
+    UINTN NumHandlers;
+    GUID Handlers[500];
+    UINTN NumNonLoadedModules;
+    GUID NonLoadedModules[500];
+} SMM_REPORT_DATA;
+
+EFI_STATUS
+EFIAPI
+SmmReportHandler (
+  IN     EFI_HANDLE  DispatchHandle,
+  IN     CONST VOID  *Context         OPTIONAL,
+  IN OUT VOID        *CommBuffer      OPTIONAL,
+  IN OUT UINTN       *CommBufferSize  OPTIONAL
+  );
+
 #endif
