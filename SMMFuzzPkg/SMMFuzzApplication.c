@@ -87,7 +87,7 @@ UefiMain(
     for (Index = 0; Index < PiSmmCommunicationRegionTable->NumberOfEntries; Index++) {
       if (Entry->Type == EfiConventionalMemory) {
         Size = EFI_PAGES_TO_SIZE ((UINTN)Entry->NumberOfPages);
-        if (Size >= MinimalSizeNeeded) {
+        if (Size >= MinimalSizeNeeded + sizeof(EFI_MEMORY_DESCRIPTOR)) {
           break;
         }
       }
@@ -98,12 +98,15 @@ UefiMain(
     ASSERT (Index < PiSmmCommunicationRegionTable->NumberOfEntries);
     CommBuffer = (UINT8 *)(Entry->PhysicalStart);
     CommHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommBuffer;
-    CommHeader->MessageLength = MinimalSizeNeeded;
+    
     ReportData = (SMM_REPORT_DATA*)(CommHeader->Data);
+    
     ReportDataBackup = AllocatePool(sizeof(SMM_REPORT_DATA));
 
 
     CopyMem (&CommHeader->HeaderGuid, &gEfiSmmLockBoxCommunicationGuid, sizeof(gEfiSmmLockBoxCommunicationGuid));
+    CommHeader->MessageLength = MinimalSizeNeeded;
+    CommSize = MinimalSizeNeeded;
     Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,NULL);
 
     if (EFI_ERROR (Status)) {
@@ -113,8 +116,7 @@ UefiMain(
 
 
     CopyMem (&CommHeader->HeaderGuid, &gEfiSmmReportSmmHandlersGuid, sizeof(gEfiSmmReportSmmHandlersGuid));
-
-    
+    CommHeader->MessageLength = MinimalSizeNeeded;
     CommSize = MinimalSizeNeeded;
     Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,&CommSize);
 
@@ -129,8 +131,25 @@ UefiMain(
     for(int i = 0 ; i < ReportDataBackup->NumNonLoadedModules; i++)
       Print(L"no loaded module: %g\n",&ReportDataBackup->NonLoadedModules[i]);
     Print(L"OKOKOKOKOKOKOKOKOKOK\n");
+
+
     LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(ReportDataBackup->NumHandlers);
     LIBAFL_QEMU_LOAD();
+    for(int i = 0 ; i < ReportDataBackup->NumHandlers ; i++)
+    {
+      CopyMem (&CommHeader->HeaderGuid, &ReportDataBackup->Handlers[i], sizeof(ReportDataBackup->Handlers[i]));
+      CommHeader->MessageLength = MinimalSizeNeeded;
+      CommSize = MinimalSizeNeeded;
+      LIBAFL_QEMU_SMM_INPUT_STREAM_VIRT(i + 1,(libafl_word)ReportData,(libafl_word)MinimalSizeNeeded);
+      Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,&CommSize);
+      if (EFI_ERROR (Status)) {
+        Print(L"Error: SmmCommunication error. %r\n",Status);
+        LIBAFL_QEMU_END(1);
+      }
+      
+    }
+
+
     LIBAFL_QEMU_END(1);
     return EFI_SUCCESS;
 }
