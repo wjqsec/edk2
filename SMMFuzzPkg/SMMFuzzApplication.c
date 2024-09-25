@@ -53,7 +53,7 @@ UefiMain(
     UINTN  Index;
     UINTN  Size;
     EDKII_PI_SMM_COMMUNICATION_REGION_TABLE  *PiSmmCommunicationRegionTable;
-    UINTN  MinimalSizeNeeded = 0x500;
+    UINTN  MinimalSizeNeeded = 0x3000;
     SMM_REPORT_DATA *ReportData;
     SMM_REPORT_DATA *ReportDataBackup;
 
@@ -98,16 +98,28 @@ UefiMain(
     ASSERT (Index < PiSmmCommunicationRegionTable->NumberOfEntries);
     CommBuffer = (UINT8 *)(Entry->PhysicalStart);
     CommHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommBuffer;
+    CommHeader->MessageLength = MinimalSizeNeeded;
     ReportData = (SMM_REPORT_DATA*)(CommHeader->Data);
     ReportDataBackup = AllocatePool(sizeof(SMM_REPORT_DATA));
+
+
+    CopyMem (&CommHeader->HeaderGuid, &gEfiSmmLockBoxCommunicationGuid, sizeof(gEfiSmmLockBoxCommunicationGuid));
+    Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,NULL);
+
+    if (EFI_ERROR (Status)) {
+      Print(L"Error: SmmCommunication gEfiSmmLockBoxCommunicationGuid error. %r\n",Status);
+      return Status;
+    }
+
+
     CopyMem (&CommHeader->HeaderGuid, &gEfiSmmReportSmmHandlersGuid, sizeof(gEfiSmmReportSmmHandlersGuid));
 
-    CommHeader->MessageLength = MinimalSizeNeeded;
+    
     CommSize = MinimalSizeNeeded;
     Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,&CommSize);
 
     if (EFI_ERROR (Status)) {
-      Print(L"Error: SmmCommunication error. %r\n",Status);
+      Print(L"Error: SmmCommunication gEfiSmmReportSmmHandlersGuid error. %r\n",Status);
       return Status;
     }
     CopyMem (ReportDataBackup,ReportData,sizeof(SMM_REPORT_DATA));
@@ -116,14 +128,9 @@ UefiMain(
       Print(L"smi handlers: %g\n",&ReportDataBackup->Handlers[i]);
     for(int i = 0 ; i < ReportDataBackup->NumNonLoadedModules; i++)
       Print(L"no loaded module: %g\n",&ReportDataBackup->NonLoadedModules[i]);
-    Print(L"OKOKOKOKOKOKOKOKOKOKO\n");
-    while(1)
-    {
-      ;
-    }
-    
-    // LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(ReportDataBackup->NumHandlers);
-    // LIBAFL_QEMU_LOAD();
-    // LIBAFL_QEMU_END(1);
+    Print(L"OKOKOKOKOKOKOKOKOKOK\n");
+    LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(ReportDataBackup->NumHandlers);
+    LIBAFL_QEMU_LOAD();
+    LIBAFL_QEMU_END(1);
     return EFI_SUCCESS;
 }
