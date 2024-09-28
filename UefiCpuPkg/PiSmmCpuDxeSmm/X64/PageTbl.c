@@ -9,7 +9,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "PiSmmCpuCommon.h"
-
+#include "libafl_qemu.h"
 #define PAGE_TABLE_PAGES  8
 #define ACC_MAX_BIT       BIT3
 
@@ -717,6 +717,8 @@ SmiPFHandler (
   UINTN  ShadowStackGuardPageAddress;
   UINTN  CpuIndex;
 
+  LIBAFL_QEMU_END(0);  // return crash
+  
   ASSERT (InterruptType == EXCEPT_IA32_PAGE_FAULT);
 
   AcquireSpinLock (mPFLock);

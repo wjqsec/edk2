@@ -131,7 +131,7 @@ UefiMain(
     for(int i = 0 ; i < ReportDataBackup->NumNonLoadedModules; i++)
       Print(L"no loaded module: %g\n",&ReportDataBackup->NonLoadedModules[i]);
     Print(L"OKOKOKOKOKOKOKOKOKOK\n");
-
+    Print(L"input buffer %p\n",ReportData);
 
     LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(ReportDataBackup->NumHandlers);
     LIBAFL_QEMU_LOAD();

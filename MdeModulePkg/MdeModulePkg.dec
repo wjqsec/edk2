@@ -1100,7 +1100,7 @@
   #  OS Reserved                       0x8000000000000000<BR>
   # e.g. LoaderCode+LoaderData+BootServicesCode+BootServicesData are needed, 0x1E should be used.<BR>
   # @Prompt The memory type mask for Page Guard.
-  gEfiMdeModulePkgTokenSpaceGuid.PcdHeapGuardPageType|0x0|UINT64|0x30001052
+  gEfiMdeModulePkgTokenSpaceGuid.PcdHeapGuardPageType|0x7FFF|UINT64|0x30001052
 
   ## Indicates which type allocation need guard page.
   #
@@ -1136,7 +1136,7 @@
   #  OS Reserved                       0x8000000000000000<BR>
   # e.g. LoaderCode+LoaderData+BootServicesCode+BootServicesData are needed, 0x1E should be used.<BR>
   # @Prompt The memory type mask for Pool Guard.
-  gEfiMdeModulePkgTokenSpaceGuid.PcdHeapGuardPoolType|0x0|UINT64|0x30001053
+  gEfiMdeModulePkgTokenSpaceGuid.PcdHeapGuardPoolType|0x7FFF|UINT64|0x30001053
 
   ## This mask is to control Heap Guard behavior.
   #
@@ -1160,7 +1160,7 @@
   #          0 - The returned pool is near the tail guard page.<BR>
   #          1 - The returned pool is near the head guard page.<BR>
   # @Prompt The Heap Guard feature mask
-  gEfiMdeModulePkgTokenSpaceGuid.PcdHeapGuardPropertyMask|0x0|UINT8|0x30001054
+  gEfiMdeModulePkgTokenSpaceGuid.PcdHeapGuardPropertyMask|0x0C|UINT8|0x30001054
 
   ## Indicates if UEFI Stack Guard will be enabled.
   #  If enabled, stack overflow in UEFI can be caught, preventing chaotic consequences.<BR><BR>
