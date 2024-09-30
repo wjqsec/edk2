@@ -16,7 +16,50 @@
 #include "libafl_qemu.h"
 
 
-
+// VOID PrintMemoryMap(VOID) {
+//     EFI_MEMORY_DESCRIPTOR *MemoryMap = NULL;
+//     UINTN MemoryMapSize = 0;
+//     UINTN MapKey;
+//     UINTN DescriptorSize;
+//     UINT32 DescriptorVersion;
+//     EFI_STATUS Status;
+    
+//     // Call to get the size of memory map
+//     Status = gBS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+//     if (Status != EFI_BUFFER_TOO_SMALL) {
+//         Print(L"Failed to get memory map size: %r\n", Status);
+//         return;
+//     }
+    
+//     // Allocate pool for memory map
+//     MemoryMap = AllocatePool(MemoryMapSize);
+//     if (MemoryMap == NULL) {
+//         Print(L"Failed to allocate memory\n");
+//         return;
+//     }
+    
+//     // Get the actual memory map
+//     Status = gBS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+//     if (EFI_ERROR(Status)) {
+//         Print(L"Failed to get memory map: %r\n", Status);
+//         FreePool(MemoryMap);
+//         return;
+//     }
+    
+//     // Parse the memory map
+//     EFI_MEMORY_DESCRIPTOR *MemDesc;
+//     UINTN EntryCount = MemoryMapSize / DescriptorSize;
+//     for (UINTN Index = 0; Index < EntryCount; Index++) {
+//         MemDesc = (EFI_MEMORY_DESCRIPTOR *)((UINT8 *)MemoryMap + (Index * DescriptorSize));
+        
+//         // Print memory region details
+//         Print(L"Type: %d, Physical Start: 0x%lx, Number of Pages: 0x%lx\n",
+//               MemDesc->Type, MemDesc->PhysicalStart, MemDesc->NumberOfPages);
+//     }
+    
+//     // Free allocated memory
+//     FreePool(MemoryMap);
+// }
 
 // VOID EFIAPI fuzz_interrupt_handler(
 //   IN CONST  EFI_EXCEPTION_TYPE  InterruptType,
@@ -62,7 +105,6 @@ UefiMain(
     // for(int i = 0 ; i < 20 ; i++)
     //   CpuProtocol->RegisterInterruptHandler(CpuProtocol, i, fuzz_interrupt_handler);
 
-    
     Status = gBS->LocateProtocol(&gEfiSmmCommunicationProtocolGuid, NULL, (void **)&SmmCommunication);
     if (EFI_ERROR(Status)) {
         Print(L"Error: Unable to locate gEfiSmmCommunicationProtocolGuid. %r\n",Status);
@@ -123,9 +165,11 @@ UefiMain(
     }
     CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
 
+    Print(L"smram: %p %p %x\n",ReportDataBackup->CpuStart, ReportDataBackup->PhysicalStart, ReportDataBackup->PhysicalSize);
+
     for(int i = 0 ; i < ReportDataBackup->NumModules; i++)
     {
-      Print(L"smi module: %g\n",&ReportDataBackup->info[i].Guid);
+      Print(L"smi module: %g %p %x\n",&ReportDataBackup->info[i].Guid,ReportDataBackup->info[i].ImageBase,ReportDataBackup->info[i].ImageSize);
       for(int j = 0; j < ReportDataBackup->info[i].NumSmiHandlers; j++)
       {
         Print(L"smi handler: %g\n",&ReportDataBackup->info[i].SmiHandlers[j]);

@@ -975,6 +975,12 @@ SmmReportHandler (
   SMM_MODULES_HANDLER_PROTOCOL_INFO *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommBuffer;
   LIST_ENTRY  *Link;
   EFI_SMM_DRIVER_ENTRY  *DriverEntry;
+  SmmModulesHandlerProtocolInfo.PhysicalSize = gSmmCorePrivate->SmramRanges->PhysicalSize;
+  SmmModulesHandlerProtocolInfo.CpuStart = gSmmCorePrivate->SmramRanges->CpuStart;
+  SmmModulesHandlerProtocolInfo.PhysicalStart = gSmmCorePrivate->SmramRanges->PhysicalStart;
+  //  SmmModulesHandlerProtocolInfo.PhysicalSize = 0x1234;
+  // SmmModulesHandlerProtocolInfo.CpuStart = 0x1234;
+  // SmmModulesHandlerProtocolInfo.PhysicalStart = 0x1234;
   CopyMem(data,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
 
   // for (Link = mSmiEntryList.ForwardLink;
