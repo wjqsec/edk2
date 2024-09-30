@@ -1353,16 +1353,45 @@ SmmEntryPointMemoryManagementHook (
   );
 
 
-#define EFI_SMM_REPORT_SMM_HANDLERS_PROTOCOL_GUID { 0x050a25d2, 0x797b, 0x4666, { 0x1a, 0x93, 0x2a, 0x46, 0xba, 0xe2, 0xf5, 0x08 } }
+// #define EFI_SMM_REPORT_SMM_HANDLERS_PROTOCOL_GUID { 0x050a25d2, 0x797b, 0x4666, { 0x1a, 0x93, 0x2a, 0x46, 0xba, 0xe2, 0xf5, 0x08 } }
 
-extern EFI_GUID gEfiSmmReportSmmHandlersGuid;
+extern EFI_GUID gEfiSmmReportSmmModuleInfoGuid;
+#define MAX_NUM_MODULES 20
+#define MAX_NUM_NONLOADED_MODULES 20
+#define MAX_NUM_HANDLERS 10
+#define MAX_NUM_PRODUCE_PROTOCOLS 15
+#define MAX_NUM_CONSUME_PROTOCOLS 15
+typedef struct SMM_MODULE_HANDLER_PROTOCOL_INFO_
+{
+  GUID Guid;
+  VOID *ImageBase;
+  UINT64 ImageSize;
 
-typedef struct _SMM_REPORT_DATA {
-    UINTN NumHandlers;
-    GUID Handlers[500];
-    UINTN NumNonLoadedModules;
-    GUID NonLoadedModules[500];
-} SMM_REPORT_DATA;
+  UINTN NumSmiHandlers;
+  GUID SmiHandlers[MAX_NUM_HANDLERS];
+
+  UINTN NumProduceProtocols;
+  GUID ProduceProtocols[MAX_NUM_PRODUCE_PROTOCOLS];
+
+  UINTN NumConsumeProtocols;
+  GUID ConsumeProtocols[MAX_NUM_CONSUME_PROTOCOLS];
+}SMM_MODULE_HANDLER_PROTOCOL_INFO;
+
+typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_
+{
+  UINTN NumModules;
+  SMM_MODULE_HANDLER_PROTOCOL_INFO info[MAX_NUM_MODULES];
+
+  UINTN NumNonLoadedModules;
+  GUID NonLoadedModules[MAX_NUM_NONLOADED_MODULES];
+}SMM_MODULES_HANDLER_PROTOCOL_INFO;
+
+extern SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo;
+VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size);
+VOID InsertSmiHandler(VOID *Addr,CONST GUID *Handler);
+VOID InsertProduceProtocol(VOID *Addr,CONST GUID *Protocol);
+VOID InsertConsumeProtocol(VOID *Addr,CONST GUID *Protocol);
+
 
 EFI_STATUS
 EFIAPI
@@ -1372,5 +1401,4 @@ SmmReportHandler (
   IN OUT VOID        *CommBuffer      OPTIONAL,
   IN OUT UINTN       *CommBufferSize  OPTIONAL
   );
-
 #endif

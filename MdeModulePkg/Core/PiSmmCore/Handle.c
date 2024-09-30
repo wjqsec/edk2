@@ -178,6 +178,7 @@ SmmInstallProtocolInterface (
   IN VOID                *Interface
   )
 {
+  InsertProduceProtocol(__builtin_return_address(0), Protocol);
   return SmmInstallProtocolInterfaceNotify (
            UserHandle,
            Protocol,
@@ -524,6 +525,7 @@ SmmHandleProtocol (
   //
   // Look at each protocol interface for a match
   //
+  InsertConsumeProtocol(__builtin_return_address(0), Protocol);
   Prot = SmmGetProtocolInterface (UserHandle, Protocol);
   if (Prot == NULL) {
     return EFI_UNSUPPORTED;

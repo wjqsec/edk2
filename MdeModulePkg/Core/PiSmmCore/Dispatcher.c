@@ -124,7 +124,6 @@ EFI_SECURITY2_ARCH_PROTOCOL  *mSecurity2 = NULL;
 // memory page available or not.
 //
 GLOBAL_REMOVE_IF_UNREFERENCED    UINT64  *mSmmCodeMemoryRangeUsageBitMap = NULL;
-
 /**
   To check memory usage bit map array to figure out if the memory range in which the image will be loaded is available or not. If
   memory range is available, the function will mark the corresponding bits to 1 which indicates the memory range is used.
@@ -931,6 +930,7 @@ SmmDispatcher (
       //
       RegisterSmramProfileImage (DriverEntry, TRUE);
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
+      InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
       Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
       if (EFI_ERROR (Status)) {

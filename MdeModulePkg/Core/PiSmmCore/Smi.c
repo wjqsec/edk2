@@ -368,8 +368,8 @@ SmiHandlerRegister (
     if (SmiEntry == NULL) {
       return EFI_OUT_OF_RESOURCES;
     }
+    InsertSmiHandler(__builtin_return_address(0), HandlerType);
   }
-
   List = &SmiEntry->SmiHandlers;
 
   SmiHandler->SmiEntry = SmiEntry;

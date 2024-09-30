@@ -189,7 +189,7 @@ SmmGetNextLocateByProtocol (
   @retval EFI_NOT_FOUND          Protocol interface not found
 
 **/
-EFI_STATUS
+EFI_STATUS 
 EFIAPI
 SmmLocateProtocol (
   IN  EFI_GUID  *Protocol,
@@ -217,7 +217,7 @@ SmmLocateProtocol (
   Position.Position  = &gHandleList;
 
   mEfiLocateHandleRequest += 1;
-
+  InsertConsumeProtocol(__builtin_return_address(0), Protocol);
   if (Registration == NULL) {
     //
     // Look up the protocol entry and set the head pointer
@@ -305,7 +305,7 @@ SmmLocateHandle (
   ResultSize   = 0;
   ResultBuffer = (IHANDLE **)Buffer;
   Status       = EFI_SUCCESS;
-
+  
   //
   // Get the search function based on type
   //
@@ -331,7 +331,7 @@ SmmLocateHandle (
         Status = EFI_INVALID_PARAMETER;
         break;
       }
-
+      InsertConsumeProtocol(__builtin_return_address(0), Protocol);
       //
       // Look up the protocol entry and set the head pointer
       //

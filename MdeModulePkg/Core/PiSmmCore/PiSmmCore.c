@@ -87,7 +87,7 @@ SMM_CORE_SMI_HANDLERS  mSmmCoreSmiHandlers[] = {
   { SmmExitBootServicesHandler, &gEfiEventExitBootServicesGuid,     NULL, FALSE },
   { SmmReadyToBootHandler,      &gEfiEventReadyToBootGuid,          NULL, FALSE },
   { SmmEndOfDxeHandler,         &gEfiEndOfDxeEventGroupGuid,        NULL, TRUE  },
-  { SmmReportHandler,           &gEfiSmmReportSmmHandlersGuid,      NULL, FALSE },
+  { SmmReportHandler,           &gEfiSmmReportSmmModuleInfoGuid,    NULL, FALSE },
   { NULL,                       NULL,                               NULL, FALSE }
 };
 
@@ -870,43 +870,6 @@ SmmCoreInstallLoadedImage (
 
   return;
 }
-extern LIST_ENTRY  mSmiEntryList;
-extern LIST_ENTRY  mDiscoveredList;
-
-EFI_STATUS
-EFIAPI
-SmmReportHandler (
-  IN     EFI_HANDLE  DispatchHandle,
-  IN     CONST VOID  *Context         OPTIONAL,
-  IN OUT VOID        *CommBuffer      OPTIONAL,
-  IN OUT UINTN       *CommBufferSize  OPTIONAL
-  )
-{
-  SMM_REPORT_DATA *data = (SMM_REPORT_DATA*)CommBuffer;
-  data->NumHandlers = 0;
-  data->NumNonLoadedModules = 0;
-  LIST_ENTRY  *Link;
-  SMI_ENTRY   *SmiEntry = NULL;
-  EFI_SMM_DRIVER_ENTRY  *DriverEntry;
-
-
-  for (Link = mSmiEntryList.ForwardLink;
-       Link != &mSmiEntryList;
-       Link = Link->ForwardLink)
-  { 
-    SmiEntry = CR (Link, SMI_ENTRY, AllEntries, SMI_ENTRY_SIGNATURE);
-    CopyGuid(&data->Handlers[data->NumHandlers++], &SmiEntry->HandlerType);
-  }
-
-  for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
-    DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
-    if (DriverEntry->Dependent) {
-      CopyGuid(&data->NonLoadedModules[data->NumNonLoadedModules++], &DriverEntry->FileName);
-    }
-  }
-  return EFI_SUCCESS;
-}
-
 /**
   The Entry Point for SMM Core
 
@@ -997,3 +960,124 @@ SmmMain (
 
   return EFI_SUCCESS;
 }
+// extern LIST_ENTRY  mSmiEntryList;
+extern LIST_ENTRY  mDiscoveredList;
+SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo = {0};
+EFI_STATUS
+EFIAPI
+SmmReportHandler (
+  IN     EFI_HANDLE  DispatchHandle,
+  IN     CONST VOID  *Context         OPTIONAL,
+  IN OUT VOID        *CommBuffer      OPTIONAL,
+  IN OUT UINTN       *CommBufferSize  OPTIONAL
+  )
+{
+  SMM_MODULES_HANDLER_PROTOCOL_INFO *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommBuffer;
+  LIST_ENTRY  *Link;
+  EFI_SMM_DRIVER_ENTRY  *DriverEntry;
+  CopyMem(data,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
+
+  // for (Link = mSmiEntryList.ForwardLink;
+  //      Link != &mSmiEntryList;
+  //      Link = Link->ForwardLink)
+  // { 
+  //   SmiEntry = CR (Link, SMI_ENTRY, AllEntries, SMI_ENTRY_SIGNATURE);
+  //   CopyGuid(&data->Handlers[data->NumHandlers++], &SmiEntry->HandlerType);
+  // }
+
+  for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
+    DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
+    if (DriverEntry->Dependent && data->NumNonLoadedModules < MAX_NUM_NONLOADED_MODULES) {
+      CopyGuid(&data->NonLoadedModules[data->NumNonLoadedModules++], &DriverEntry->FileName);
+    }
+  }
+  return EFI_SUCCESS;
+}
+VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
+{
+  if (SmmModulesHandlerProtocolInfo.NumModules >= MAX_NUM_MODULES)
+    return;
+  CopyGuid(&SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].Guid, Guid);
+  SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageBase = Addr;
+  SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageSize = Size;
+  SmmModulesHandlerProtocolInfo.NumModules++;
+}
+VOID InsertSmiHandler(VOID *Addr,CONST GUID *Handler)
+{
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
+  {
+    VOID *Start = SmmModulesHandlerProtocolInfo.info[i].ImageBase;
+    VOID *End = SmmModulesHandlerProtocolInfo.info[i].ImageBase + SmmModulesHandlerProtocolInfo.info[i].ImageSize;
+    if (Addr >= Start && Addr <= End)
+    {
+      UINTN NumSmiHandler = SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers;
+      BOOLEAN Found = FALSE;
+      for (UINTN j = 0; j < NumSmiHandler; j++)
+      {
+        if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[j], Handler))
+        {
+          Found = TRUE;
+          break;
+        }
+      }
+      if (!Found && NumSmiHandler < MAX_NUM_HANDLERS)
+      {
+        CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[NumSmiHandler], Handler);
+        SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers ++;
+      }
+    }
+  }
+}
+VOID InsertProduceProtocol(VOID *Addr,CONST GUID *Protocol)
+{
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
+  {
+    VOID *Start = SmmModulesHandlerProtocolInfo.info[i].ImageBase;
+    VOID *End = SmmModulesHandlerProtocolInfo.info[i].ImageBase + SmmModulesHandlerProtocolInfo.info[i].ImageSize;
+    if (Addr >= Start && Addr <= End)
+    {
+      UINTN NumProtocol = SmmModulesHandlerProtocolInfo.info[i].NumProduceProtocols;
+      BOOLEAN Found = FALSE;
+      for (UINTN j = 0; j < NumProtocol; j++)
+      {
+        if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].ProduceProtocols[j], Protocol))
+        {
+          Found = TRUE;
+          break;
+        }
+      }
+      if (!Found && NumProtocol < MAX_NUM_PRODUCE_PROTOCOLS)
+      {
+        CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].ProduceProtocols[NumProtocol], Protocol);
+        SmmModulesHandlerProtocolInfo.info[i].NumProduceProtocols ++;
+      }
+    }
+  }
+}
+VOID InsertConsumeProtocol(VOID *Addr,CONST GUID *Protocol)
+{
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
+  {
+    VOID *Start = SmmModulesHandlerProtocolInfo.info[i].ImageBase;
+    VOID *End = SmmModulesHandlerProtocolInfo.info[i].ImageBase + SmmModulesHandlerProtocolInfo.info[i].ImageSize;
+    if (Addr >= Start && Addr <= End)
+    {
+      UINTN NumProtocol = SmmModulesHandlerProtocolInfo.info[i].NumConsumeProtocols;
+      BOOLEAN Found = FALSE;
+      for (UINTN j = 0; j < NumProtocol; j++)
+      {
+        if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].ConsumeProtocols[j], Protocol))
+        {
+          Found = TRUE;
+          break;
+        }
+      }
+      if (!Found && NumProtocol < MAX_NUM_CONSUME_PROTOCOLS)
+      {
+        CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].ConsumeProtocols[NumProtocol], Protocol);
+        SmmModulesHandlerProtocolInfo.info[i].NumConsumeProtocols ++;
+      }
+    }
+  }
+}
+
