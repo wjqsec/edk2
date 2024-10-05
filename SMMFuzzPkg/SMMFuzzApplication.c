@@ -10,9 +10,32 @@
 #include <Protocol/Cpu.h>
 #include <Uefi/UefiBaseType.h>
 #include <Uefi.h>
-
-
-
+#include <Library/PrintLib.h>
+#include <Guid/DxeServices.h>
+#include <Base.h>
+#include <Uefi.h>
+#include <Library/PeCoffGetEntryPointLib.h>
+#include <Library/SerialPortLib.h>
+#include <Library/SynchronizationLib.h>
+#include <Library/PrintLib.h>
+#include <Protocol/SmmBase2.h>
+#include <Register/Intel/Cpuid.h>
+#include <Register/Intel/Msr.h>
+#include "PiDxe.h"
+#include <Guid/EventGroup.h>
+#include <Protocol/FirmwareVolumeBlock.h>
+#include <Protocol/DevicePath.h>
+#include <Library/UefiLib.h>
+#include <Library/UefiDriverEntryPoint.h>
+#include <Library/BaseLib.h>
+#include <Library/DxeServicesTableLib.h>
+#include <Library/UefiRuntimeLib.h>
+#include <Library/DebugLib.h>
+#include <Library/HobLib.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/UefiBootServicesTableLib.h>
+#include <Library/DevicePathLib.h>
 #include "libafl_qemu.h"
 
 
@@ -60,6 +83,29 @@
 //     // Free allocated memory
 //     FreePool(MemoryMap);
 // }
+// VOID PrintMemorySpaceMap() {
+//     EFI_STATUS Status;
+//     UINTN NumberOfDescriptors;
+//     EFI_GCD_MEMORY_SPACE_DESCRIPTOR *MemorySpaceMap = NULL;
+
+//     // Get memory space map
+//     Status = gDS->GetMemorySpaceMap(&NumberOfDescriptors, &MemorySpaceMap);
+//     if (EFI_ERROR(Status)) {
+//         Print(L"GetMemorySpaceMap failed: %r\n", Status);
+//         return;
+//     }
+
+//     // Print memory space map information
+//     Print(L"Memory Layout (GetMemorySpaceMap):\n");
+//     for (UINTN Index = 0; Index < NumberOfDescriptors; Index++) {
+//         EFI_GCD_MEMORY_SPACE_DESCRIPTOR *Desc = &MemorySpaceMap[Index];
+//         Print(L"BaseAddress: 0x%lx, Length: 0x%lx, Attributes: 0x%lx\n",
+//             Desc->BaseAddress, Desc->Length, Desc->Attributes);
+//     }
+
+//     // Free allocated memory (if allocated dynamically)
+//     FreePool(MemorySpaceMap);
+// }
 
 // VOID EFIAPI fuzz_interrupt_handler(
 //   IN CONST  EFI_EXCEPTION_TYPE  InterruptType,
@@ -78,12 +124,14 @@
   @retval other             Some error occurs when executing this entry point.
 
 **/
+char aaa[] = {'a','b'};
 EFI_STATUS
 EFIAPI
 UefiMain(
     IN EFI_HANDLE ImageHandle,
     IN EFI_SYSTEM_TABLE *SystemTable)
 {
+    /*
     EFI_STATUS Status;
     // EFI_CPU_ARCH_PROTOCOL *CpuProtocol = NULL;
     EFI_SMM_COMMUNICATION_PROTOCOL *SmmCommunication;
@@ -97,6 +145,7 @@ UefiMain(
     SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportData;
     SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup;
     UINTN  MinimalSizeNeeded = sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO);
+
     // Status = gBS->LocateProtocol(&gEfiCpuArchProtocolGuid, NULL, (VOID **)&CpuProtocol);
     // if (EFI_ERROR(Status)) {
     //     Print(L"Error: Unable to locate gEfiCpuArchProtocolGuid. %r\n",Status);
@@ -104,6 +153,13 @@ UefiMain(
     // }
     // for(int i = 0 ; i < 20 ; i++)
     //   CpuProtocol->RegisterInterruptHandler(CpuProtocol, i, fuzz_interrupt_handler);
+
+    // PrintMemoryMap(); 
+    // PrintMemorySpaceMap();
+    // while(1)
+    // {
+    //   ;
+    // }
 
     Status = gBS->LocateProtocol(&gEfiSmmCommunicationProtocolGuid, NULL, (void **)&SmmCommunication);
     if (EFI_ERROR(Status)) {
@@ -165,33 +221,43 @@ UefiMain(
     }
     CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
 
-    Print(L"smram: %p %p %x\n",ReportDataBackup->CpuStart, ReportDataBackup->PhysicalStart, ReportDataBackup->PhysicalSize);
+    Print(L"SMRAM: %p %p %x %x\n",ReportDataBackup->CpuStart, ReportDataBackup->PhysicalStart, ReportDataBackup->PhysicalSize,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
 
     for(int i = 0 ; i < ReportDataBackup->NumModules; i++)
     {
       Print(L"smi module: %g %p %x\n",&ReportDataBackup->info[i].Guid,ReportDataBackup->info[i].ImageBase,ReportDataBackup->info[i].ImageSize);
       for(int j = 0; j < ReportDataBackup->info[i].NumSmiHandlers; j++)
       {
-        Print(L"smi handler: %g\n",&ReportDataBackup->info[i].SmiHandlers[j]);
+        Print(L"  smi handler: %g\n",&ReportDataBackup->info[i].SmiHandlers[j]);
       }
       for(int j = 0; j < ReportDataBackup->info[i].NumProduceProtocols; j++)
       {
-        Print(L"produce protocol: %g\n",&ReportDataBackup->info[i].ProduceProtocols[j]);
+        Print(L"  produce protocol: %g\n",&ReportDataBackup->info[i].ProduceProtocols[j]);
       }
       for(int j = 0; j < ReportDataBackup->info[i].NumConsumeProtocols; j++)
       {
-        Print(L"consume protocol: %g\n",&ReportDataBackup->info[i].ConsumeProtocols[j]);
+        Print(L"  consume protocol: %g\n",&ReportDataBackup->info[i].ConsumeProtocols[j]);
       }
+    }
+    for(int i = 0 ; i < ReportDataBackup->NumNonLoadedModules; i++)
+    {
+      Print(L"nonloaded smi module: %g\n",&ReportDataBackup->NonLoadedModules[i]);
     }
     Print(L"OKOKOKOKOKOKOKOKOKOK\n");
     while(1)
     {
       ;
     }
-
-    // LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(ReportDataBackup->NumHandlers);
-    // LIBAFL_QEMU_LOAD();
-    // for(int i = 0 ; i < ReportDataBackup->NumHandlers ; i++)
+    */
+    LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(5);
+    LIBAFL_QEMU_LOAD();
+    volatile register char a = aaa[0];
+    volatile register char b = aaa[1];
+    if (a == b)
+      LIBAFL_QEMU_END(1);
+    else
+      LIBAFL_QEMU_END(2);
+    // for(int i = 0 ; i < ReportDataBackup->NumHandlers ; i++) 
     // {
     //   CopyMem (&CommHeader->HeaderGuid, &ReportDataBackup->Handlers[i], sizeof(ReportDataBackup->Handlers[i]));
     //   CommHeader->MessageLength = MinimalSizeNeeded;
@@ -202,10 +268,9 @@ UefiMain(
     //     Print(L"Error: SmmCommunication error. %r\n",Status);
     //     LIBAFL_QEMU_END(1);
     //   }
-      
     // }
 
 
-    // LIBAFL_QEMU_END(1);
+    
     return EFI_SUCCESS;
 }

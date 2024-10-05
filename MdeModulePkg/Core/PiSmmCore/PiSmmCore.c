@@ -962,6 +962,8 @@ SmmMain (
 }
 // extern LIST_ENTRY  mSmiEntryList;
 extern LIST_ENTRY  mDiscoveredList;
+extern EFI_SMRAM_DESCRIPTOR  *mSmmMemLibInternalSmramRanges;
+extern UINTN                 mSmmMemLibInternalSmramCount;
 SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo = {0};
 EFI_STATUS
 EFIAPI
@@ -975,12 +977,34 @@ SmmReportHandler (
   SMM_MODULES_HANDLER_PROTOCOL_INFO *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommBuffer;
   LIST_ENTRY  *Link;
   EFI_SMM_DRIVER_ENTRY  *DriverEntry;
-  SmmModulesHandlerProtocolInfo.PhysicalSize = gSmmCorePrivate->SmramRanges->PhysicalSize;
-  SmmModulesHandlerProtocolInfo.CpuStart = gSmmCorePrivate->SmramRanges->CpuStart;
-  SmmModulesHandlerProtocolInfo.PhysicalStart = gSmmCorePrivate->SmramRanges->PhysicalStart;
-  //  SmmModulesHandlerProtocolInfo.PhysicalSize = 0x1234;
-  // SmmModulesHandlerProtocolInfo.CpuStart = 0x1234;
-  // SmmModulesHandlerProtocolInfo.PhysicalStart = 0x1234;
+  EFI_PHYSICAL_ADDRESS    PhysicalStartBegin, PhysicalStartEnd;
+  EFI_PHYSICAL_ADDRESS    CpuStartBegin, CpuStartEnd;
+  UINT64                  PhysicalSizeEnd;
+
+  if (mSmmMemLibInternalSmramCount > 0) {
+    PhysicalStartBegin = PhysicalStartEnd = mSmmMemLibInternalSmramRanges[0].PhysicalStart;
+    CpuStartBegin = CpuStartEnd = mSmmMemLibInternalSmramRanges[0].CpuStart;
+    PhysicalSizeEnd = mSmmMemLibInternalSmramRanges[0].PhysicalSize;
+    for (UINTN Index = 1; Index < mSmmMemLibInternalSmramCount; Index++) {
+      if (mSmmMemLibInternalSmramRanges[Index].PhysicalStart <= PhysicalStartBegin) {
+        PhysicalStartBegin = mSmmMemLibInternalSmramRanges[Index].PhysicalStart;
+        CpuStartBegin =  mSmmMemLibInternalSmramRanges[Index].CpuStart;
+      }
+      else if (mSmmMemLibInternalSmramRanges[Index].PhysicalStart > PhysicalStartEnd){
+        PhysicalStartEnd = mSmmMemLibInternalSmramRanges[Index].PhysicalStart;
+        CpuStartEnd = mSmmMemLibInternalSmramRanges[Index].CpuStart;
+        PhysicalSizeEnd = mSmmMemLibInternalSmramRanges[Index].PhysicalSize;
+      }
+    }
+  }
+  else {
+    PhysicalStartBegin = PhysicalStartEnd = CpuStartEnd = CpuStartBegin = PhysicalSizeEnd = 0;
+  }
+  
+  SmmModulesHandlerProtocolInfo.PhysicalSize = PhysicalStartEnd + PhysicalSizeEnd - PhysicalStartBegin;
+  SmmModulesHandlerProtocolInfo.CpuStart = CpuStartBegin;
+  SmmModulesHandlerProtocolInfo.PhysicalStart = PhysicalStartBegin;
+
   CopyMem(data,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
 
   // for (Link = mSmiEntryList.ForwardLink;

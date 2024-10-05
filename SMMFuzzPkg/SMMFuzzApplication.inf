@@ -20,6 +20,7 @@
   UefiApplicationEntryPoint
   UefiLib
   MemoryAllocationLib
+  DxeServicesTableLib
 
 [Guids]
   gEdkiiMemoryProfileGuid
