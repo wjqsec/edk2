@@ -34,7 +34,6 @@
 **/
 
 #include "PiSmmCore.h"
-
 //
 // SMM Dispatcher Data structures
 //
@@ -931,7 +930,9 @@ SmmDispatcher (
       RegisterSmramProfileImage (DriverEntry, TRUE);
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
       InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
+      LIBAFL_QEMU_SMM_INIT_ENTER();
       Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
+      LIBAFL_QEMU_SMM_INIT_EXIT();
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
       if (EFI_ERROR (Status)) {
         DEBUG ((

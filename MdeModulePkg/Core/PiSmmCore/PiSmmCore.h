@@ -58,7 +58,7 @@
 
 #include "PiSmmCorePrivateData.h"
 #include "HeapGuard.h"
-
+#include "libafl_qemu.h"
 //
 // Used to build a table of SMI Handlers that the SMM Core registers
 //

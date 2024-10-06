@@ -7,7 +7,6 @@
 **/
 
 #include "PiSmmCore.h"
-
 //
 // mSmiManageCallingDepth is used to track the depth of recursive calls of SmiManage.
 //
@@ -178,13 +177,14 @@ SmiManage (
 
   for (Link = Head->ForwardLink; Link != Head; Link = Link->ForwardLink) {
     SmiHandler = CR (Link, SMI_HANDLER, Link, SMI_HANDLER_SIGNATURE);
-
+    LIBAFL_QEMU_SMM_SMI_ENTER();
     Status = SmiHandler->Handler (
                            (EFI_HANDLE)SmiHandler,
                            Context,
                            CommBuffer,
                            CommBufferSize
                            );
+    LIBAFL_QEMU_SMM_SMI_EXIT(); 
 
     switch (Status) {
       case EFI_INTERRUPT_PENDING:
