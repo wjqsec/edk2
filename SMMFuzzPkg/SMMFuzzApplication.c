@@ -259,27 +259,15 @@ UefiMain(
         Print(L"Error: Unable to call gEfiSmmReportSmmModuleInfoGuid. %r\n",Status);
         return Status;
     }
+    CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
 
-    LIBAFL_QEMU_END(1);
+
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START);
     Print(L"value is\n"); // print  255(-1)
 
 
-    LIBAFL_QEMU_END(1);
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END);
 
-    // LIBAFL_QEMU_END(1);
-
-    // LIBAFL_QEMU_END(1);
-    CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
-
-    // PrintSmmReport(ReportData);
-    // Print(L"test data %p\n",ReportData->Test);
-    
-    // Print(L"OKOKOKOKOKOKOKOKOKOK\n");
-    while(1)
-    {
-      ;
-    }
-    
     // LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(5);
     // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START);
     // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END);
