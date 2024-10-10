@@ -894,7 +894,6 @@ SmmMain (
 {
   EFI_STATUS  Status;
   UINTN       Index;
-
   //
   // Get SMM Core Private context passed in from SMM IPL in ImageHandle.
   //
@@ -964,6 +963,7 @@ SmmMain (
 extern LIST_ENTRY  mDiscoveredList;
 extern EFI_SMRAM_DESCRIPTOR  *mSmmMemLibInternalSmramRanges;
 extern UINTN                 mSmmMemLibInternalSmramCount;
+UINT8 Test;
 SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo = {0};
 EFI_STATUS
 EFIAPI
@@ -1004,7 +1004,7 @@ SmmReportHandler (
   SmmModulesHandlerProtocolInfo.PhysicalSize = PhysicalStartEnd + PhysicalSizeEnd - PhysicalStartBegin;
   SmmModulesHandlerProtocolInfo.CpuStart = CpuStartBegin;
   SmmModulesHandlerProtocolInfo.PhysicalStart = PhysicalStartBegin;
-
+  SmmModulesHandlerProtocolInfo.Test = &Test;
   CopyMem(data,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
 
   // for (Link = mSmiEntryList.ForwardLink;

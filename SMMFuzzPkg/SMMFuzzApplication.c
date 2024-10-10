@@ -38,7 +38,10 @@
 #include <Library/DevicePathLib.h>
 #include "libafl_qemu.h"
 
-
+UINT8 *CommBuffer;
+EFI_SMM_COMMUNICATION_PROTOCOL *SmmCommunication;
+EFI_SMM_COMMUNICATE_HEADER *CommHeader;
+UINT8 *CommData;
 // VOID PrintMemoryMap(VOID) {
 //     EFI_MEMORY_DESCRIPTOR *MemoryMap = NULL;
 //     UINTN MemoryMapSize = 0;
@@ -107,13 +110,108 @@
 //     FreePool(MemorySpaceMap);
 // }
 
-// VOID EFIAPI fuzz_interrupt_handler(
-//   IN CONST  EFI_EXCEPTION_TYPE  InterruptType,
-//   IN CONST  EFI_SYSTEM_CONTEXT  SystemContext
-//   )
-// {
-//     LIBAFL_QEMU_END(0);  // return crash
-// }
+VOID EFIAPI fuzz_interrupt_handler(
+  IN CONST  EFI_EXCEPTION_TYPE  InterruptType,
+  IN CONST  EFI_SYSTEM_CONTEXT  SystemContext
+  )
+{
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH);  // return crash
+}
+
+VOID PrintSmmReport(
+  SMM_MODULES_HANDLER_PROTOCOL_INFO *Report
+  )
+{
+    Print(L"SMRAM: %p %p %x %x\n",Report->CpuStart, Report->PhysicalStart, Report->PhysicalSize,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
+
+    for(int i = 0 ; i < Report->NumModules; i++)
+    {
+      Print(L"smi module: %g %p %x\n",&Report->info[i].Guid,Report->info[i].ImageBase,Report->info[i].ImageSize);
+      for(int j = 0; j < Report->info[i].NumSmiHandlers; j++)
+      {
+        Print(L"  smi handler: %g\n",&Report->info[i].SmiHandlers[j]);
+      }
+      for(int j = 0; j < Report->info[i].NumProduceProtocols; j++)
+      {
+        Print(L"  produce protocol: %g\n",&Report->info[i].ProduceProtocols[j]);
+      }
+      for(int j = 0; j < Report->info[i].NumConsumeProtocols; j++)
+      {
+        Print(L"  consume protocol: %g\n",&Report->info[i].ConsumeProtocols[j]);
+      }
+    }
+    for(int i = 0 ; i < Report->NumNonLoadedModules; i++)
+    {
+      Print(L"nonloaded smi module: %g\n",&Report->NonLoadedModules[i]);
+    }
+}
+
+
+EFI_STATUS GetSmmCommBuffer(UINTN  MinimalSizeNeeded)
+{
+  EDKII_PI_SMM_COMMUNICATION_REGION_TABLE  *PiSmmCommunicationRegionTable;
+  EFI_STATUS Status;
+  EFI_MEMORY_DESCRIPTOR  *Entry;
+  UINTN  Index;
+  UINTN  Size;
+  Status = EfiGetSystemConfigurationTable (
+            &gEdkiiPiSmmCommunicationRegionTableGuid,
+            (VOID **)&PiSmmCommunicationRegionTable
+            );
+  if (EFI_ERROR (Status)) {
+    Print(L"Error: Unable to locate gEdkiiPiSmmCommunicationRegionTableGuid. %r\n",Status);
+    return Status;
+  }
+  ASSERT (PiSmmCommunicationRegionTable != NULL);
+  
+  Entry = (EFI_MEMORY_DESCRIPTOR *)(PiSmmCommunicationRegionTable + 1);
+  Size  = 0;
+  for (Index = 0; Index < PiSmmCommunicationRegionTable->NumberOfEntries; Index++) {
+    if (Entry->Type == EfiConventionalMemory) {
+      Size = EFI_PAGES_TO_SIZE ((UINTN)Entry->NumberOfPages);
+      if (Size >= MinimalSizeNeeded + sizeof(EFI_MEMORY_DESCRIPTOR)) {
+        break;
+      }
+    }
+
+    Entry = (EFI_MEMORY_DESCRIPTOR *)((UINT8 *)Entry + PiSmmCommunicationRegionTable->DescriptorSize);
+  }
+  ASSERT (Index < PiSmmCommunicationRegionTable->NumberOfEntries);
+  CommBuffer = (UINT8 *)(Entry->PhysicalStart);
+  CommHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommBuffer;
+  CommData = (UINT8 *)CommHeader->Data;
+  return Status;
+}
+
+
+EFI_STATUS SmmFuzzExceptionHandle()
+{
+  EFI_STATUS Status;
+  EFI_CPU_ARCH_PROTOCOL *CpuProtocol = NULL;
+  Status = gBS->LocateProtocol(&gEfiCpuArchProtocolGuid, NULL, (VOID **)&CpuProtocol);
+  if (EFI_ERROR(Status)) {
+      Print(L"Error: Unable to locate gEfiCpuArchProtocolGuid. %r\n",Status);
+      return Status;
+  }
+  for(int i = 0 ; i < 20 ; i++)
+    CpuProtocol->RegisterInterruptHandler(CpuProtocol, i, fuzz_interrupt_handler);
+  return Status;
+}
+
+EFI_STATUS SmmCall(GUID *ID, UINTN size)
+{
+  UINTN CommSize;
+  EFI_STATUS Status;
+  CopyMem (&CommHeader->HeaderGuid, ID, sizeof(GUID));
+  CommHeader->MessageLength = size;
+  CommSize = size + sizeof(EFI_SMM_COMMUNICATE_HEADER);
+  Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,&CommSize);
+  if (EFI_ERROR (Status)) {
+    Print(L"Error: SmmCommunication gEfiSmmReportSmmModuleInfoGuid error. %r\n",Status);
+    return Status;
+  }
+  return Status;
+}
 /**
   as the real entry point for the application.
 
@@ -124,139 +222,68 @@
   @retval other             Some error occurs when executing this entry point.
 
 **/
-char aaa[] = {'a','b'};
 EFI_STATUS
 EFIAPI
 UefiMain(
     IN EFI_HANDLE ImageHandle,
     IN EFI_SYSTEM_TABLE *SystemTable)
 {
-    /*
+    
     EFI_STATUS Status;
-    // EFI_CPU_ARCH_PROTOCOL *CpuProtocol = NULL;
-    EFI_SMM_COMMUNICATION_PROTOCOL *SmmCommunication;
-    UINTN CommSize;
-    UINT8 *CommBuffer;
-    EFI_SMM_COMMUNICATE_HEADER *CommHeader;
-    EFI_MEMORY_DESCRIPTOR  *Entry;
-    UINTN  Index;
-    UINTN  Size;
-    EDKII_PI_SMM_COMMUNICATION_REGION_TABLE  *PiSmmCommunicationRegionTable;
+    
     SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportData;
     SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup;
     UINTN  MinimalSizeNeeded = sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO);
 
-    // Status = gBS->LocateProtocol(&gEfiCpuArchProtocolGuid, NULL, (VOID **)&CpuProtocol);
-    // if (EFI_ERROR(Status)) {
-    //     Print(L"Error: Unable to locate gEfiCpuArchProtocolGuid. %r\n",Status);
-    //     return Status;
-    // }
-    // for(int i = 0 ; i < 20 ; i++)
-    //   CpuProtocol->RegisterInterruptHandler(CpuProtocol, i, fuzz_interrupt_handler);
+    // SmmFuzzExceptionHandle();
 
-    // PrintMemoryMap(); 
-    // PrintMemorySpaceMap();
-    // while(1)
-    // {
-    //   ;
-    // }
-
+    
     Status = gBS->LocateProtocol(&gEfiSmmCommunicationProtocolGuid, NULL, (void **)&SmmCommunication);
     if (EFI_ERROR(Status)) {
         Print(L"Error: Unable to locate gEfiSmmCommunicationProtocolGuid. %r\n",Status);
         return Status;
     }
-
-    Status = EfiGetSystemConfigurationTable (
-             &gEdkiiPiSmmCommunicationRegionTableGuid,
-             (VOID **)&PiSmmCommunicationRegionTable
-             );
-    if (EFI_ERROR (Status)) {
-      Print(L"Error: Unable to locate gEdkiiPiSmmCommunicationRegionTableGuid. %r\n",Status);
-      return Status;
+    Status = GetSmmCommBuffer(MinimalSizeNeeded);
+    if (EFI_ERROR(Status)) {
+        Print(L"Error: Unable to get smm comm buffer. %r\n",Status);
+        return Status;
     }
-    ASSERT (PiSmmCommunicationRegionTable != NULL);
     
-    Entry = (EFI_MEMORY_DESCRIPTOR *)(PiSmmCommunicationRegionTable + 1);
-    Size  = 0;
-    for (Index = 0; Index < PiSmmCommunicationRegionTable->NumberOfEntries; Index++) {
-      if (Entry->Type == EfiConventionalMemory) {
-        Size = EFI_PAGES_TO_SIZE ((UINTN)Entry->NumberOfPages);
-        if (Size >= MinimalSizeNeeded + sizeof(EFI_MEMORY_DESCRIPTOR)) {
-          break;
-        }
-      }
-
-      Entry = (EFI_MEMORY_DESCRIPTOR *)((UINT8 *)Entry + PiSmmCommunicationRegionTable->DescriptorSize);
-    }
-
-    ASSERT (Index < PiSmmCommunicationRegionTable->NumberOfEntries);
-    CommBuffer = (UINT8 *)(Entry->PhysicalStart);
-    CommHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommBuffer;
     
-    ReportData = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)(CommHeader->Data);
+    ReportData = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommData;
     
     ReportDataBackup = AllocatePool(sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
 
-    
-    // CopyMem (&CommHeader->HeaderGuid, &gEfiSmmLockBoxCommunicationGuid, sizeof(gEfiSmmLockBoxCommunicationGuid));
-    // CommHeader->MessageLength = MinimalSizeNeeded;
-    // CommSize = MinimalSizeNeeded;
-    // Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,NULL);
-
-    // if (EFI_ERROR (Status)) {
-    //   Print(L"Error: SmmCommunication gEfiSmmLockBoxCommunicationGuid error. %r\n",Status);
-    //   return Status;
-    // }
-
-
-    CopyMem (&CommHeader->HeaderGuid, &gEfiSmmReportSmmModuleInfoGuid, sizeof(gEfiSmmReportSmmModuleInfoGuid));
-    CommHeader->MessageLength = MinimalSizeNeeded;
-    CommSize = MinimalSizeNeeded;
-    Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,&CommSize);
-
-    if (EFI_ERROR (Status)) {
-      Print(L"Error: SmmCommunication gEfiSmmReportSmmModuleInfoGuid error. %r\n",Status);
-      return Status;
+    Status = SmmCall(&gEfiSmmReportSmmModuleInfoGuid, MinimalSizeNeeded);
+    if (EFI_ERROR(Status)) {
+        Print(L"Error: Unable to call gEfiSmmReportSmmModuleInfoGuid. %r\n",Status);
+        return Status;
     }
+
+    LIBAFL_QEMU_END(1);
+    Print(L"value is\n"); // print  255(-1)
+
+
+    LIBAFL_QEMU_END(1);
+
+    // LIBAFL_QEMU_END(1);
+
+    // LIBAFL_QEMU_END(1);
     CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
 
-    Print(L"SMRAM: %p %p %x %x\n",ReportDataBackup->CpuStart, ReportDataBackup->PhysicalStart, ReportDataBackup->PhysicalSize,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
-
-    for(int i = 0 ; i < ReportDataBackup->NumModules; i++)
-    {
-      Print(L"smi module: %g %p %x\n",&ReportDataBackup->info[i].Guid,ReportDataBackup->info[i].ImageBase,ReportDataBackup->info[i].ImageSize);
-      for(int j = 0; j < ReportDataBackup->info[i].NumSmiHandlers; j++)
-      {
-        Print(L"  smi handler: %g\n",&ReportDataBackup->info[i].SmiHandlers[j]);
-      }
-      for(int j = 0; j < ReportDataBackup->info[i].NumProduceProtocols; j++)
-      {
-        Print(L"  produce protocol: %g\n",&ReportDataBackup->info[i].ProduceProtocols[j]);
-      }
-      for(int j = 0; j < ReportDataBackup->info[i].NumConsumeProtocols; j++)
-      {
-        Print(L"  consume protocol: %g\n",&ReportDataBackup->info[i].ConsumeProtocols[j]);
-      }
-    }
-    for(int i = 0 ; i < ReportDataBackup->NumNonLoadedModules; i++)
-    {
-      Print(L"nonloaded smi module: %g\n",&ReportDataBackup->NonLoadedModules[i]);
-    }
-    Print(L"OKOKOKOKOKOKOKOKOKOK\n");
+    // PrintSmmReport(ReportData);
+    // Print(L"test data %p\n",ReportData->Test);
+    
+    // Print(L"OKOKOKOKOKOKOKOKOKOK\n");
     while(1)
     {
       ;
     }
-    */
-    LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(5);
-    LIBAFL_QEMU_LOAD();
-    volatile register char a = aaa[0];
-    volatile register char b = aaa[1];
-    if (a == b)
-      LIBAFL_QEMU_END(1);
-    else
-      LIBAFL_QEMU_END(2);
+    
+    // LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(5);
+    // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START);
+    // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END);
+
     // for(int i = 0 ; i < ReportDataBackup->NumHandlers ; i++) 
     // {
     //   CopyMem (&CommHeader->HeaderGuid, &ReportDataBackup->Handlers[i], sizeof(ReportDataBackup->Handlers[i]));

@@ -718,7 +718,7 @@ SmiPFHandler (
   UINTN  CpuIndex;
 
   DEBUG ((DEBUG_ERROR, "SmiPFHandler Crash\n"));
-  LIBAFL_QEMU_END(0);  // return crash
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH);  // return crash
   
   ASSERT (InterruptType == EXCEPT_IA32_PAGE_FAULT);
 
