@@ -110,13 +110,13 @@ UINT8 *CommData;
 //     FreePool(MemorySpaceMap);
 // }
 
-VOID EFIAPI fuzz_interrupt_handler(
-  IN CONST  EFI_EXCEPTION_TYPE  InterruptType,
-  IN CONST  EFI_SYSTEM_CONTEXT  SystemContext
-  )
-{
-    LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH);  // return crash
-}
+// VOID EFIAPI fuzz_interrupt_handler(
+//   IN CONST  EFI_EXCEPTION_TYPE  InterruptType,
+//   IN CONST  EFI_SYSTEM_CONTEXT  SystemContext
+//   )
+// {
+//     LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH);  // return crash
+// }
 
 VOID PrintSmmReport(
   SMM_MODULES_HANDLER_PROTOCOL_INFO *Report
@@ -184,19 +184,19 @@ EFI_STATUS GetSmmCommBuffer(UINTN  MinimalSizeNeeded)
 }
 
 
-EFI_STATUS SmmFuzzExceptionHandle()
-{
-  EFI_STATUS Status;
-  EFI_CPU_ARCH_PROTOCOL *CpuProtocol = NULL;
-  Status = gBS->LocateProtocol(&gEfiCpuArchProtocolGuid, NULL, (VOID **)&CpuProtocol);
-  if (EFI_ERROR(Status)) {
-      Print(L"Error: Unable to locate gEfiCpuArchProtocolGuid. %r\n",Status);
-      return Status;
-  }
-  for(int i = 0 ; i < 20 ; i++)
-    CpuProtocol->RegisterInterruptHandler(CpuProtocol, i, fuzz_interrupt_handler);
-  return Status;
-}
+// EFI_STATUS SmmFuzzExceptionHandle()
+// {
+//   EFI_STATUS Status;
+//   EFI_CPU_ARCH_PROTOCOL *CpuProtocol = NULL;
+//   Status = gBS->LocateProtocol(&gEfiCpuArchProtocolGuid, NULL, (VOID **)&CpuProtocol);
+//   if (EFI_ERROR(Status)) {
+//       Print(L"Error: Unable to locate gEfiCpuArchProtocolGuid. %r\n",Status);
+//       return Status;
+//   }
+//   for(int i = 0 ; i < 20 ; i++)
+//     CpuProtocol->RegisterInterruptHandler(CpuProtocol, i, fuzz_interrupt_handler);
+//   return Status;
+// }
 
 EFI_STATUS SmmCall(GUID *ID, UINTN size)
 {
@@ -212,6 +212,7 @@ EFI_STATUS SmmCall(GUID *ID, UINTN size)
   }
   return Status;
 }
+volatile UINTN TTT = 0;
 /**
   as the real entry point for the application.
 
@@ -258,13 +259,14 @@ UefiMain(
     if (EFI_ERROR(Status)) {
         Print(L"Error: Unable to call gEfiSmmReportSmmModuleInfoGuid. %r\n",Status);
         return Status;
+
+
     }
     CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
-
+    PrintSmmReport(ReportDataBackup);
 
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START);
-    Print(L"value is\n"); // print  255(-1)
-
+    TTT = 0;  
 
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END);
 

@@ -829,6 +829,24 @@ SmmGetDepexSectionAndPreProccess (
   return Status;
 }
 
+
+GUID OVMFSmmModules[] = {
+    { 0xA47EE2D8, 0xF60E, 0x42FD, { 0x8E, 0x58, 0x7B, 0xD6, 0x5E, 0xE4, 0xC2, 0x9B } },
+    { 0x33FB3535, 0xF15E, 0x4C17, { 0xB3, 0x03, 0x5E, 0xB9, 0x45, 0x95, 0xEC, 0xB6 } },
+    { 0xA3FF0EF5, 0x0C28, 0x42F5, { 0xB5, 0x44, 0x8C, 0x7D, 0xE1, 0xE8, 0x00, 0x14 } },
+    { 0x2E7DB7A7, 0x608E, 0x4041, { 0xB4, 0x5F, 0x00, 0x35, 0x9E, 0x07, 0x66, 0xC6 } },
+    { 0x23A089B3, 0xEED5, 0x4AC5, { 0xB2, 0xAB, 0x43, 0xE3, 0x29, 0x8C, 0x23, 0x43 } },
+    { 0x84EEA114, 0xC6BE, 0x4445, { 0x8F, 0x90, 0x51, 0xD9, 0x78, 0x63, 0xE3, 0x63 } },
+    { 0x470CB248, 0xE8AC, 0x473C, { 0xBB, 0x4F, 0x81, 0x06, 0x9A, 0x1F, 0xE6, 0xFD } },
+    { 0xE2EA6F47, 0xE678, 0x47FA, { 0x8C, 0x1B, 0x02, 0xA0, 0x3E, 0x82, 0x5C, 0x6E } }
+};
+BOOLEAN IsOVMFSmmModule(GUID *guid) {
+  for (UINTN i = 0; i <  ( sizeof(OVMFSmmModules) / sizeof(GUID)); i++) {
+    if (CompareGuid(&OVMFSmmModules[i], guid))
+      return TRUE;
+  }
+  return FALSE;
+}
 /**
   This is the main Dispatcher for SMM and it exits when there are no more
   drivers to run. Drain the mScheduledQueue and load and start a PE
@@ -930,13 +948,19 @@ SmmDispatcher (
       RegisterSmramProfileImage (DriverEntry, TRUE);
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
       InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
-      LIBAFL_QEMU_SMM_INIT_ENTER();
+      if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
+        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
+        LIBAFL_QEMU_SMM_INIT_ENTER();
+      }
+      
       DEBUG((DEBUG_INFO,"start entry point %g\n",&DriverEntry->FileName));
       Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
       DEBUG((DEBUG_INFO,"end entry point %g\n",&DriverEntry->FileName));
-      LIBAFL_QEMU_SMM_INIT_EXIT();
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);
+      if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
+        LIBAFL_QEMU_SMM_INIT_EXIT();
+        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);     
+      }
+
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
       if (EFI_ERROR (Status)) {
         DEBUG ((
