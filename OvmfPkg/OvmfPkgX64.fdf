@@ -365,7 +365,6 @@ INF  OvmfPkg/VirtHstiDxe/VirtHstiDxe.inf
 !if $(SMM_REQUIRE) == TRUE
 INF  OvmfPkg/SmmAccess/SmmAccess2Dxe.inf
 INF  OvmfPkg/SmmControl2Dxe/SmmControl2Dxe.inf
-INF  MdeModulePkg/Universal/SmmCommunicationBufferDxe/SmmCommunicationBufferDxe.inf
 INF  OvmfPkg/CpuS3DataDxe/CpuS3DataDxe.inf
 INF  MdeModulePkg/Core/PiSmmCore/PiSmmIpl.inf
 INF  MdeModulePkg/Core/PiSmmCore/PiSmmCore.inf
@@ -373,6 +372,12 @@ INF  OvmfPkg/CpuHotplugSmm/CpuHotplugSmm.inf
 INF  UefiCpuPkg/CpuIo2Smm/CpuIo2Smm.inf
 INF  MdeModulePkg/Universal/LockBox/SmmLockBox/SmmLockBox.inf
 INF  UefiCpuPkg/PiSmmCpuDxeSmm/PiSmmCpuDxeSmm.inf
+# SmmFuzz
+INF  MdeModulePkg/Universal/SmmCommunicationBufferDxe/SmmCommunicationBufferDxe.inf
+INF  UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
+INF  MdeModulePkg/Universal/Acpi/SmmS3SaveState/SmmS3SaveState.inf
+
+
 
 #
 # Variable driver stack (SMM)

@@ -50,6 +50,7 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  UefiPayloadPkg/UefiPayloadPkg.dec
 
 [LibraryClasses]
   BaseMemoryLib
@@ -79,6 +80,7 @@
   gStatusCodeCallbackGuid
   gEdkiiMigratedFvInfoGuid                      ## SOMETIMES_PRODUCES     ## HOB
   gEdkiiMigrationInfoGuid                       ## SOMETIMES_CONSUMES     ## HOB
+  gSmmRegisterInfoGuid
 
 [Ppis]
   gEfiPeiStatusCodePpiGuid                      ## SOMETIMES_CONSUMES # PeiReportStatusService is not ready if this PPI doesn't exist

@@ -229,7 +229,6 @@ UefiMain(
     IN EFI_HANDLE ImageHandle,
     IN EFI_SYSTEM_TABLE *SystemTable)
 {
-    
     EFI_STATUS Status;
     
     SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportData;

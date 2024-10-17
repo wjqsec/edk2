@@ -39,7 +39,7 @@
   #
   # Shell can be useful for debugging but should not be enabled for production
   #
-  DEFINE BUILD_SHELL             = TRUE
+  DEFINE BUILD_SHELL             = FALSE
 
   #
   # Network definition
@@ -987,7 +987,6 @@
   OvmfPkg/SmmAccess/SmmAccess2Dxe.inf
   OvmfPkg/SmmControl2Dxe/SmmControl2Dxe.inf
   OvmfPkg/CpuS3DataDxe/CpuS3DataDxe.inf
-  MdeModulePkg/Universal/SmmCommunicationBufferDxe/SmmCommunicationBufferDxe.inf
 
   #
   # SMM Initial Program Load (a DXE_RUNTIME_DRIVER)
@@ -1030,6 +1029,15 @@
       NULL|MdeModulePkg/Library/VarCheckPolicyLib/VarCheckPolicyLib.inf
   }
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.inf
+  
+  # SmmFuzz
+  MdeModulePkg/Universal/SmmCommunicationBufferDxe/SmmCommunicationBufferDxe.inf
+  UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
+  MdeModulePkg/Universal/Acpi/SmmS3SaveState/SmmS3SaveState.inf {
+    <LibraryClasses>
+    LockBoxLib|MdeModulePkg/Library/SmmLockBoxLib/SmmLockBoxSmmLib.inf
+  }
+
 
 !else
 
