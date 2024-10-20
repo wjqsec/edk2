@@ -211,7 +211,7 @@ SaveLockBox (
   //
   // Done
   //
-  return Status;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -295,7 +295,7 @@ SetLockBoxAttributes (
   //
   // Done
   //
-  return Status;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -387,7 +387,7 @@ UpdateLockBox (
   //
   // Done
   //
-  return Status;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -487,7 +487,7 @@ RestoreLockBox (
   //
   // Done
   //
-  return Status;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -553,5 +553,5 @@ RestoreAllLockBoxInPlace (
   //
   // Done
   //
-  return Status;
+  return EFI_SUCCESS;
 }

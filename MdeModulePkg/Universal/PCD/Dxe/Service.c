@@ -347,7 +347,7 @@ DxeGetPcdInfo (
 
   return Status;
 }
-
+UINT8 DummyPCD[100] = {0xff};
 /**
   Get the PCD entry pointer in PCD database.
 
@@ -386,6 +386,9 @@ GetWorker (
   STRING_HEAD    StringTableIdx;
   BOOLEAN        IsPeiDb;
 
+  if (!(TokenNumber + 1 < mPcdTotalTokenCount + 1)) {
+    return (VOID*)DummyPCD;
+  }
   //
   // Aquire lock to prevent reentrance from TPL_CALLBACK level
   //
@@ -1125,9 +1128,11 @@ SetWorker (
   UINTN          Offset;
   UINT8          *PcdDb;
   EFI_STATUS     Status;
-  UINTN          MaxSize;
+  UINTN          MaxSize; 
   UINTN          TmpTokenNumber;
-
+  if (!(TokenNumber + 1 < mPcdTotalTokenCount + 1)) {
+    return EFI_SUCCESS;
+  }
   //
   // TokenNumber Zero is reserved as PCD_INVALID_TOKEN_NUMBER.
   // We have to decrement TokenNumber by 1 to make it usable

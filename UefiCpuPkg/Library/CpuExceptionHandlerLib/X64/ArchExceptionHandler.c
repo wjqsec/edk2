@@ -261,7 +261,18 @@ ArchSetupExceptionStack (
 
   return EFI_SUCCESS;
 }
-
+VOID
+EFIAPI
+DumpStack (UINTN *StackPointer) {
+  UINTN *FramePointer = StackPointer;
+  UINTN ReturnAddress;
+  InternalPrintMessage ("\nStack Trace:\n");
+  for (UINT8 i = 0; i < 15; i++) {
+    ReturnAddress = FramePointer[1];
+    InternalPrintMessage ("-%p\n",ReturnAddress);
+    FramePointer = (UINTN *)FramePointer[0];
+  }
+}
 /**
   Display CPU information.
 
@@ -393,6 +404,8 @@ DumpCpuContext (
     "FXSAVE_STATE - %016lx\n",
     &SystemContext.SystemContextX64->FxSaveState
     );
+
+    DumpStack ((UINTN*)SystemContext.SystemContextX64->Rbp);
 }
 
 /**

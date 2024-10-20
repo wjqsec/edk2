@@ -575,7 +575,7 @@
   #  0xFF - Contains no current active TPM interface type.<BR>
   #
   # @Prompt current active TPM interface type.
-  gEfiSecurityPkgTokenSpaceGuid.PcdActiveTpmInterfaceType|0xFF|UINT8|0x0001001E
+  gEfiSecurityPkgTokenSpaceGuid.PcdActiveTpmInterfaceType|0x02|UINT8|0x0001001E
 
   ## This PCD records IdleBypass status supported by current active TPM interface.
   #  According to TCG PTP spec 1.3, TPM with CRB interface can skip idle state and

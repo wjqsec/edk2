@@ -378,7 +378,6 @@ INF  UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
 INF  MdeModulePkg/Universal/Acpi/SmmS3SaveState/SmmS3SaveState.inf
 
 
-
 #
 # Variable driver stack (SMM)
 #
