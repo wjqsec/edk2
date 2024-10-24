@@ -27,7 +27,7 @@
   gEdkiiPiSmmCommunicationRegionTableGuid
   gEfiSmmLockBoxCommunicationGuid
   gEfiSmmReportSmmModuleInfoGuid
-  
+  gEfiGlobalVariableGuid
 
 
 [Protocols]

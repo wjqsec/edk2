@@ -111,4 +111,11 @@ SevInitializeRam (
   VOID
   );
 
+
+typedef struct {
+  EFI_HOB_GUID_TYPE                   Header;
+  UINT8                               Revision;
+  UINT8                               Reserved[0x1000];
+} SMM_FUZZ_HOB;
+VOID InstallSmmFuzzHobList(CONST EFI_PEI_SERVICES     **PeiServices);
 #endif // _PLATFORM_PEI_H_INCLUDED_

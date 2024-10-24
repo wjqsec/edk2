@@ -546,29 +546,6 @@ PeiCore (
       );
     CpuDeadLoop ();
   }
-  
-  PLD_SMM_REGISTERS *hob = BuildGuidHob (&gSmmRegisterInfoGuid, sizeof(PLD_SMM_REGISTERS) + sizeof(PLD_GENERIC_REGISTER) * 5);
-  hob->Revision =0;
-  hob->Count = 2;
-
-  hob->Registers[0].Id = REGISTER_ID_SMI_EOS;
-  hob->Registers[0].Value = 1;
-  PLD_GENERIC_ADDRESS addr;
-  addr.AddressSpaceId = EFI_ACPI_3_0_SYSTEM_IO;
-  addr.RegisterBitWidth = 1;
-  addr.RegisterBitOffset = 0;
-  addr.AccessSize = EFI_ACPI_3_0_DWORD;
-  addr.Address = 0xfff0;
-  hob->Registers[0].Address = addr;
-
-  hob->Registers[1].Id = REGISTER_ID_SMI_APM_STS;
-  hob->Registers[1].Value = 1;
-  addr.AddressSpaceId = EFI_ACPI_3_0_SYSTEM_IO;
-  addr.RegisterBitWidth = 1;
-  addr.RegisterBitOffset = 0;
-  addr.AccessSize = EFI_ACPI_3_0_DWORD;
-  addr.Address = 0xfff4;
-  hob->Registers[1].Address = addr;
   //
   // Enter DxeIpl to load Dxe core.
   //

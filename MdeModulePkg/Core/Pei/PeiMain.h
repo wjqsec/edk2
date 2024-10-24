@@ -2027,5 +2027,4 @@ VOID
 PeiReinitializeFv (
   IN  PEI_CORE_INSTANCE  *PrivateData
   );
-
 #endif

@@ -1357,7 +1357,7 @@ SmmEntryPointMemoryManagementHook (
 
 extern EFI_GUID gEfiSmmReportSmmModuleInfoGuid;
 #define MAX_NUM_MODULES 70
-#define MAX_NUM_NONLOADED_MODULES 20
+#define MAX_NUM_NONLOADED_MODULES 80
 #define MAX_NUM_HANDLERS 20
 #define MAX_NUM_PRODUCE_PROTOCOLS 30
 #define MAX_NUM_CONSUME_PROTOCOLS 50

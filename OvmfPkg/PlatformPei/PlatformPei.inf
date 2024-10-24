@@ -43,6 +43,7 @@
   SecurityPkg/SecurityPkg.dec
   UefiCpuPkg/UefiCpuPkg.dec
   OvmfPkg/OvmfPkg.dec
+  UefiPayloadPkg/UefiPayloadPkg.dec
 
 [Guids]
   gEfiMemoryTypeInformationGuid
@@ -50,6 +51,7 @@
   gUefiOvmfPkgPlatformInfoGuid
   gGhcbApicIdsGuid
   gTcg800155PlatformIdEventHobGuid              ## SOMETIMES_PRODUCES
+  gSmmRegisterInfoGuid
 
 [LibraryClasses]
   BaseLib

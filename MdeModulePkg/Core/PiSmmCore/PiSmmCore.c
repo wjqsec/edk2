@@ -7,7 +7,7 @@
 **/
 
 #include "PiSmmCore.h"
-
+BOOLEAN SmmFuzzStart = FALSE;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
 //
@@ -703,6 +703,12 @@ SmmEntryPoint (
   SmmEntryPointMemoryManagementHook ();
 
   //
+  // Process Asynchronous SMI sources
+  //
+  if (SmmFuzzStart)
+    SmiManage (NULL, NULL, NULL, NULL);
+
+  //
   // If a legacy boot has occurred, then make sure gSmmCorePrivate is not accessed
   //
   InLegacyBoot = mInLegacyBoot;
@@ -763,11 +769,6 @@ SmmEntryPoint (
       }
     }
   }
-
-  //
-  // Process Asynchronous SMI sources
-  //
-  SmiManage (NULL, NULL, NULL, NULL);
 
   //
   // Call platform hook after Smm Dispatch
@@ -974,6 +975,7 @@ SmmReportHandler (
   IN OUT UINTN       *CommBufferSize  OPTIONAL
   )
 {
+  SmmFuzzStart = TRUE;
   SMM_MODULES_HANDLER_PROTOCOL_INFO *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommBuffer;
   LIST_ENTRY  *Link;
   EFI_SMM_DRIVER_ENTRY  *DriverEntry;

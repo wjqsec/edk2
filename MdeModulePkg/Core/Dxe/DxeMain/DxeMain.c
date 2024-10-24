@@ -534,6 +534,7 @@ DxeMain (
   Status = InitializeSectionExtraction (gDxeCoreImageHandle, gDxeCoreST);
   ASSERT_EFI_ERROR (Status);
 
+  InstallSmmFuzzProtocol();
   //
   // Initialize the DXE Dispatcher
   //
@@ -977,4 +978,39 @@ DxeMainUefiDecompress (
   }
 
   return UefiDecompress (Source, Destination, Scratch);
+}
+
+PCH_NVS_AREA_PROTOCOL mPchNvsAreaProtocol;
+SA_POLICY_PROTOCOL mSaPolicyProtocol;
+DXE_CPU_POLICY_PROTOCOL mDxeCpuPolicyProcotol;
+VOID InstallSmmFuzzProtocol() {
+  EFI_HANDLE Handle = NULL;
+  mPchNvsAreaProtocol.Area = AllocatePool(sizeof(PCH_NVS_AREA));
+  ZeroMem(mPchNvsAreaProtocol.Area,sizeof(PCH_NVS_AREA));
+  EFI_STATUS Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gPchNvsAreaProtocolGuid,
+                  &mPchNvsAreaProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  ZeroMem(&mSaPolicyProtocol,sizeof(SA_POLICY_PROTOCOL));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gSaPolicyProtocolGuid,
+                  &mSaPolicyProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  ZeroMem(&mDxeCpuPolicyProcotol,sizeof(DXE_CPU_POLICY_PROTOCOL));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gDxeCpuPolicyProtocolGuid,
+                  &mDxeCpuPolicyProcotol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+  (VOID)Status;
 }

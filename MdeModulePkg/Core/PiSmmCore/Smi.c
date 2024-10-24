@@ -178,12 +178,14 @@ SmiManage (
   for (Link = Head->ForwardLink; Link != Head; Link = Link->ForwardLink) {
     SmiHandler = CR (Link, SMI_HANDLER, Link, SMI_HANDLER_SIGNATURE);
     LIBAFL_QEMU_SMM_SMI_ENTER();
+    DEBUG((DEBUG_INFO,"SMI hanlder enter %g\n",HandlerType));
     Status = SmiHandler->Handler (
                            (EFI_HANDLE)SmiHandler,
                            Context,
                            CommBuffer,
                            CommBufferSize
                            );
+    DEBUG((DEBUG_INFO,"SMI hanlder exit %g %r\n",HandlerType,Status));
     LIBAFL_QEMU_SMM_SMI_EXIT(); 
 
     switch (Status) {

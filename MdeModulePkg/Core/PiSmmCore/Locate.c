@@ -201,7 +201,7 @@ SmmLocateProtocol (
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;
   IHANDLE          *Handle;
-
+  DEBUG((DEBUG_INFO,"SmmLocateProtocol %g\n",Protocol));
   if ((Interface == NULL) || (Protocol == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
@@ -244,7 +244,6 @@ SmmLocateProtocol (
     ProtNotify           = Registration;
     ProtNotify->Position = ProtNotify->Position->ForwardLink;
   }
-
   return Status;
 }
 

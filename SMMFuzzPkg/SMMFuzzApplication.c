@@ -7,6 +7,7 @@
 #include <Core/PiSmmCore/PiSmmCore.h>
 #include <Guid/MemoryProfile.h>
 #include <Guid/PiSmmCommunicationRegionTable.h>
+#include <Guid/GlobalVariable.h>
 #include <Protocol/Cpu.h>
 #include <Uefi/UefiBaseType.h>
 #include <Uefi.h>
@@ -35,6 +36,7 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/DevicePathLib.h>
 #include "libafl_qemu.h"
 
@@ -264,8 +266,8 @@ UefiMain(
     CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
     PrintSmmReport(ReportDataBackup);
 
+
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START);
-    TTT = 0;  
 
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END);
 
