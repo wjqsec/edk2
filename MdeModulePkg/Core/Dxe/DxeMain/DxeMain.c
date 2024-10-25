@@ -980,9 +980,46 @@ DxeMainUefiDecompress (
   return UefiDecompress (Source, Destination, Scratch);
 }
 
+
+
+
+EFI_STATUS
+EFIAPI EFI_ACPI_GET_ACPI_TABLE_FUNC(
+  IN EFI_ACPI_SUPPORT_PROTOCOL            *This,
+  IN INTN                                 Index,
+  OUT VOID                                **Table,
+  OUT EFI_ACPI_TABLE_VERSION              *Version,
+  OUT UINTN                               *Handle
+  )
+{
+  return EFI_SUCCESS;
+}
+EFI_STATUS
+EFIAPI EFI_ACPI_SET_ACPI_TABLE_FUNC(
+  IN EFI_ACPI_SUPPORT_PROTOCOL            *This,
+  IN VOID                                 *Table OPTIONAL,
+  IN BOOLEAN                              Checksum,
+  IN EFI_ACPI_TABLE_VERSION               Version,
+  IN OUT UINTN                            *Handle
+  )
+{
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI EFI_ACPI_PUBLISH_TABLES_FUNC(
+  IN EFI_ACPI_SUPPORT_PROTOCOL            *This,
+  IN EFI_ACPI_TABLE_VERSION               Version
+  )
+{
+  return EFI_SUCCESS;
+}
 PCH_NVS_AREA_PROTOCOL mPchNvsAreaProtocol;
 SA_POLICY_PROTOCOL mSaPolicyProtocol;
 DXE_CPU_POLICY_PROTOCOL mDxeCpuPolicyProcotol;
+EFI_ACPI_SUPPORT_PROTOCOL mEfiAcpiSupportProtocol;
+EFI_POWER_MGMT_INIT_DONE_PROTOCOL mEfiPowerMgmtInitDoneProtocol;
+PLATFORM_NVS_AREA_PROTOCOL mPlatformNvsAreaProtocol;
 VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
   mPchNvsAreaProtocol.Area = AllocatePool(sizeof(PCH_NVS_AREA));
@@ -1009,6 +1046,36 @@ VOID InstallSmmFuzzProtocol() {
                   &Handle,
                   &gDxeCpuPolicyProtocolGuid,
                   &mDxeCpuPolicyProcotol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+ 
+
+  mEfiAcpiSupportProtocol.GetAcpiTable = EFI_ACPI_GET_ACPI_TABLE_FUNC;
+  mEfiAcpiSupportProtocol.SetAcpiTable = EFI_ACPI_SET_ACPI_TABLE_FUNC;
+  mEfiAcpiSupportProtocol.PublishTables = EFI_ACPI_PUBLISH_TABLES_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiAcpiSupportProtocolGuid,
+                  &mEfiAcpiSupportProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gPowerMgmtInitDoneProtocolGuid,
+                  &mEfiPowerMgmtInitDoneProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mPlatformNvsAreaProtocol.Area = AllocatePool(sizeof(PLATFORM_NVS_AREA));
+  ZeroMem(mPlatformNvsAreaProtocol.Area,sizeof(PLATFORM_NVS_AREA));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gPlatformNvsAreaProtocolGuid,
+                  &mPlatformNvsAreaProtocol,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);

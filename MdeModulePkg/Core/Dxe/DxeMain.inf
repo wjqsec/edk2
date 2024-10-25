@@ -172,9 +172,13 @@
   gEfiVariableArchProtocolGuid                  ## CONSUMES
   gEfiCapsuleArchProtocolGuid                   ## CONSUMES
   gEfiWatchdogTimerArchProtocolGuid             ## CONSUMES
+  ## SmmFuzz
   gPchNvsAreaProtocolGuid
   gSaPolicyProtocolGuid
   gDxeCpuPolicyProtocolGuid
+  gEfiAcpiSupportProtocolGuid
+  gPowerMgmtInitDoneProtocolGuid
+  gPlatformNvsAreaProtocolGuid
   
 
 [Pcd]
