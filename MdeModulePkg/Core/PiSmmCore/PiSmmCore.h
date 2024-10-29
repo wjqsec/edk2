@@ -1358,6 +1358,7 @@ SmmEntryPointMemoryManagementHook (
 extern EFI_GUID gEfiSmmReportSmmModuleInfoGuid;
 #define MAX_NUM_MODULES 70
 #define MAX_NUM_NONLOADED_MODULES 80
+#define MAX_NUM_UNCLASSIFIED_HANDLERS 50
 #define MAX_NUM_HANDLERS 20
 #define MAX_NUM_PRODUCE_PROTOCOLS 30
 #define MAX_NUM_CONSUME_PROTOCOLS 50
@@ -1386,6 +1387,11 @@ typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_
   UINTN NumModules;
   SMM_MODULE_HANDLER_PROTOCOL_INFO info[MAX_NUM_MODULES];
 
+  UINTN NumUnclassifiedSmiHandlers;
+  GUID UnclassifiedSmiHandlers[MAX_NUM_UNCLASSIFIED_HANDLERS];
+
+  UINTN NumRootSmiHandlers;
+
   UINTN NumNonLoadedModules;
   GUID NonLoadedModules[MAX_NUM_NONLOADED_MODULES];
 
@@ -1394,10 +1400,13 @@ typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_
 
 extern SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo;
 VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size);
-VOID InsertSmiHandler(VOID *Addr,CONST GUID *Handler);
-VOID InsertProduceProtocol(VOID *Addr,CONST GUID *Protocol);
-VOID InsertConsumeProtocol(VOID *Addr,CONST GUID *Protocol);
-
+VOID InsertSmiHandler(CONST GUID *Handler);
+VOID InsertProduceProtocol(CONST GUID *Protocol);
+VOID InsertConsumeProtocol(CONST GUID *Protocol);
+VOID InsertRootSmiHandler(VOID);
+VOID SetCurrentModule(CONST GUID *guid);
+VOID SetCurrentModuleBySmi(CONST GUID *guid);
+VOID ClearCurrentModule(VOID);
 
 EFI_STATUS
 EFIAPI

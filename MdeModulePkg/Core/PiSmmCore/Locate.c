@@ -217,7 +217,7 @@ SmmLocateProtocol (
   Position.Position  = &gHandleList;
 
   mEfiLocateHandleRequest += 1;
-  InsertConsumeProtocol(__builtin_return_address(0), Protocol);
+  InsertConsumeProtocol(Protocol);
   if (Registration == NULL) {
     //
     // Look up the protocol entry and set the head pointer
@@ -330,7 +330,7 @@ SmmLocateHandle (
         Status = EFI_INVALID_PARAMETER;
         break;
       }
-      InsertConsumeProtocol(__builtin_return_address(0), Protocol);
+      InsertConsumeProtocol(Protocol);
       //
       // Look up the protocol entry and set the head pointer
       //

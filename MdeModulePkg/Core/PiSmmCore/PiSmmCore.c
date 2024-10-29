@@ -966,6 +966,7 @@ extern EFI_SMRAM_DESCRIPTOR  *mSmmMemLibInternalSmramRanges;
 extern UINTN                 mSmmMemLibInternalSmramCount;
 UINT8 Test;
 SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo = {0};
+GUID CurrentModule;
 EFI_STATUS
 EFIAPI
 SmmReportHandler (
@@ -1034,82 +1035,100 @@ VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageSize = Size;
   SmmModulesHandlerProtocolInfo.NumModules++;
 }
-VOID InsertSmiHandler(VOID *Addr,CONST GUID *Handler)
+VOID InsertSmiHandler(CONST GUID *Handler)
 {
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
   {
-    VOID *Start = SmmModulesHandlerProtocolInfo.info[i].ImageBase;
-    VOID *End = SmmModulesHandlerProtocolInfo.info[i].ImageBase + SmmModulesHandlerProtocolInfo.info[i].ImageSize;
-    if (Addr >= Start && Addr <= End)
+    if (!CompareGuid(&CurrentModule, &SmmModulesHandlerProtocolInfo.info[i].Guid))
     {
-      UINTN NumSmiHandler = SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers;
-      BOOLEAN Found = FALSE;
-      for (UINTN j = 0; j < NumSmiHandler; j++)
-      {
-        if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[j], Handler))
-        {
-          Found = TRUE;
-          break;
-        }
-      }
-      if (!Found && NumSmiHandler < MAX_NUM_HANDLERS)
-      {
-        CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[NumSmiHandler], Handler);
-        SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers ++;
-      }
+      continue;
     }
+    CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers++], Handler);
+    return;
   }
+  CopyGuid(&SmmModulesHandlerProtocolInfo.UnclassifiedSmiHandlers[SmmModulesHandlerProtocolInfo.NumUnclassifiedSmiHandlers++], Handler);
 }
-VOID InsertProduceProtocol(VOID *Addr,CONST GUID *Protocol)
+VOID InsertRootSmiHandler(VOID)
+{
+  SmmModulesHandlerProtocolInfo.NumRootSmiHandlers++;
+}
+VOID InsertProduceProtocol(CONST GUID *Protocol)
 {
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
   {
-    VOID *Start = SmmModulesHandlerProtocolInfo.info[i].ImageBase;
-    VOID *End = SmmModulesHandlerProtocolInfo.info[i].ImageBase + SmmModulesHandlerProtocolInfo.info[i].ImageSize;
-    if (Addr >= Start && Addr <= End)
+    if (!CompareGuid(&CurrentModule, &SmmModulesHandlerProtocolInfo.info[i].Guid))
     {
-      UINTN NumProtocol = SmmModulesHandlerProtocolInfo.info[i].NumProduceProtocols;
-      BOOLEAN Found = FALSE;
-      for (UINTN j = 0; j < NumProtocol; j++)
+      continue;
+    }
+    UINTN NumProtocol = SmmModulesHandlerProtocolInfo.info[i].NumProduceProtocols;
+    BOOLEAN Found = FALSE;
+    for (UINTN j = 0; j < NumProtocol; j++)
+    {
+      if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].ProduceProtocols[j], Protocol))
       {
-        if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].ProduceProtocols[j], Protocol))
-        {
-          Found = TRUE;
-          break;
-        }
+        Found = TRUE;
+        break;
       }
-      if (!Found && NumProtocol < MAX_NUM_PRODUCE_PROTOCOLS)
-      {
-        CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].ProduceProtocols[NumProtocol], Protocol);
-        SmmModulesHandlerProtocolInfo.info[i].NumProduceProtocols ++;
-      }
+    }
+    if (!Found && NumProtocol < MAX_NUM_PRODUCE_PROTOCOLS)
+    {
+      CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].ProduceProtocols[NumProtocol], Protocol);
+      SmmModulesHandlerProtocolInfo.info[i].NumProduceProtocols ++;
     }
   }
 }
-VOID InsertConsumeProtocol(VOID *Addr,CONST GUID *Protocol)
+VOID InsertConsumeProtocol(CONST GUID *Protocol)
 {
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
   {
-    VOID *Start = SmmModulesHandlerProtocolInfo.info[i].ImageBase;
-    VOID *End = SmmModulesHandlerProtocolInfo.info[i].ImageBase + SmmModulesHandlerProtocolInfo.info[i].ImageSize;
-    if (Addr >= Start && Addr <= End)
+    if (!CompareGuid(&CurrentModule, &SmmModulesHandlerProtocolInfo.info[i].Guid))
     {
-      UINTN NumProtocol = SmmModulesHandlerProtocolInfo.info[i].NumConsumeProtocols;
-      BOOLEAN Found = FALSE;
-      for (UINTN j = 0; j < NumProtocol; j++)
+      continue;
+    }
+    UINTN NumProtocol = SmmModulesHandlerProtocolInfo.info[i].NumConsumeProtocols;
+    BOOLEAN Found = FALSE;
+    for (UINTN j = 0; j < NumProtocol; j++)
+    {
+      if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].ConsumeProtocols[j], Protocol))
       {
-        if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].ConsumeProtocols[j], Protocol))
-        {
-          Found = TRUE;
-          break;
-        }
+        Found = TRUE;
+        break;
       }
-      if (!Found && NumProtocol < MAX_NUM_CONSUME_PROTOCOLS)
-      {
-        CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].ConsumeProtocols[NumProtocol], Protocol);
-        SmmModulesHandlerProtocolInfo.info[i].NumConsumeProtocols ++;
-      }
+    }
+    if (!Found && NumProtocol < MAX_NUM_CONSUME_PROTOCOLS)
+    {
+      CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].ConsumeProtocols[NumProtocol], Protocol);
+      SmmModulesHandlerProtocolInfo.info[i].NumConsumeProtocols ++;
     }
   }
 }
+VOID ClearCurrentModule(VOID)
+{
+  ZeroMem(&CurrentModule,sizeof(GUID));
+}
+VOID SetCurrentModule(CONST GUID *guid)
+{
+  CopyGuid(&CurrentModule, guid);
+}
+VOID SetCurrentModuleBySmi(CONST GUID *guid)
+{
+  if (guid == NULL)
+  {
+    ClearCurrentModule();
+    return;
+  }  
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
+  {
+    for (UINTN j = 0; j < SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers; j++)
+    {
+      if (CompareGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[j], guid))
+      {
+        SetCurrentModule(&SmmModulesHandlerProtocolInfo.info[i].Guid);
+        return;
+      }
+    }
+  }
+  ClearCurrentModule();
+}
+
 

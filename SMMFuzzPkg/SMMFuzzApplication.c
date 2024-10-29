@@ -128,7 +128,7 @@ VOID PrintSmmReport(
 
     for(int i = 0 ; i < Report->NumModules; i++)
     {
-      Print(L"smi module: %g %p %x\n",&Report->info[i].Guid,Report->info[i].ImageBase,Report->info[i].ImageSize);
+      Print(L"smm module: %g %p %x\n",&Report->info[i].Guid,Report->info[i].ImageBase,Report->info[i].ImageSize);
       for(int j = 0; j < Report->info[i].NumSmiHandlers; j++)
       {
         Print(L"  smi handler: %g\n",&Report->info[i].SmiHandlers[j]);
@@ -142,9 +142,14 @@ VOID PrintSmmReport(
         Print(L"  consume protocol: %g\n",&Report->info[i].ConsumeProtocols[j]);
       }
     }
+    for(int i = 0 ; i < Report->NumUnclassifiedSmiHandlers; i++)
+    {
+      Print(L"unclassified smi handler: %g\n",&Report->UnclassifiedSmiHandlers[i]);
+    }
+    Print(L"%d root handlers found\n",Report->NumRootSmiHandlers);
     for(int i = 0 ; i < Report->NumNonLoadedModules; i++)
     {
-      Print(L"nonloaded smi module: %g\n",&Report->NonLoadedModules[i]);
+      Print(L"nonloaded smm module: %g\n",&Report->NonLoadedModules[i]);
     }
 }
 
@@ -231,6 +236,7 @@ UefiMain(
     IN EFI_HANDLE ImageHandle,
     IN EFI_SYSTEM_TABLE *SystemTable)
 {
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_MODULE_START);
     EFI_STATUS Status;
     
     SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportData;

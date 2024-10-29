@@ -950,6 +950,7 @@ SmmDispatcher (
       RegisterSmramProfileImage (DriverEntry, TRUE);
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
       InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
+      SetCurrentModule(&DriverEntry->FileName);
       if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
         LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
         LIBAFL_QEMU_SMM_INIT_ENTER();
@@ -962,6 +963,7 @@ SmmDispatcher (
         LIBAFL_QEMU_SMM_INIT_EXIT();
         LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
       }
+      ClearCurrentModule();
 
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
       if (EFI_ERROR (Status)) {

@@ -179,12 +179,14 @@ SmiManage (
     SmiHandler = CR (Link, SMI_HANDLER, Link, SMI_HANDLER_SIGNATURE);
     LIBAFL_QEMU_SMM_SMI_ENTER();
     DEBUG((DEBUG_INFO,"SMI hanlder enter %g\n",HandlerType));
+    SetCurrentModuleBySmi(HandlerType);
     Status = SmiHandler->Handler (
                            (EFI_HANDLE)SmiHandler,
                            Context,
                            CommBuffer,
                            CommBufferSize
                            );
+    ClearCurrentModule();
     DEBUG((DEBUG_INFO,"SMI hanlder exit %g %r\n",HandlerType,Status));
     LIBAFL_QEMU_SMM_SMI_EXIT(); 
 
@@ -362,6 +364,7 @@ SmiHandlerRegister (
     // This is root SMI handler
     //
     SmiEntry = &mRootSmiEntry;
+    InsertRootSmiHandler();
   } else {
     //
     // None root SMI handler
@@ -370,7 +373,7 @@ SmiHandlerRegister (
     if (SmiEntry == NULL) {
       return EFI_OUT_OF_RESOURCES;
     }
-    InsertSmiHandler(__builtin_return_address(0), HandlerType);
+    InsertSmiHandler(HandlerType);
   }
   List = &SmiEntry->SmiHandlers;
 
