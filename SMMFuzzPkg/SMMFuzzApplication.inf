@@ -10,6 +10,7 @@
 
 [Sources]
   SMMFuzzApplication.c
+  SmiDependency.c
 
 [Packages]
   MdePkg/MdePkg.dec

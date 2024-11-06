@@ -353,7 +353,7 @@ SmiHandlerRegister (
   if (SmiHandler == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
-
+  DEBUG((DEBUG_INFO,"SmiHandlerRegister %g\n",HandlerType));
   SmiHandler->Signature  = SMI_HANDLER_SIGNATURE;
   SmiHandler->Handler    = Handler;
   SmiHandler->CallerAddr = (UINTN)RETURN_ADDRESS (0);

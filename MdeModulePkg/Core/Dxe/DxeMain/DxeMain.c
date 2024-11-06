@@ -1042,6 +1042,7 @@ VOID InstallSmmFuzzProtocol() {
   ASSERT_EFI_ERROR (Status);
 
   ZeroMem(&mDxeCpuPolicyProcotol,sizeof(DXE_CPU_POLICY_PROTOCOL));
+  mDxeCpuPolicyProcotol.EnableDts = 3;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gDxeCpuPolicyProtocolGuid,
