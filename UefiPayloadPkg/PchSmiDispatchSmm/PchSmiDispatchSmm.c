@@ -159,8 +159,9 @@ SmmSwDispatcher (
   DispatchContext.SwSmiInputValue = SwContext.CommandPort;
   Size                            = sizeof (SwContext);
   DispatchFunction                = (EFI_SMM_HANDLER_ENTRY_POINT2)Context->DispatchFunction;
+  DEBUG((DEBUG_INFO,"sw dispatch enter %p\n",DispatchFunction));
   Status                          = DispatchFunction (DispatchHandle, &DispatchContext, &SwContext, &Size);
-
+  DEBUG((DEBUG_INFO,"sw dispatch exit\n"));
 End:
   //
   // Clear SMI APM status

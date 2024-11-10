@@ -135,6 +135,8 @@ CommonExceptionHandlerWorker (
   {
     (ExternalInterruptHandler[ExceptionType])(ExceptionType, SystemContext);
   } else if (ExceptionType < CPU_EXCEPTION_NUM) {
+    DEBUG((DEBUG_ERROR,"CommonExceptionHandlerWorker exception type %d\n",ExceptionType));
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH);
     //
     // Get Spinlock to display CPU information
     //
@@ -154,8 +156,7 @@ CommonExceptionHandlerWorker (
     // Release Spinlock of output message
     //
     ReleaseSpinLock (&ExceptionHandlerData->DisplayMessageSpinLock);
-    DEBUG((DEBUG_ERROR,"exception %d here\n",ExceptionType));
-    LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH);
+    
     //
     // Enter a dead loop if needn't to execute old IDT handler further
     //

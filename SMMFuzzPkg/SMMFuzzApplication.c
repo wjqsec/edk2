@@ -224,7 +224,6 @@ EFI_STATUS SmmCall(GUID *ID, UINTN size)
   CommSize = size + sizeof(EFI_SMM_COMMUNICATE_HEADER);
   Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,&CommSize);
   if (EFI_ERROR (Status)) {
-    Print(L"Error: SmmCommunication gEfiSmmReportSmmModuleInfoGuid error. %r\n",Status);
     return Status;
   }
   return Status;
@@ -321,22 +320,23 @@ UefiMain(
     LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
     LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,1024);
     UINT32 SmiFuzzTimes[100] = {0};
+
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START);
-    
+
     UINTN SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
     if (SmiFuzzSeqSz <= 1)
       LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END);
     SmiFuzzGroupIndex = SmiFuzzSeq[0] % NumGroups;
-    if (SmiFuzzSeqSz > 32)
-      Print(L"--- %d\n",SmiFuzzSeqSz);
     for (UINTN i = 1; i < SmiFuzzSeqSz; i++) {
       UINTN SmiFuzzIndex = SmiFuzzSeq[i] % Groups[SmiFuzzGroupIndex].NumSmiHandlers;
       UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
-      // SmmCall(&Groups[SmiFuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
+      SmmCall(&Groups[SmiFuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
       SmiFuzzTimes[SmiFuzzIndex]++;
       (VOID)Sz;
     } 
     
+    (VOID)SmiFuzzTimes;
+    (VOID)SmiFuzzGroupIndex;
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END);
     
 

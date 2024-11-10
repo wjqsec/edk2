@@ -8,7 +8,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "DxeMain.h"
 #include "libafl_qemu.h"
-volatile UINT64 SmmFuzzDummyMemory = 10;
 //
 // DXE Core Global Variables for Protocols from PEI
 //
@@ -244,8 +243,6 @@ DxeMain (
   EFI_VECTOR_HANDOFF_INFO       *VectorInfoList;
   EFI_VECTOR_HANDOFF_INFO       *VectorInfo;
   VOID                          *EntryPoint;
-
-  LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)&SmmFuzzDummyMemory);
   
   //
   // Setup the default exception handlers

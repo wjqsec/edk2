@@ -871,6 +871,7 @@ SmmCoreInstallLoadedImage (
 
   return;
 }
+volatile UINT64 SmmFuzzDummyMemory = 10;
 /**
   The Entry Point for SMM Core
 
@@ -893,8 +894,10 @@ SmmMain (
   IN EFI_SYSTEM_TABLE  *SystemTable
   )
 {
+  
   EFI_STATUS  Status;
   UINTN       Index;
+  LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)&SmmFuzzDummyMemory);
   //
   // Get SMM Core Private context passed in from SMM IPL in ImageHandle.
   //

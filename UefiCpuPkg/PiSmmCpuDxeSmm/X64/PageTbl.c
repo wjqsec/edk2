@@ -9,6 +9,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "PiSmmCpuCommon.h"
+#include "libafl_qemu.h"
 #define PAGE_TABLE_PAGES  8
 #define ACC_MAX_BIT       BIT3
 
@@ -721,7 +722,8 @@ SmiPFHandler (
   AcquireSpinLock (mPFLock);
 
   PFAddress = AsmReadCr2 ();
-
+  DEBUG((DEBUG_ERROR,"SmiPFHandler exception addr %p\n",PFAddress));
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH);
   if (PFAddress >= LShiftU64 (1, (mPhysicalAddressBits - 1))) {
     DumpCpuContext (InterruptType, SystemContext);
     DEBUG ((DEBUG_ERROR, "Do not support address 0x%lx by processor!\n", PFAddress));
