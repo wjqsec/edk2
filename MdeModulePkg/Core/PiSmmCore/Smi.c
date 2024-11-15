@@ -7,6 +7,19 @@
 **/
 
 #include "PiSmmCore.h"
+extern EFI_INSTALL_PROTOCOL_INTERFACE      SmmInstallProtocolInterfaceOld;
+extern EFI_UNINSTALL_PROTOCOL_INTERFACE    SmmUninstallProtocolInterfaceOld;
+extern EFI_HANDLE_PROTOCOL                 SmmHandleProtocolOld;
+extern EFI_SMM_REGISTER_PROTOCOL_NOTIFY    SmmRegisterProtocolNotifyOld;
+extern EFI_LOCATE_HANDLE                   SmmLocateHandleOld;
+extern EFI_LOCATE_PROTOCOL                 SmmLocateProtocolOld;
+extern EFI_SMM_INTERRUPT_MANAGE            SmiManageOld;
+extern EFI_SMM_INTERRUPT_REGISTER          SmiHandlerRegisterOld;
+extern EFI_SMM_INTERRUPT_UNREGISTER        SmiHandlerUnRegisterOld;
+extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
+extern EFI_FREE_POOL                       SmmFreePoolOld;
+extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
+extern EFI_FREE_PAGES                      SmmFreePagesOld;
 //
 // mSmiManageCallingDepth is used to track the depth of recursive calls of SmiManage.
 //
@@ -140,6 +153,9 @@ SmiManage (
   IN OUT UINTN           *CommBufferSize  OPTIONAL
   )
 {
+  DEBUG((DEBUG_INFO,"SmiManage %g\n",HandlerType));
+  // if (SmiManageOld)
+  //   return SmiManageOld(HandlerType, Context, CommBuffer, CommBufferSize);
   LIST_ENTRY   *Link;
   LIST_ENTRY   *Head;
   LIST_ENTRY   *EntryLink;
@@ -177,8 +193,8 @@ SmiManage (
 
   for (Link = Head->ForwardLink; Link != Head; Link = Link->ForwardLink) {
     SmiHandler = CR (Link, SMI_HANDLER, Link, SMI_HANDLER_SIGNATURE);
-    LIBAFL_QEMU_SMM_SMI_ENTER();
-    DEBUG((DEBUG_INFO,"SMI hanlder enter %g\n",HandlerType));
+    if (CommBuffer && CommBufferSize)
+      DEBUG((DEBUG_INFO,"SMI hanlder enter %g commbuffer:%p commbuffersize:%d\n",HandlerType,CommBuffer,*CommBufferSize));
     SetCurrentModuleBySmi(HandlerType);
     Status = SmiHandler->Handler (
                            (EFI_HANDLE)SmiHandler,
@@ -188,7 +204,6 @@ SmiManage (
                            );
     ClearCurrentModule();
     DEBUG((DEBUG_INFO,"SMI hanlder exit %g %r\n",HandlerType,Status));
-    LIBAFL_QEMU_SMM_SMI_EXIT(); 
 
     switch (Status) {
       case EFI_INTERRUPT_PENDING:
@@ -341,6 +356,10 @@ SmiHandlerRegister (
   OUT EFI_HANDLE                    *DispatchHandle
   )
 {
+  DEBUG((DEBUG_INFO,"SmiHandlerRegister %g\n",HandlerType));
+  InsertSmiHandler(HandlerType);
+  // if (SmiHandlerRegisterOld)
+  //   return SmiHandlerRegisterOld(Handler, HandlerType, DispatchHandle);
   SMI_HANDLER  *SmiHandler;
   SMI_ENTRY    *SmiEntry;
   LIST_ENTRY   *List;
@@ -353,7 +372,6 @@ SmiHandlerRegister (
   if (SmiHandler == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
-  DEBUG((DEBUG_INFO,"SmiHandlerRegister %g\n",HandlerType));
   SmiHandler->Signature  = SMI_HANDLER_SIGNATURE;
   SmiHandler->Handler    = Handler;
   SmiHandler->CallerAddr = (UINTN)RETURN_ADDRESS (0);
@@ -364,7 +382,6 @@ SmiHandlerRegister (
     // This is root SMI handler
     //
     SmiEntry = &mRootSmiEntry;
-    InsertRootSmiHandler();
   } else {
     //
     // None root SMI handler
@@ -373,7 +390,6 @@ SmiHandlerRegister (
     if (SmiEntry == NULL) {
       return EFI_OUT_OF_RESOURCES;
     }
-    InsertSmiHandler(HandlerType);
   }
   List = &SmiEntry->SmiHandlers;
 
@@ -400,6 +416,9 @@ SmiHandlerUnRegister (
   IN EFI_HANDLE  DispatchHandle
   )
 {
+  DEBUG((DEBUG_INFO,"SmmLocateProtocol: %x\n",DispatchHandle));
+  // if (SmiHandlerUnRegisterOld)
+  //   return SmiHandlerUnRegisterOld(DispatchHandle);
   SMI_HANDLER  *SmiHandler;
   SMI_ENTRY    *SmiEntry;
   LIST_ENTRY   *EntryLink;

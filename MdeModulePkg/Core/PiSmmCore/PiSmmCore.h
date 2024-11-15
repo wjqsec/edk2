@@ -511,7 +511,13 @@ SmmHandleProtocol (
   IN EFI_GUID    *Protocol,
   OUT VOID       **Interface
   );
-
+EFI_STATUS
+EFIAPI
+SmmHandleProtocolFuzz (
+  IN  EFI_HANDLE  UserHandle,
+  IN  EFI_GUID    *Protocol,
+  OUT VOID        **Interface
+  );
 /**
   Add a new protocol notification record for the request protocol.
 
@@ -560,7 +566,15 @@ SmmLocateHandle (
   IN OUT UINTN               *BufferSize,
   OUT EFI_HANDLE             *Buffer
   );
-
+EFI_STATUS
+EFIAPI
+SmmLocateHandleFuzz (
+  IN EFI_LOCATE_SEARCH_TYPE  SearchType,
+  IN EFI_GUID                *Protocol   OPTIONAL,
+  IN VOID                    *SearchKey  OPTIONAL,
+  IN OUT UINTN               *BufferSize,
+  OUT EFI_HANDLE             *Buffer
+  );
 /**
   Return the first Protocol Interface that matches the Protocol GUID. If
   Registration is pasased in return a Protocol Instance that was just add
@@ -584,7 +598,13 @@ SmmLocateProtocol (
   IN  VOID      *Registration OPTIONAL,
   OUT VOID      **Interface
   );
-
+EFI_STATUS
+EFIAPI
+SmmLocateProtocolFuzz (
+  IN  EFI_GUID  *Protocol,
+  IN  VOID      *Registration OPTIONAL,
+  OUT VOID      **Interface
+  );
 /**
   Function returns an array of handles that support the requested protocol
   in a buffer allocated from pool. This is a version of SmmLocateHandle()
@@ -1352,13 +1372,24 @@ SmmEntryPointMemoryManagementHook (
   VOID
   );
 
-
+EFI_DEVICE_PATH_PROTOCOL *
+SmmFvToDevicePath (
+  IN  EFI_FIRMWARE_VOLUME2_PROTOCOL  *Fv,
+  IN  EFI_HANDLE                     FvHandle,
+  IN  EFI_GUID                       *DriverName
+  );
+EFI_STATUS
+EFIAPI
+SmmLoadImage (
+  IN OUT EFI_SMM_DRIVER_ENTRY  *DriverEntry
+  );
 // #define EFI_SMM_REPORT_SMM_HANDLERS_PROTOCOL_GUID { 0x050a25d2, 0x797b, 0x4666, { 0x1a, 0x93, 0x2a, 0x46, 0xba, 0xe2, 0xf5, 0x08 } }
 
 extern EFI_GUID gEfiSmmReportSmmModuleInfoGuid;
 #define MAX_NUM_MODULES 70
 #define MAX_NUM_NONLOADED_MODULES 80
 #define MAX_NUM_UNCLASSIFIED_HANDLERS 50
+#define MAX_NUM_UNCLASSIFIED_PROTOCOLS 100
 #define MAX_NUM_HANDLERS 20
 #define MAX_NUM_PRODUCE_PROTOCOLS 30
 #define MAX_NUM_CONSUME_PROTOCOLS 50
@@ -1390,6 +1421,9 @@ typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_
   UINTN NumUnclassifiedSmiHandlers;
   GUID UnclassifiedSmiHandlers[MAX_NUM_UNCLASSIFIED_HANDLERS];
 
+  UINTN NumUnclassifiedProtocols;
+  GUID UnclassifiedProtocols[MAX_NUM_UNCLASSIFIED_PROTOCOLS];
+
   UINTN NumRootSmiHandlers;
 
   UINTN NumNonLoadedModules;
@@ -1407,7 +1441,8 @@ VOID InsertRootSmiHandler(VOID);
 VOID SetCurrentModule(CONST GUID *guid);
 VOID SetCurrentModuleBySmi(CONST GUID *guid);
 VOID ClearCurrentModule(VOID);
-
+VOID InstallSmmFuzzProtocol(VOID);
+EFI_STATUS InstallSmmFuzzSmiHandler(VOID);
 EFI_STATUS
 EFIAPI
 SmmReportHandler (

@@ -11,7 +11,7 @@
   INF_VERSION                    = 0x00010005
   BASE_NAME                      = PiSmmCore
   MODULE_UNI_FILE                = PiSmmCore.uni
-  FILE_GUID                      = E94F54CD-81EB-47ed-AEC3-856F5DC157A9
+  FILE_GUID                      = E94F54CD-81EB-47ed-AEC3-856F5DC157AA #original guid E94F54CD-81EB-47ed-AEC3-856F5DC157A9
   MODULE_TYPE                    = SMM_CORE
   VERSION_STRING                 = 1.0
   PI_SPECIFICATION_VERSION       = 0x0001000A
@@ -87,7 +87,6 @@
   gEfiSmmUsbDispatch2ProtocolGuid               ## SOMETIMES_CONSUMES
   gEdkiiSmmMemoryAttributeProtocolGuid          ## CONSUMES
   gEfiSmmSxDispatch2ProtocolGuid                ## SOMETIMES_CONSUMES
-
   
 
 [Pcd]

@@ -7,6 +7,19 @@
 **/
 
 #include "PiSmmCore.h"
+extern EFI_INSTALL_PROTOCOL_INTERFACE      SmmInstallProtocolInterfaceOld;
+extern EFI_UNINSTALL_PROTOCOL_INTERFACE    SmmUninstallProtocolInterfaceOld;
+extern EFI_HANDLE_PROTOCOL                 SmmHandleProtocolOld;
+extern EFI_SMM_REGISTER_PROTOCOL_NOTIFY    SmmRegisterProtocolNotifyOld;
+extern EFI_LOCATE_HANDLE                   SmmLocateHandleOld;
+extern EFI_LOCATE_PROTOCOL                 SmmLocateProtocolOld;
+extern EFI_SMM_INTERRUPT_MANAGE            SmiManageOld;
+extern EFI_SMM_INTERRUPT_REGISTER          SmiHandlerRegisterOld;
+extern EFI_SMM_INTERRUPT_UNREGISTER        SmiHandlerUnRegisterOld;
+extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
+extern EFI_FREE_POOL                       SmmFreePoolOld;
+extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
+extern EFI_FREE_PAGES                      SmmFreePagesOld;
 
 LIST_ENTRY  mSmmPoolLists[SmmPoolTypeMax][MAX_POOL_INDEX];
 //
@@ -341,6 +354,8 @@ SmmAllocatePool (
   OUT  VOID             **Buffer
   )
 {
+  // if (SmmAllocatePoolOld)
+  //   return SmmAllocatePoolOld(PoolType, Size, Buffer);
   EFI_STATUS  Status;
 
   Status = SmmInternalAllocatePool (PoolType, Size, Buffer);
@@ -357,7 +372,6 @@ SmmAllocatePool (
 
   return Status;
 }
-
 /**
   Frees pool.
 
@@ -446,6 +460,8 @@ SmmFreePool (
   IN VOID  *Buffer
   )
 {
+  // if (SmmFreePoolOld)
+  //   return SmmFreePoolOld(Buffer);
   EFI_STATUS  Status;
 
   Status = SmmInternalFreePool (Buffer);

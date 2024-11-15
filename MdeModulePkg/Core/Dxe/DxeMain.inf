@@ -179,7 +179,6 @@
   gEfiAcpiSupportProtocolGuid
   gPowerMgmtInitDoneProtocolGuid
   gPlatformNvsAreaProtocolGuid
-  
 
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressBootTimeCodePageNumber    ## SOMETIMES_CONSUMES

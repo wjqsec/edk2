@@ -1094,7 +1094,13 @@ PiSmmCoreMemoryAllocationLibConstructor (
   VOID                   *BootServicesData;
 
   SmmCorePrivate = (SMM_CORE_PRIVATE_DATA *)ImageHandle;
-
+  for (UINTN i = 0 ; i < SmmCorePrivate->SmramRangeCount; i++)
+  {
+    if ((SmmCorePrivate->SmramRanges[i].RegionState & (EFI_ALLOCATED | EFI_NEEDS_TESTING | EFI_NEEDS_ECC_INITIALIZATION)) != 0) {
+      continue;
+    }
+    SmmCorePrivate->SmramRanges[i].PhysicalSize = SmmCorePrivate->SmramRanges[i].PhysicalSize - 0x5000;
+  }
   //
   // The FreePool()/FreePages() will need use SmramRanges data to know whether
   // the buffer to free is in SMRAM range or not. And there may be FreePool()/

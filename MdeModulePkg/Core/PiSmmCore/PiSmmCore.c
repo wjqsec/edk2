@@ -7,7 +7,19 @@
 **/
 
 #include "PiSmmCore.h"
-BOOLEAN SmmFuzzStart = FALSE;
+extern EFI_INSTALL_PROTOCOL_INTERFACE      SmmInstallProtocolInterfaceOld;
+extern EFI_UNINSTALL_PROTOCOL_INTERFACE    SmmUninstallProtocolInterfaceOld;
+extern EFI_HANDLE_PROTOCOL                 SmmHandleProtocolOld;
+extern EFI_SMM_REGISTER_PROTOCOL_NOTIFY    SmmRegisterProtocolNotifyOld;
+extern EFI_LOCATE_HANDLE                   SmmLocateHandleOld;
+extern EFI_LOCATE_PROTOCOL                 SmmLocateProtocolOld;
+extern EFI_SMM_INTERRUPT_MANAGE            SmiManageOld;
+extern EFI_SMM_INTERRUPT_REGISTER          SmiHandlerRegisterOld;
+extern EFI_SMM_INTERRUPT_UNREGISTER        SmiHandlerUnRegisterOld;
+extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
+extern EFI_FREE_POOL                       SmmFreePoolOld;
+extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
+extern EFI_FREE_PAGES                      SmmFreePagesOld;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
 //
@@ -87,7 +99,6 @@ SMM_CORE_SMI_HANDLERS  mSmmCoreSmiHandlers[] = {
   { SmmExitBootServicesHandler, &gEfiEventExitBootServicesGuid,     NULL, FALSE },
   { SmmReadyToBootHandler,      &gEfiEventReadyToBootGuid,          NULL, FALSE },
   { SmmEndOfDxeHandler,         &gEfiEndOfDxeEventGroupGuid,        NULL, TRUE  },
-  { SmmReportHandler,           &gEfiSmmReportSmmModuleInfoGuid,    NULL, FALSE },
   { NULL,                       NULL,                               NULL, FALSE }
 };
 
@@ -703,12 +714,6 @@ SmmEntryPoint (
   SmmEntryPointMemoryManagementHook ();
 
   //
-  // Process Asynchronous SMI sources
-  //
-  if (SmmFuzzStart)
-    SmiManage (NULL, NULL, NULL, NULL);
-
-  //
   // If a legacy boot has occurred, then make sure gSmmCorePrivate is not accessed
   //
   InLegacyBoot = mInLegacyBoot;
@@ -752,7 +757,7 @@ SmmEntryPoint (
         gSmmCorePrivate->ReturnStatus        = EFI_ACCESS_DENIED;
       } else {
         CommunicateHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommunicationBuffer;
-        // BufferSize was updated by the SafeUintnSub() call above.
+        // BufferSize was updated by the SafeUintnSub() call above. 
         Status = SmiManage (
                    &CommunicateHeader->HeaderGuid,
                    NULL,
@@ -769,6 +774,11 @@ SmmEntryPoint (
       }
     }
   }
+
+  //
+  // Process Asynchronous SMI sources
+  //
+  SmiManage (NULL, NULL, NULL, NULL);
 
   //
   // Call platform hook after Smm Dispatch
@@ -871,6 +881,88 @@ SmmCoreInstallLoadedImage (
 
   return;
 }
+
+EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *SystemTable) 
+{
+  EFI_STATUS Status;
+  UINTN                          HandleCount;
+  EFI_HANDLE                     *HandleBuffer;
+  UINTN                          HandleIndex;
+  EFI_HANDLE                     FvHandle;
+  EFI_FIRMWARE_VOLUME2_PROTOCOL  *Fv;
+  UINTN                          Key;
+  EFI_STATUS                     GetNextFileStatus;
+  EFI_FV_FILETYPE                Type;
+  EFI_GUID                       NameGuid;
+  EFI_FV_FILE_ATTRIBUTES         Attributes;
+  UINTN                          Size;
+
+  GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xA9}};
+  Status = gBS->LocateHandleBuffer (
+                        ByProtocol,
+                        &gEfiFirmwareVolume2ProtocolGuid,
+                        NULL,
+                        &HandleCount,
+                        &HandleBuffer
+                        );
+  Type = EFI_FV_FILETYPE_SMM_CORE;
+  for (HandleIndex = 0; HandleIndex < HandleCount; HandleIndex++) {
+    FvHandle = HandleBuffer[HandleIndex];
+    Status = gBS->HandleProtocol (FvHandle, &gEfiFirmwareVolume2ProtocolGuid, (VOID **)&Fv);
+    Key = 0;
+    while (TRUE) {
+      GetNextFileStatus = Fv->GetNextFile (
+                                  Fv,
+                                  &Key,
+                                  &Type,
+                                  &NameGuid,
+                                  &Attributes,
+                                  &Size
+                                  );
+      if(EFI_ERROR(GetNextFileStatus))
+        return EFI_NOT_FOUND; 
+      if (CompareGuid(&NameGuid, &SMMCORE_GUID)) {
+          EFI_SMM_DRIVER_ENTRY  *DriverEntry;
+          DriverEntry = AllocateZeroPool (sizeof (EFI_SMM_DRIVER_ENTRY));
+          ASSERT (DriverEntry != NULL);
+          DriverEntry->Signature = EFI_SMM_DRIVER_ENTRY_SIGNATURE;
+          CopyGuid (&DriverEntry->FileName, &NameGuid);
+          DriverEntry->FvHandle         = FvHandle;
+          DriverEntry->Fv               = Fv;
+          DriverEntry->FvFileDevicePath = SmmFvToDevicePath (Fv, FvHandle, &NameGuid);
+          Status = SmmLoadImage (DriverEntry);
+          ASSERT_EFI_ERROR (Status);
+          // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
+          // LIBAFL_QEMU_SMM_INIT_ENTER();
+          EFI_SMRAM_DESCRIPTOR *OldSmramRange;
+          EFI_SMRAM_DESCRIPTOR *TmpSmramRange;
+          Status = gBS->AllocatePool (EfiBootServicesData, gSmmCorePrivate->SmramRangeCount * sizeof(EFI_SMRAM_DESCRIPTOR), (VOID **)&TmpSmramRange);
+          ASSERT_EFI_ERROR (Status);
+          CopyMem(TmpSmramRange, gSmmCorePrivate->SmramRanges, gSmmCorePrivate->SmramRangeCount * sizeof(EFI_SMRAM_DESCRIPTOR));
+          OldSmramRange = gSmmCorePrivate->SmramRanges;
+          gSmmCorePrivate->SmramRanges = TmpSmramRange;
+          for (UINTN i = 0 ; i < gSmmCorePrivate->SmramRangeCount; i++)
+          {
+            DEBUG((DEBUG_INFO,"smram  %p %p %x %x\n",gSmmCorePrivate->SmramRanges[i].CpuStart, gSmmCorePrivate->SmramRanges[i].PhysicalStart, gSmmCorePrivate->SmramRanges[i].PhysicalSize, gSmmCorePrivate->SmramRanges[i].RegionState));
+            if ((gSmmCorePrivate->SmramRanges[i].RegionState & (EFI_ALLOCATED | EFI_NEEDS_TESTING | EFI_NEEDS_ECC_INITIALIZATION)) != 0) {
+              continue;
+            }
+            gSmmCorePrivate->SmramRanges[i].CpuStart += gSmmCorePrivate->SmramRanges[i].PhysicalSize;
+            gSmmCorePrivate->SmramRanges[i].PhysicalStart += gSmmCorePrivate->SmramRanges[i].PhysicalSize;
+            gSmmCorePrivate->SmramRanges[i].PhysicalSize = 0x5000;
+          }
+          Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(ImageHandle, gST);
+          // LIBAFL_QEMU_SMM_INIT_EXIT();
+          // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
+          gSmmCorePrivate->SmramRanges = OldSmramRange;
+          ASSERT_EFI_ERROR (Status);
+          return Status;
+      }
+    }
+  }
+  return EFI_NOT_FOUND;
+
+}
 volatile UINT64 SmmFuzzDummyMemory = 10;
 /**
   The Entry Point for SMM Core
@@ -898,17 +990,54 @@ SmmMain (
   EFI_STATUS  Status;
   UINTN       Index;
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)&SmmFuzzDummyMemory);
+
   //
   // Get SMM Core Private context passed in from SMM IPL in ImageHandle.
   //
   gSmmCorePrivate = (SMM_CORE_PRIVATE_DATA *)ImageHandle;
+  Status = LoadVendorCore(ImageHandle, SystemTable);
+  if (!EFI_ERROR(Status))
+  {
+      SmmInstallProtocolInterfaceOld = gSmmCorePrivate->Smst->SmmInstallProtocolInterface;
+      SmmUninstallProtocolInterfaceOld = gSmmCorePrivate->Smst->SmmUninstallProtocolInterface;
+      SmmHandleProtocolOld = gSmmCorePrivate->Smst->SmmHandleProtocol;
+      SmmRegisterProtocolNotifyOld = gSmmCorePrivate->Smst->SmmRegisterProtocolNotify;
+      SmmLocateHandleOld = gSmmCorePrivate->Smst->SmmLocateHandle;
+      SmmLocateProtocolOld = gSmmCorePrivate->Smst->SmmLocateProtocol;
+      SmiManageOld = gSmmCorePrivate->Smst->SmiManage;
+      SmiHandlerRegisterOld = gSmmCorePrivate->Smst->SmiHandlerRegister;
+      SmiHandlerUnRegisterOld = gSmmCorePrivate->Smst->SmiHandlerUnRegister;
+      SmmAllocatePoolOld = gSmmCorePrivate->Smst->SmmAllocatePool;
+      SmmFreePoolOld = gSmmCorePrivate->Smst->SmmFreePool;
+      SmmAllocatePagesOld = gSmmCorePrivate->Smst->SmmAllocatePages;
+      SmmFreePagesOld = gSmmCorePrivate->Smst->SmmFreePages;
 
-  //
-  // Fill in SMRAM physical address for the SMM Services Table and the SMM Entry Point.
-  //
-  gSmmCorePrivate->Smst          = &gSmmCoreSmst;
-  gSmmCorePrivate->SmmEntryPoint = SmmEntryPoint;
-
+      
+  }
+  else 
+  {
+    //
+    // Fill in SMRAM physical address for the SMM Services Table and the SMM Entry Point.
+    //
+    gSmmCorePrivate->Smst          = &gSmmCoreSmst;
+  }
+  {
+    gSmmCorePrivate->SmmEntryPoint = SmmEntryPoint;
+    gSmmCorePrivate->Smst->SmmInstallConfigurationTable = SmmInstallConfigurationTable;
+    gSmmCorePrivate->Smst->SmmInstallProtocolInterface = SmmInstallProtocolInterface;
+    gSmmCorePrivate->Smst->SmmUninstallProtocolInterface = SmmUninstallProtocolInterface;
+    gSmmCorePrivate->Smst->SmmHandleProtocol = SmmHandleProtocolFuzz;
+    gSmmCorePrivate->Smst->SmmRegisterProtocolNotify = SmmRegisterProtocolNotify;
+    gSmmCorePrivate->Smst->SmmLocateHandle = SmmLocateHandleFuzz;
+    gSmmCorePrivate->Smst->SmmLocateProtocol = SmmLocateProtocolFuzz;
+    gSmmCorePrivate->Smst->SmiManage = SmiManage;
+    gSmmCorePrivate->Smst->SmiHandlerRegister = SmiHandlerRegister;
+    gSmmCorePrivate->Smst->SmiHandlerUnRegister = SmiHandlerUnRegister;
+    gSmmCorePrivate->Smst->SmmAllocatePool = SmmAllocatePool;
+    gSmmCorePrivate->Smst->SmmFreePool = SmmFreePool;
+    gSmmCorePrivate->Smst->SmmAllocatePages = SmmAllocatePages;
+    gSmmCorePrivate->Smst->SmmFreePages = SmmFreePages;
+  }
   //
   // No need to initialize memory service.
   // It is done in constructor of PiSmmCoreMemoryAllocationLib(),
@@ -930,10 +1059,10 @@ SmmMain (
   //
   for (Index = 0; mSmmCoreSmiHandlers[Index].HandlerType != NULL; Index++) {
     Status = SmiHandlerRegister (
-               mSmmCoreSmiHandlers[Index].Handler,
-               mSmmCoreSmiHandlers[Index].HandlerType,
-               &mSmmCoreSmiHandlers[Index].DispatchHandle
-               );
+              mSmmCoreSmiHandlers[Index].Handler,
+              mSmmCoreSmiHandlers[Index].HandlerType,
+              &mSmmCoreSmiHandlers[Index].DispatchHandle
+              );
     ASSERT_EFI_ERROR (Status);
   }
 
@@ -944,10 +1073,10 @@ SmmMain (
     //
     for (Index = 0; mSmmCoreS3SmiHandlers[Index].HandlerType != NULL; Index++) {
       Status = SmiHandlerRegister (
-                 mSmmCoreS3SmiHandlers[Index].Handler,
-                 mSmmCoreS3SmiHandlers[Index].HandlerType,
-                 &mSmmCoreS3SmiHandlers[Index].DispatchHandle
-                 );
+                mSmmCoreS3SmiHandlers[Index].Handler,
+                mSmmCoreS3SmiHandlers[Index].HandlerType,
+                &mSmmCoreS3SmiHandlers[Index].DispatchHandle
+                );
       ASSERT_EFI_ERROR (Status);
     }
   }
@@ -961,15 +1090,28 @@ SmmMain (
 
   SmmCoreInitializeSmiHandlerProfile ();
 
+  InstallSmmFuzzSmiHandler();
   return EFI_SUCCESS;
 }
+
+EFI_STATUS InstallSmmFuzzSmiHandler(VOID)
+{
+  EFI_HANDLE Handle = NULL;
+  EFI_STATUS Status = SmiHandlerRegister(
+               SmmReportHandler,
+               &gEfiSmmReportSmmModuleInfoGuid,
+               &Handle
+               );
+  return Status;
+}
+
 // extern LIST_ENTRY  mSmiEntryList;
 extern LIST_ENTRY  mDiscoveredList;
 extern EFI_SMRAM_DESCRIPTOR  *mSmmMemLibInternalSmramRanges;
 extern UINTN                 mSmmMemLibInternalSmramCount;
 UINT8 Test;
 SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo = {0};
-GUID CurrentModule;
+GUID CurrentModule = {0};
 EFI_STATUS
 EFIAPI
 SmmReportHandler (
@@ -979,7 +1121,6 @@ SmmReportHandler (
   IN OUT UINTN       *CommBufferSize  OPTIONAL
   )
 {
-  SmmFuzzStart = TRUE;
   SMM_MODULES_HANDLER_PROTOCOL_INFO *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommBuffer;
   LIST_ENTRY  *Link;
   EFI_SMM_DRIVER_ENTRY  *DriverEntry;
@@ -1013,14 +1154,6 @@ SmmReportHandler (
   SmmModulesHandlerProtocolInfo.Test = &Test;
   CopyMem(data,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
 
-  // for (Link = mSmiEntryList.ForwardLink;
-  //      Link != &mSmiEntryList;
-  //      Link = Link->ForwardLink)
-  // { 
-  //   SmiEntry = CR (Link, SMI_ENTRY, AllEntries, SMI_ENTRY_SIGNATURE);
-  //   CopyGuid(&data->Handlers[data->NumHandlers++], &SmiEntry->HandlerType);
-  // }
-
   for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
     DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
     if (DriverEntry->Dependent && data->NumNonLoadedModules < MAX_NUM_NONLOADED_MODULES) {
@@ -1040,15 +1173,23 @@ VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
 }
 VOID InsertSmiHandler(CONST GUID *Handler)
 {
+  if (Handler == NULL)
+  {
+    return InsertRootSmiHandler();
+  }
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
   {
     if (!CompareGuid(&CurrentModule, &SmmModulesHandlerProtocolInfo.info[i].Guid))
     {
       continue;
     }
+    if (SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers >= MAX_NUM_HANDLERS)
+      return;
     CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers++], Handler);
     return;
   }
+  if (SmmModulesHandlerProtocolInfo.NumUnclassifiedSmiHandlers >= MAX_NUM_UNCLASSIFIED_HANDLERS)
+    return;
   CopyGuid(&SmmModulesHandlerProtocolInfo.UnclassifiedSmiHandlers[SmmModulesHandlerProtocolInfo.NumUnclassifiedSmiHandlers++], Handler);
 }
 VOID InsertRootSmiHandler(VOID)
@@ -1078,7 +1219,20 @@ VOID InsertProduceProtocol(CONST GUID *Protocol)
       CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].ProduceProtocols[NumProtocol], Protocol);
       SmmModulesHandlerProtocolInfo.info[i].NumProduceProtocols ++;
     }
+    return;
   }
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumUnclassifiedProtocols; i++)
+  {
+    if (CompareGuid(&SmmModulesHandlerProtocolInfo.UnclassifiedProtocols[i],Protocol))
+    {
+      return;
+    }
+  }
+  if (SmmModulesHandlerProtocolInfo.NumUnclassifiedProtocols >= MAX_NUM_UNCLASSIFIED_PROTOCOLS) 
+  {
+    return;
+  }
+  CopyGuid(&SmmModulesHandlerProtocolInfo.UnclassifiedProtocols[SmmModulesHandlerProtocolInfo.NumUnclassifiedProtocols++], Protocol);
 }
 VOID InsertConsumeProtocol(CONST GUID *Protocol)
 {

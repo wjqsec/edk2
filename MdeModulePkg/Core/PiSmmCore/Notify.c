@@ -7,7 +7,19 @@
 **/
 
 #include "PiSmmCore.h"
-
+extern EFI_INSTALL_PROTOCOL_INTERFACE      SmmInstallProtocolInterfaceOld;
+extern EFI_UNINSTALL_PROTOCOL_INTERFACE    SmmUninstallProtocolInterfaceOld;
+extern EFI_HANDLE_PROTOCOL                 SmmHandleProtocolOld;
+extern EFI_SMM_REGISTER_PROTOCOL_NOTIFY    SmmRegisterProtocolNotifyOld;
+extern EFI_LOCATE_HANDLE                   SmmLocateHandleOld;
+extern EFI_LOCATE_PROTOCOL                 SmmLocateProtocolOld;
+extern EFI_SMM_INTERRUPT_MANAGE            SmiManageOld;
+extern EFI_SMM_INTERRUPT_REGISTER          SmiHandlerRegisterOld;
+extern EFI_SMM_INTERRUPT_UNREGISTER        SmiHandlerUnRegisterOld;
+extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
+extern EFI_FREE_POOL                       SmmFreePoolOld;
+extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
+extern EFI_FREE_PAGES                      SmmFreePagesOld;
 /**
   Signal event for every protocol in protocol entry.
 
@@ -99,6 +111,9 @@ SmmRegisterProtocolNotify (
   OUT VOID               **Registration
   )
 {
+  DEBUG((DEBUG_INFO,"SmmRegisterProtocolNotify: %g\n",Protocol));
+  // if (SmmRegisterProtocolNotifyOld)
+  //   return SmmRegisterProtocolNotifyOld(Protocol, Function, Registration);
   PROTOCOL_ENTRY   *ProtEntry;
   PROTOCOL_NOTIFY  *ProtNotify;
   LIST_ENTRY       *Link;

@@ -4293,6 +4293,7 @@ typedef struct {
 typedef struct _PLATFORM_NVS_AREA_PROTOCOL {
   PLATFORM_NVS_AREA     *Area;
 } PLATFORM_NVS_AREA_PROTOCOL;
+
 VOID InstallSmmFuzzProtocol();
 extern GUID gPchNvsAreaProtocolGuid;
 extern GUID gSaPolicyProtocolGuid;

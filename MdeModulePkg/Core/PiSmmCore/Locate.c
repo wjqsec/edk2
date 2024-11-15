@@ -7,7 +7,19 @@
 **/
 
 #include "PiSmmCore.h"
-
+extern EFI_INSTALL_PROTOCOL_INTERFACE      SmmInstallProtocolInterfaceOld;
+extern EFI_UNINSTALL_PROTOCOL_INTERFACE    SmmUninstallProtocolInterfaceOld;
+extern EFI_HANDLE_PROTOCOL                 SmmHandleProtocolOld;
+extern EFI_SMM_REGISTER_PROTOCOL_NOTIFY    SmmRegisterProtocolNotifyOld;
+extern EFI_LOCATE_HANDLE                   SmmLocateHandleOld;
+extern EFI_LOCATE_PROTOCOL                 SmmLocateProtocolOld;
+extern EFI_SMM_INTERRUPT_MANAGE            SmiManageOld;
+extern EFI_SMM_INTERRUPT_REGISTER          SmiHandlerRegisterOld;
+extern EFI_SMM_INTERRUPT_UNREGISTER        SmiHandlerUnRegisterOld;
+extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
+extern EFI_FREE_POOL                       SmmFreePoolOld;
+extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
+extern EFI_FREE_PAGES                      SmmFreePagesOld;
 //
 // ProtocolRequest - Last LocateHandle request ID
 //
@@ -197,11 +209,13 @@ SmmLocateProtocol (
   OUT VOID      **Interface
   )
 {
+  InsertConsumeProtocol(Protocol);
+  // if (SmmLocateProtocolOld)
+  //   return SmmLocateProtocolOld(Protocol, Registration, Interface);
   EFI_STATUS       Status;
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;
   IHANDLE          *Handle;
-  DEBUG((DEBUG_INFO,"SmmLocateProtocol %g\n",Protocol));
   if ((Interface == NULL) || (Protocol == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
@@ -215,9 +229,8 @@ SmmLocateProtocol (
   Position.Protocol  = Protocol;
   Position.SearchKey = Registration;
   Position.Position  = &gHandleList;
-
   mEfiLocateHandleRequest += 1;
-  InsertConsumeProtocol(Protocol);
+
   if (Registration == NULL) {
     //
     // Look up the protocol entry and set the head pointer
@@ -246,7 +259,20 @@ SmmLocateProtocol (
   }
   return Status;
 }
-
+EFI_STATUS 
+EFIAPI
+SmmLocateProtocolFuzz (
+  IN  EFI_GUID  *Protocol,
+  IN  VOID      *Registration OPTIONAL,
+  OUT VOID      **Interface
+  )
+{
+  EFI_STATUS Status = SmmLocateProtocol(Protocol, Registration, Interface);
+  if(Status == EFI_NOT_FOUND && SmmLocateProtocolOld)
+    Status = SmmLocateProtocolOld(Protocol, Registration, Interface);
+  DEBUG((DEBUG_INFO,"SmmLocateProtocol: %g %r\n",Protocol,Status));
+  return Status;
+}
 /**
   Locates the requested handle(s) and returns them in Buffer.
 
@@ -275,6 +301,10 @@ SmmLocateHandle (
   OUT    EFI_HANDLE              *Buffer
   )
 {
+  
+  InsertConsumeProtocol(Protocol);
+  // if (SmmLocateHandleOld)
+  //   return SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   EFI_STATUS       Status;
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;
@@ -330,7 +360,6 @@ SmmLocateHandle (
         Status = EFI_INVALID_PARAMETER;
         break;
       }
-      InsertConsumeProtocol(Protocol);
       //
       // Look up the protocol entry and set the head pointer
       //
@@ -406,7 +435,22 @@ SmmLocateHandle (
 
   return Status;
 }
-
+EFI_STATUS
+EFIAPI
+SmmLocateHandleFuzz (
+  IN     EFI_LOCATE_SEARCH_TYPE  SearchType,
+  IN     EFI_GUID                *Protocol   OPTIONAL,
+  IN     VOID                    *SearchKey  OPTIONAL,
+  IN OUT UINTN                   *BufferSize,
+  OUT    EFI_HANDLE              *Buffer
+  )
+{
+  EFI_STATUS Status = SmmLocateHandle(SearchType, Protocol, SearchKey, BufferSize, Buffer);
+  if (Status == EFI_NOT_FOUND && SmmLocateHandleOld)
+    Status = SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
+  DEBUG((DEBUG_INFO,"SmmLocateHandle: %g %r\n",Protocol,Status));
+  return Status;
+}
 /**
   Function returns an array of handles that support the requested protocol
   in a buffer allocated from pool. This is a version of SmmLocateHandle()

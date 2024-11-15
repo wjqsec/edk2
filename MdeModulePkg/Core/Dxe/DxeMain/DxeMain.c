@@ -1017,6 +1017,7 @@ DXE_CPU_POLICY_PROTOCOL mDxeCpuPolicyProcotol;
 EFI_ACPI_SUPPORT_PROTOCOL mEfiAcpiSupportProtocol;
 EFI_POWER_MGMT_INIT_DONE_PROTOCOL mEfiPowerMgmtInitDoneProtocol;
 PLATFORM_NVS_AREA_PROTOCOL mPlatformNvsAreaProtocol;
+
 VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
   mPchNvsAreaProtocol.Area = AllocatePool(sizeof(PCH_NVS_AREA));
@@ -1077,5 +1078,6 @@ VOID InstallSmmFuzzProtocol() {
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
+
   (VOID)Status;
 }

@@ -8,7 +8,19 @@
 
 #include "PiSmmCore.h"
 #include <Library/SmmServicesTableLib.h>
-
+extern EFI_INSTALL_PROTOCOL_INTERFACE      SmmInstallProtocolInterfaceOld;
+extern EFI_UNINSTALL_PROTOCOL_INTERFACE    SmmUninstallProtocolInterfaceOld;
+extern EFI_HANDLE_PROTOCOL                 SmmHandleProtocolOld;
+extern EFI_SMM_REGISTER_PROTOCOL_NOTIFY    SmmRegisterProtocolNotifyOld;
+extern EFI_LOCATE_HANDLE                   SmmLocateHandleOld;
+extern EFI_LOCATE_PROTOCOL                 SmmLocateProtocolOld;
+extern EFI_SMM_INTERRUPT_MANAGE            SmiManageOld;
+extern EFI_SMM_INTERRUPT_REGISTER          SmiHandlerRegisterOld;
+extern EFI_SMM_INTERRUPT_UNREGISTER        SmiHandlerUnRegisterOld;
+extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
+extern EFI_FREE_POOL                       SmmFreePoolOld;
+extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
+extern EFI_FREE_PAGES                      SmmFreePagesOld;
 #define TRUNCATE_TO_PAGES(a)  ((a) >> EFI_PAGE_SHIFT)
 
 LIST_ENTRY  mSmmMemoryMap = INITIALIZE_LIST_HEAD_VARIABLE (mSmmMemoryMap);
@@ -727,6 +739,8 @@ SmmAllocatePages (
   OUT EFI_PHYSICAL_ADDRESS  *Memory
   )
 {
+  // if (SmmAllocatePagesOld)
+  //   return SmmAllocatePagesOld(Type, MemoryType, NumberOfPages, Memory);
   EFI_STATUS  Status;
   BOOLEAN     NeedGuard;
 
@@ -936,6 +950,8 @@ SmmFreePages (
   IN UINTN                 NumberOfPages
   )
 {
+  // if (SmmFreePagesOld)
+  //   return SmmFreePagesOld(Memory, NumberOfPages);
   EFI_STATUS  Status;
   BOOLEAN     IsGuarded;
 

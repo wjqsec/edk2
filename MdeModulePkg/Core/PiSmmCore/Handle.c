@@ -8,6 +8,19 @@
 
 #include "PiSmmCore.h"
 
+EFI_INSTALL_PROTOCOL_INTERFACE      SmmInstallProtocolInterfaceOld = NULL;
+EFI_UNINSTALL_PROTOCOL_INTERFACE    SmmUninstallProtocolInterfaceOld = NULL;
+EFI_HANDLE_PROTOCOL                 SmmHandleProtocolOld = NULL;
+EFI_SMM_REGISTER_PROTOCOL_NOTIFY    SmmRegisterProtocolNotifyOld = NULL;
+EFI_LOCATE_HANDLE                   SmmLocateHandleOld = NULL;
+EFI_LOCATE_PROTOCOL                 SmmLocateProtocolOld = NULL;
+EFI_SMM_INTERRUPT_MANAGE            SmiManageOld = NULL;
+EFI_SMM_INTERRUPT_REGISTER          SmiHandlerRegisterOld = NULL;
+EFI_SMM_INTERRUPT_UNREGISTER        SmiHandlerUnRegisterOld = NULL;
+EFI_ALLOCATE_POOL                   SmmAllocatePoolOld = NULL;
+EFI_FREE_POOL                       SmmFreePoolOld = NULL;
+EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld = NULL;
+EFI_FREE_PAGES                      SmmFreePagesOld = NULL;
 //
 // mProtocolDatabase     - A list of all protocols in the system.  (simple list for now)
 // gHandleList           - A list of all the handles in the system
@@ -178,7 +191,10 @@ SmmInstallProtocolInterface (
   IN VOID                *Interface
   )
 {
+  DEBUG((DEBUG_INFO,"SmmInstallProtocolInterface: %g\n",Protocol));
   InsertProduceProtocol(Protocol);
+  // if (SmmInstallProtocolInterfaceOld)
+  //   return SmmInstallProtocolInterfaceOld(UserHandle, Protocol, InterfaceType, Interface);
   return SmmInstallProtocolInterfaceNotify (
            UserHandle,
            Protocol,
@@ -370,6 +386,9 @@ SmmUninstallProtocolInterface (
   IN VOID        *Interface
   )
 {
+  DEBUG((DEBUG_INFO,"SmmUninstallProtocolInterface: %g\n",Protocol));
+  // if (SmmUninstallProtocolInterfaceOld)
+  //   return SmmUninstallProtocolInterfaceOld(UserHandle, Protocol, Interface);
   EFI_STATUS          Status;
   IHANDLE             *Handle;
   PROTOCOL_INTERFACE  *Prot;
@@ -495,6 +514,9 @@ SmmHandleProtocol (
   OUT VOID        **Interface
   )
 {
+  InsertConsumeProtocol(Protocol);
+  // if (SmmHandleProtocolOld)
+  //   return SmmHandleProtocolOld(UserHandle, Protocol, Interface);
   EFI_STATUS          Status;
   PROTOCOL_INTERFACE  *Prot;
 
@@ -525,7 +547,6 @@ SmmHandleProtocol (
   //
   // Look at each protocol interface for a match
   //
-  InsertConsumeProtocol(Protocol);
   Prot = SmmGetProtocolInterface (UserHandle, Protocol);
   if (Prot == NULL) {
     return EFI_UNSUPPORTED;
@@ -537,4 +558,18 @@ SmmHandleProtocol (
   *Interface = Prot->Interface;
 
   return EFI_SUCCESS;
+}
+EFI_STATUS
+EFIAPI
+SmmHandleProtocolFuzz (
+  IN  EFI_HANDLE  UserHandle,
+  IN  EFI_GUID    *Protocol,
+  OUT VOID        **Interface
+  )
+{
+  EFI_STATUS Status = SmmHandleProtocol(UserHandle, Protocol, Interface);
+  if (Status == EFI_UNSUPPORTED && SmmHandleProtocolOld)
+    Status = SmmHandleProtocolOld(UserHandle, Protocol, Interface);
+  DEBUG((DEBUG_INFO,"SmmHandleProtocol: %g %r\n",Protocol, Status));
+  return Status;
 }

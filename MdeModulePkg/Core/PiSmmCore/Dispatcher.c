@@ -840,7 +840,7 @@ GUID OVMFSmmModules[] = {
     { 0x470CB248, 0xE8AC, 0x473C, { 0xBB, 0x4F, 0x81, 0x06, 0x9A, 0x1F, 0xE6, 0xFD } },
     { 0xE2EA6F47, 0xE678, 0x47FA, { 0x8C, 0x1B, 0x02, 0xA0, 0x3E, 0x82, 0x5C, 0x6E } },
     { 0x60F343E3, 0x2AE2, 0x4AA7, { 0xB0, 0x1E, 0xBF, 0x9B, 0xD5, 0xC0, 0x4A, 0x3B } },
-    { 0x2D59F041, 0x53A4, 0x40D0, { 0xA6, 0xCD, 0x84, 0x4D, 0xC0, 0xDF, 0xEF, 0x17 } }
+    { 0x2D59F041, 0x53A4, 0x40D0, { 0xA6, 0xCD, 0x84, 0x4D, 0xC0, 0xDF, 0xEF, 0x17 } },
 };
 BOOLEAN IsOVMFSmmModule(GUID *guid) {
   for (UINTN i = 0; i <  ( sizeof(OVMFSmmModules) / sizeof(GUID)); i++) {
@@ -951,18 +951,11 @@ SmmDispatcher (
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
       InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
       SetCurrentModule(&DriverEntry->FileName);
-      if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
-        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
-        LIBAFL_QEMU_SMM_INIT_ENTER();
-        DEBUG((DEBUG_INFO,"start fuzzing entry point %g\n",&DriverEntry->FileName));
-      }
-      DEBUG((DEBUG_INFO,"start entry point %g\n",&DriverEntry->FileName));
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
+      DEBUG((DEBUG_INFO,"start fuzzing entry point %g\n",&DriverEntry->FileName));
       Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
       DEBUG((DEBUG_INFO,"end entry point %g\n",&DriverEntry->FileName));   
-      if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
-        LIBAFL_QEMU_SMM_INIT_EXIT();
-        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
-      }
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
       ClearCurrentModule();
 
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
