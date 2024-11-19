@@ -20,6 +20,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
+extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 
 LIST_ENTRY  mSmmPoolLists[SmmPoolTypeMax][MAX_POOL_INDEX];
 //
@@ -372,6 +373,20 @@ SmmAllocatePool (
 
   return Status;
 }
+EFI_STATUS
+EFIAPI
+SmmAllocatePoolFuzz (
+  IN   EFI_MEMORY_TYPE  PoolType,
+  IN   UINTN            Size,
+  OUT  VOID             **Buffer
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmmAllocatePool(PoolType, Size, Buffer);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+  return Status;
+}
 /**
   Frees pool.
 
@@ -476,5 +491,17 @@ SmmFreePool (
       );
   }
 
+  return Status;
+}
+EFI_STATUS
+EFIAPI
+SmmFreePoolFuzz (
+  IN VOID  *Buffer
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmmFreePool(Buffer);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }

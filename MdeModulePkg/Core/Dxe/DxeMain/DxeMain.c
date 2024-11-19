@@ -8,6 +8,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "DxeMain.h"
 #include "libafl_qemu.h"
+
+SMM_FUZZ_GLOBAL_DATA SmmFuzzGlobalData;
 //
 // DXE Core Global Variables for Protocols from PEI
 //
@@ -1011,6 +1013,7 @@ EFIAPI EFI_ACPI_PUBLISH_TABLES_FUNC(
 {
   return EFI_SUCCESS;
 }
+UINT8 UnknownProtocol[1000];
 PCH_NVS_AREA_PROTOCOL mPchNvsAreaProtocol;
 SA_POLICY_PROTOCOL mSaPolicyProtocol;
 DXE_CPU_POLICY_PROTOCOL mDxeCpuPolicyProcotol;
@@ -1020,9 +1023,20 @@ PLATFORM_NVS_AREA_PROTOCOL mPlatformNvsAreaProtocol;
 
 VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
+  EFI_STATUS Status;
+  SmmFuzzGlobalData.in_fuzz = 0;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gSmmFuzzDataProtocolGuid,
+                  &SmmFuzzGlobalData,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  
   mPchNvsAreaProtocol.Area = AllocatePool(sizeof(PCH_NVS_AREA));
   ZeroMem(mPchNvsAreaProtocol.Area,sizeof(PCH_NVS_AREA));
-  EFI_STATUS Status = gBS->InstallMultipleProtocolInterfaces (
+  Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gPchNvsAreaProtocolGuid,
                   &mPchNvsAreaProtocol,
@@ -1079,5 +1093,36 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gUnknownHpProtocol1Guid,
+                  UnknownProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gUnknownHpProtocol2Guid,
+                  UnknownProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gUnknownHpProtocol3Guid,
+                  UnknownProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gUnknownHpProtocol4Guid,
+                  UnknownProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
   (VOID)Status;
 }

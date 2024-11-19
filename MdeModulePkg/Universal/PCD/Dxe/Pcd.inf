@@ -336,7 +336,7 @@
   ## NOTIFY
   ## SOMETIMES_CONSUMES
   gEdkiiVariableLockProtocolGuid
-
+  gSmmFuzzDataProtocolGuid
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdVpdBaseAddress      ## SOMETIMES_CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdVpdBaseAddress64    ## SOMETIMES_CONSUMES

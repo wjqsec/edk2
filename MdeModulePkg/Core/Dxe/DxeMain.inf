@@ -173,12 +173,17 @@
   gEfiCapsuleArchProtocolGuid                   ## CONSUMES
   gEfiWatchdogTimerArchProtocolGuid             ## CONSUMES
   ## SmmFuzz
+  gSmmFuzzDataProtocolGuid
   gPchNvsAreaProtocolGuid
   gSaPolicyProtocolGuid
   gDxeCpuPolicyProtocolGuid
   gEfiAcpiSupportProtocolGuid
   gPowerMgmtInitDoneProtocolGuid
   gPlatformNvsAreaProtocolGuid
+  gUnknownHpProtocol1Guid
+  gUnknownHpProtocol2Guid
+  gUnknownHpProtocol3Guid
+  gUnknownHpProtocol4Guid
 
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressBootTimeCodePageNumber    ## SOMETIMES_CONSUMES

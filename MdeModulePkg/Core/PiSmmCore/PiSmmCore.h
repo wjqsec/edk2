@@ -282,7 +282,14 @@ SmmInstallProtocolInterface (
   IN EFI_INTERFACE_TYPE  InterfaceType,
   IN VOID                *Interface
   );
-
+EFI_STATUS
+EFIAPI
+SmmInstallProtocolInterfaceFuzz (
+  IN OUT EFI_HANDLE      *UserHandle,
+  IN EFI_GUID            *Protocol,
+  IN EFI_INTERFACE_TYPE  InterfaceType,
+  IN VOID                *Interface
+  );
 /**
   Allocates pages from the memory map.
 
@@ -307,7 +314,14 @@ SmmAllocatePages (
   IN      UINTN                 NumberOfPages,
   OUT     EFI_PHYSICAL_ADDRESS  *Memory
   );
-
+EFI_STATUS
+EFIAPI
+SmmAllocatePagesFuzz (
+  IN  EFI_ALLOCATE_TYPE     Type,
+  IN  EFI_MEMORY_TYPE       MemoryType,
+  IN  UINTN                 NumberOfPages,
+  OUT EFI_PHYSICAL_ADDRESS  *Memory
+  );
 /**
   Allocates pages from the memory map.
 
@@ -352,7 +366,12 @@ SmmFreePages (
   IN      EFI_PHYSICAL_ADDRESS  Memory,
   IN      UINTN                 NumberOfPages
   );
-
+EFI_STATUS
+EFIAPI
+SmmFreePagesFuzz (
+  IN EFI_PHYSICAL_ADDRESS  Memory,
+  IN UINTN                 NumberOfPages
+  );
 /**
   Frees previous allocated pages.
 
@@ -394,7 +413,13 @@ SmmAllocatePool (
   IN      UINTN            Size,
   OUT     VOID             **Buffer
   );
-
+EFI_STATUS
+EFIAPI
+SmmAllocatePoolFuzz (
+  IN   EFI_MEMORY_TYPE  PoolType,
+  IN   UINTN            Size,
+  OUT  VOID             **Buffer
+  );
 /**
   Allocate pool of a particular type.
 
@@ -430,7 +455,11 @@ EFIAPI
 SmmFreePool (
   IN      VOID  *Buffer
   );
-
+EFI_STATUS
+EFIAPI
+SmmFreePoolFuzz (
+  IN VOID  *Buffer
+  );
 /**
   Frees pool.
 
@@ -492,7 +521,13 @@ SmmUninstallProtocolInterface (
   IN EFI_GUID    *Protocol,
   IN VOID        *Interface
   );
-
+EFI_STATUS
+EFIAPI
+SmmUninstallProtocolInterfaceFuzz (
+  IN EFI_HANDLE  UserHandle,
+  IN EFI_GUID    *Protocol,
+  IN VOID        *Interface
+  );
 /**
   Queries a handle to determine if it supports a specified protocol.
 
@@ -538,7 +573,13 @@ SmmRegisterProtocolNotify (
   IN  EFI_SMM_NOTIFY_FN  Function,
   OUT VOID               **Registration
   );
-
+EFI_STATUS
+EFIAPI
+SmmRegisterProtocolNotifyFuzz (
+  IN  CONST EFI_GUID     *Protocol,
+  IN  EFI_SMM_NOTIFY_FN  Function,
+  OUT VOID               **Registration
+  );
 /**
   Locates the requested handle(s) and returns them in Buffer.
 
@@ -659,7 +700,14 @@ SmiManage (
   IN OUT VOID            *CommBuffer      OPTIONAL,
   IN OUT UINTN           *CommBufferSize  OPTIONAL
   );
-
+EFI_STATUS
+EFIAPI
+SmiManageFuzz (
+  IN     CONST EFI_GUID  *HandlerType,
+  IN     CONST VOID      *Context         OPTIONAL,
+  IN OUT VOID            *CommBuffer      OPTIONAL,
+  IN OUT UINTN           *CommBufferSize  OPTIONAL
+  );
 /**
   Registers a handler to execute within SMM.
 
@@ -678,7 +726,13 @@ SmiHandlerRegister (
   IN   CONST EFI_GUID                *HandlerType  OPTIONAL,
   OUT  EFI_HANDLE                    *DispatchHandle
   );
-
+EFI_STATUS
+EFIAPI
+SmiHandlerRegisterFuzz (
+  IN  EFI_SMM_HANDLER_ENTRY_POINT2  Handler,
+  IN  CONST EFI_GUID                *HandlerType  OPTIONAL,
+  OUT EFI_HANDLE                    *DispatchHandle
+  );
 /**
   Unregister a handler in SMM.
 
@@ -693,7 +747,11 @@ EFIAPI
 SmiHandlerUnRegister (
   IN  EFI_HANDLE  DispatchHandle
   );
-
+EFI_STATUS
+EFIAPI
+SmiHandlerUnRegisterFuzz (
+  IN EFI_HANDLE  DispatchHandle
+  );
 /**
   This function is the main entry point for an SMM handler dispatch
   or communicate-based callback.
@@ -1385,6 +1443,7 @@ SmmLoadImage (
   );
 // #define EFI_SMM_REPORT_SMM_HANDLERS_PROTOCOL_GUID { 0x050a25d2, 0x797b, 0x4666, { 0x1a, 0x93, 0x2a, 0x46, 0xba, 0xe2, 0xf5, 0x08 } }
 
+extern GUID gSmmFuzzDataProtocolGuid;
 extern EFI_GUID gEfiSmmReportSmmModuleInfoGuid;
 #define MAX_NUM_MODULES 70
 #define MAX_NUM_NONLOADED_MODULES 80

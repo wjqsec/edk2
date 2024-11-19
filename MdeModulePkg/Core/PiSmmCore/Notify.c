@@ -20,6 +20,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
+extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 /**
   Signal event for every protocol in protocol entry.
 
@@ -209,5 +210,19 @@ SmmRegisterProtocolNotify (
     Status        = EFI_SUCCESS;
   }
 
+  return Status;
+}
+EFI_STATUS
+EFIAPI
+SmmRegisterProtocolNotifyFuzz (
+  IN  CONST EFI_GUID     *Protocol,
+  IN  EFI_SMM_NOTIFY_FN  Function,
+  OUT VOID               **Registration
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmmRegisterProtocolNotify(Protocol, Function, Registration);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }

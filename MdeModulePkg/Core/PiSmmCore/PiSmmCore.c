@@ -20,6 +20,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
+extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
 //
@@ -366,7 +367,7 @@ SmmReadyToLockHandler (
   UINTN       Index;
   EFI_HANDLE  SmmHandle;
   VOID        *Interface;
-
+  DEBUG((DEBUG_INFO,"SmmReadyToLockHandler start\n"));
   PERF_CALLBACK_BEGIN (&gEfiDxeSmmReadyToLockProtocolGuid);
 
   //
@@ -799,7 +800,17 @@ SmmEntryPoint (
 
   PERF_FUNCTION_END ();
 }
-
+VOID
+EFIAPI
+SmmEntryPointFuzz (
+  IN CONST EFI_SMM_ENTRY_CONTEXT  *SmmEntryContext
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  SmmEntryPoint(SmmEntryContext);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+}
 /**
   Install LoadedImage protocol for SMM Core.
 **/
@@ -932,8 +943,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           DriverEntry->FvFileDevicePath = SmmFvToDevicePath (Fv, FvHandle, &NameGuid);
           Status = SmmLoadImage (DriverEntry);
           ASSERT_EFI_ERROR (Status);
-          // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
-          // LIBAFL_QEMU_SMM_INIT_ENTER();
+
           EFI_SMRAM_DESCRIPTOR *OldSmramRange;
           EFI_SMRAM_DESCRIPTOR *TmpSmramRange;
           Status = gBS->AllocatePool (EfiBootServicesData, gSmmCorePrivate->SmramRangeCount * sizeof(EFI_SMRAM_DESCRIPTOR), (VOID **)&TmpSmramRange);
@@ -943,7 +953,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           gSmmCorePrivate->SmramRanges = TmpSmramRange;
           for (UINTN i = 0 ; i < gSmmCorePrivate->SmramRangeCount; i++)
           {
-            DEBUG((DEBUG_INFO,"smram  %p %p %x %x\n",gSmmCorePrivate->SmramRanges[i].CpuStart, gSmmCorePrivate->SmramRanges[i].PhysicalStart, gSmmCorePrivate->SmramRanges[i].PhysicalSize, gSmmCorePrivate->SmramRanges[i].RegionState));
+            // DEBUG((DEBUG_INFO,"smram  %p %p %x %x\n",gSmmCorePrivate->SmramRanges[i].CpuStart, gSmmCorePrivate->SmramRanges[i].PhysicalStart, gSmmCorePrivate->SmramRanges[i].PhysicalSize, gSmmCorePrivate->SmramRanges[i].RegionState));
             if ((gSmmCorePrivate->SmramRanges[i].RegionState & (EFI_ALLOCATED | EFI_NEEDS_TESTING | EFI_NEEDS_ECC_INITIALIZATION)) != 0) {
               continue;
             }
@@ -951,9 +961,18 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
             gSmmCorePrivate->SmramRanges[i].PhysicalStart += gSmmCorePrivate->SmramRanges[i].PhysicalSize;
             gSmmCorePrivate->SmramRanges[i].PhysicalSize = 0x5000;
           }
+          LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
+          DEBUG((DEBUG_INFO,"vendor smm core start\n"));
+          SmmFuzzGlobalData->in_fuzz = 1;
           Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(ImageHandle, gST);
-          // LIBAFL_QEMU_SMM_INIT_EXIT();
-          // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
+          SmmFuzzGlobalData->in_fuzz = 0;
+          DEBUG((DEBUG_INFO,"vendor smm core end %r\n",Status));
+          if (EFI_ERROR (Status)) {
+            LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT);  
+          } else {
+            LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
+          }
+          
           gSmmCorePrivate->SmramRanges = OldSmramRange;
           ASSERT_EFI_ERROR (Status);
           return Status;
@@ -990,7 +1009,8 @@ SmmMain (
   EFI_STATUS  Status;
   UINTN       Index;
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)&SmmFuzzDummyMemory);
-
+  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  ASSERT(!EFI_ERROR(Status));
   //
   // Get SMM Core Private context passed in from SMM IPL in ImageHandle.
   //
@@ -1021,23 +1041,24 @@ SmmMain (
     //
     gSmmCorePrivate->Smst          = &gSmmCoreSmst;
   }
-  {
-    gSmmCorePrivate->SmmEntryPoint = SmmEntryPoint;
-    gSmmCorePrivate->Smst->SmmInstallConfigurationTable = SmmInstallConfigurationTable;
-    gSmmCorePrivate->Smst->SmmInstallProtocolInterface = SmmInstallProtocolInterface;
-    gSmmCorePrivate->Smst->SmmUninstallProtocolInterface = SmmUninstallProtocolInterface;
-    gSmmCorePrivate->Smst->SmmHandleProtocol = SmmHandleProtocolFuzz;
-    gSmmCorePrivate->Smst->SmmRegisterProtocolNotify = SmmRegisterProtocolNotify;
-    gSmmCorePrivate->Smst->SmmLocateHandle = SmmLocateHandleFuzz;
-    gSmmCorePrivate->Smst->SmmLocateProtocol = SmmLocateProtocolFuzz;
-    gSmmCorePrivate->Smst->SmiManage = SmiManage;
-    gSmmCorePrivate->Smst->SmiHandlerRegister = SmiHandlerRegister;
-    gSmmCorePrivate->Smst->SmiHandlerUnRegister = SmiHandlerUnRegister;
-    gSmmCorePrivate->Smst->SmmAllocatePool = SmmAllocatePool;
-    gSmmCorePrivate->Smst->SmmFreePool = SmmFreePool;
-    gSmmCorePrivate->Smst->SmmAllocatePages = SmmAllocatePages;
-    gSmmCorePrivate->Smst->SmmFreePages = SmmFreePages;
-  }
+  
+  // {
+    gSmmCorePrivate->SmmEntryPoint = SmmEntryPointFuzz;
+  //   // gSmmCorePrivate->Smst->SmmInstallConfigurationTable = SmmInstallConfigurationTable;
+  //   gSmmCorePrivate->Smst->SmmInstallProtocolInterface = SmmInstallProtocolInterfaceFuzz;
+  //   gSmmCorePrivate->Smst->SmmUninstallProtocolInterface = SmmUninstallProtocolInterfaceFuzz;
+  //   gSmmCorePrivate->Smst->SmmHandleProtocol = SmmHandleProtocolFuzz;
+  //   gSmmCorePrivate->Smst->SmmRegisterProtocolNotify = SmmRegisterProtocolNotifyFuzz;
+  //   gSmmCorePrivate->Smst->SmmLocateHandle = SmmLocateHandleFuzz;
+  //   gSmmCorePrivate->Smst->SmmLocateProtocol = SmmLocateProtocolFuzz;
+  //   gSmmCorePrivate->Smst->SmiManage = SmiManageFuzz;
+  //   gSmmCorePrivate->Smst->SmiHandlerRegister = SmiHandlerRegisterFuzz;
+  //   gSmmCorePrivate->Smst->SmiHandlerUnRegister = SmiHandlerUnRegisterFuzz;
+  //   gSmmCorePrivate->Smst->SmmAllocatePool = SmmAllocatePoolFuzz;
+  //   gSmmCorePrivate->Smst->SmmFreePool = SmmFreePoolFuzz;
+  //   gSmmCorePrivate->Smst->SmmAllocatePages = SmmAllocatePagesFuzz;
+  //   gSmmCorePrivate->Smst->SmmFreePages = SmmFreePagesFuzz;
+  // }
   //
   // No need to initialize memory service.
   // It is done in constructor of PiSmmCoreMemoryAllocationLib(),
@@ -1287,5 +1308,3 @@ VOID SetCurrentModuleBySmi(CONST GUID *guid)
   }
   ClearCurrentModule();
 }
-
-

@@ -88,6 +88,7 @@
   gEdkiiSmmMemoryAttributeProtocolGuid          ## CONSUMES
   gEfiSmmSxDispatch2ProtocolGuid                ## SOMETIMES_CONSUMES
   
+  gSmmFuzzDataProtocolGuid
 
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressSmmCodePageNumber     ## SOMETIMES_CONSUMES

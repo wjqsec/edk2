@@ -20,6 +20,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
+extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 //
 // mSmiManageCallingDepth is used to track the depth of recursive calls of SmiManage.
 //
@@ -154,8 +155,6 @@ SmiManage (
   )
 {
   DEBUG((DEBUG_INFO,"SmiManage %g\n",HandlerType));
-  // if (SmiManageOld)
-  //   return SmiManageOld(HandlerType, Context, CommBuffer, CommBufferSize);
   LIST_ENTRY   *Link;
   LIST_ENTRY   *Head;
   LIST_ENTRY   *EntryLink;
@@ -164,6 +163,9 @@ SmiManage (
   EFI_STATUS   ReturnStatus;
   BOOLEAN      WillReturn;
   EFI_STATUS   Status;
+
+  // if (SmiManageOld)
+  //   SmiManageOld(HandlerType, Context, CommBuffer, CommBufferSize);
 
   PERF_FUNCTION_BEGIN ();
   mSmiManageCallingDepth++;
@@ -336,7 +338,22 @@ SmiManage (
   PERF_FUNCTION_END ();
   return ReturnStatus;
 }
+EFI_STATUS
+EFIAPI
+SmiManageFuzz (
+  IN     CONST EFI_GUID  *HandlerType,
+  IN     CONST VOID      *Context         OPTIONAL,
+  IN OUT VOID            *CommBuffer      OPTIONAL,
+  IN OUT UINTN           *CommBufferSize  OPTIONAL
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status =SmiManage(HandlerType, Context, CommBuffer, CommBufferSize);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+  return Status;
 
+}
 /**
   Registers a handler to execute within SMM.
 
@@ -400,7 +417,20 @@ SmiHandlerRegister (
 
   return EFI_SUCCESS;
 }
-
+EFI_STATUS
+EFIAPI
+SmiHandlerRegisterFuzz (
+  IN  EFI_SMM_HANDLER_ENTRY_POINT2  Handler,
+  IN  CONST EFI_GUID                *HandlerType  OPTIONAL,
+  OUT EFI_HANDLE                    *DispatchHandle
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmiHandlerRegister(Handler, HandlerType, DispatchHandle);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+  return Status;
+}
 /**
   Unregister a handler in SMM.
 
@@ -481,4 +511,16 @@ SmiHandlerUnRegister (
   //
   RemoveSmiHandler (SmiHandler, (SmiEntry == &mRootSmiEntry) ? NULL : SmiEntry);
   return EFI_SUCCESS;
+}
+EFI_STATUS
+EFIAPI
+SmiHandlerUnRegisterFuzz (
+  IN EFI_HANDLE  DispatchHandle
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmiHandlerUnRegister(DispatchHandle);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+  return Status;
 }

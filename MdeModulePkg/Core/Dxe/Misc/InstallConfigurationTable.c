@@ -34,6 +34,7 @@ CoreInstallConfigurationTable (
   IN VOID      *Table
   )
 {
+  DEBUG((DEBUG_INFO,"CoreInstallConfigurationTable %g\n",Guid));
   UINTN                    Index;
   EFI_CONFIGURATION_TABLE  *EfiConfigurationTable;
   EFI_CONFIGURATION_TABLE  *OldTable;

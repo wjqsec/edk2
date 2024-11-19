@@ -34,6 +34,7 @@
 **/
 
 #include "PiSmmCore.h"
+extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 //
 // SMM Dispatcher Data structures
 //
@@ -943,7 +944,6 @@ SmmDispatcher (
       // Cache state of SmmEntryPointRegistered before calling entry point
       //
       PreviousSmmEntryPointRegistered = gSmmCorePrivate->SmmEntryPointRegistered;
-
       //
       // For each SMM driver, pass NULL as ImageHandle
       //
@@ -953,9 +953,16 @@ SmmDispatcher (
       SetCurrentModule(&DriverEntry->FileName);
       LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
       DEBUG((DEBUG_INFO,"start fuzzing entry point %g\n",&DriverEntry->FileName));
+      SmmFuzzGlobalData->in_fuzz = 1;
       Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
-      DEBUG((DEBUG_INFO,"end entry point %g\n",&DriverEntry->FileName));   
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
+      SmmFuzzGlobalData->in_fuzz = 0;
+      DEBUG((DEBUG_INFO,"end entry point %g %r\n",&DriverEntry->FileName, Status));   
+      if (EFI_ERROR (Status)) {
+        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT);
+      }
+      else {
+        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
+      }
       ClearCurrentModule();
 
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);

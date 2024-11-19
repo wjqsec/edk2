@@ -21,6 +21,7 @@ EFI_ALLOCATE_POOL                   SmmAllocatePoolOld = NULL;
 EFI_FREE_POOL                       SmmFreePoolOld = NULL;
 EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld = NULL;
 EFI_FREE_PAGES                      SmmFreePagesOld = NULL;
+SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData = NULL;
 //
 // mProtocolDatabase     - A list of all protocols in the system.  (simple list for now)
 // gHandleList           - A list of all the handles in the system
@@ -167,7 +168,7 @@ SmmFindProtocolInterface (
 
   return Prot;
 }
-
+UINTN TmpInterface;
 /**
   Wrapper function to SmmInstallProtocolInterfaceNotify.  This is the public API which
   Calls the private one which contains a BOOLEAN parameter for notifications
@@ -193,7 +194,10 @@ SmmInstallProtocolInterface (
 {
   DEBUG((DEBUG_INFO,"SmmInstallProtocolInterface: %g\n",Protocol));
   InsertProduceProtocol(Protocol);
-  // if (SmmInstallProtocolInterfaceOld)
+  if (SmmInstallProtocolInterfaceOld) {
+    EFI_HANDLE TmpHandle = NULL;  //install a fake protocol to trigger the installed protocol notification
+    SmmInstallProtocolInterfaceOld(&TmpHandle, Protocol, InterfaceType, &TmpInterface);
+  }
   //   return SmmInstallProtocolInterfaceOld(UserHandle, Protocol, InterfaceType, Interface);
   return SmmInstallProtocolInterfaceNotify (
            UserHandle,
@@ -203,7 +207,21 @@ SmmInstallProtocolInterface (
            TRUE
            );
 }
-
+EFI_STATUS
+EFIAPI
+SmmInstallProtocolInterfaceFuzz (
+  IN OUT EFI_HANDLE      *UserHandle,
+  IN EFI_GUID            *Protocol,
+  IN EFI_INTERFACE_TYPE  InterfaceType,
+  IN VOID                *Interface
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmmInstallProtocolInterface(UserHandle, Protocol, InterfaceType, Interface);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+  return Status;
+}
 /**
   Installs a protocol interface into the boot services environment.
 
@@ -448,7 +466,20 @@ SmmUninstallProtocolInterface (
 
   return Status;
 }
-
+EFI_STATUS
+EFIAPI
+SmmUninstallProtocolInterfaceFuzz (
+  IN EFI_HANDLE  UserHandle,
+  IN EFI_GUID    *Protocol,
+  IN VOID        *Interface
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmmUninstallProtocolInterface(UserHandle, Protocol, Interface);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+  return Status;
+}
 /**
   Locate a certain GUID protocol interface in a Handle's protocols.
 
@@ -567,9 +598,12 @@ SmmHandleProtocolFuzz (
   OUT VOID        **Interface
   )
 {
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmHandleProtocol(UserHandle, Protocol, Interface);
   if (Status == EFI_UNSUPPORTED && SmmHandleProtocolOld)
     Status = SmmHandleProtocolOld(UserHandle, Protocol, Interface);
   DEBUG((DEBUG_INFO,"SmmHandleProtocol: %g %r\n",Protocol, Status));
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }

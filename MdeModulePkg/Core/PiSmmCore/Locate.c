@@ -20,6 +20,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
+extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 //
 // ProtocolRequest - Last LocateHandle request ID
 //
@@ -267,10 +268,13 @@ SmmLocateProtocolFuzz (
   OUT VOID      **Interface
   )
 {
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmLocateProtocol(Protocol, Registration, Interface);
   if(Status == EFI_NOT_FOUND && SmmLocateProtocolOld)
     Status = SmmLocateProtocolOld(Protocol, Registration, Interface);
   DEBUG((DEBUG_INFO,"SmmLocateProtocol: %g %r\n",Protocol,Status));
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**
@@ -445,10 +449,13 @@ SmmLocateHandleFuzz (
   OUT    EFI_HANDLE              *Buffer
   )
 {
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmLocateHandle(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   if (Status == EFI_NOT_FOUND && SmmLocateHandleOld)
     Status = SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   DEBUG((DEBUG_INFO,"SmmLocateHandle: %g %r\n",Protocol,Status));
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**

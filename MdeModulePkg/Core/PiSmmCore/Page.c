@@ -21,6 +21,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
+extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 #define TRUNCATE_TO_PAGES(a)  ((a) >> EFI_PAGE_SHIFT)
 
 LIST_ENTRY  mSmmMemoryMap = INITIALIZE_LIST_HEAD_VARIABLE (mSmmMemoryMap);
@@ -765,7 +766,21 @@ SmmAllocatePages (
 
   return Status;
 }
-
+EFI_STATUS
+EFIAPI
+SmmAllocatePagesFuzz (
+  IN  EFI_ALLOCATE_TYPE     Type,
+  IN  EFI_MEMORY_TYPE       MemoryType,
+  IN  UINTN                 NumberOfPages,
+  OUT EFI_PHYSICAL_ADDRESS  *Memory
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmmAllocatePages(Type, MemoryType, NumberOfPages, Memory);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+  return Status;
+}
 /**
   Internal Function. Merge two adjacent nodes.
 
@@ -974,7 +989,19 @@ SmmFreePages (
 
   return Status;
 }
-
+EFI_STATUS
+EFIAPI
+SmmFreePagesFuzz (
+  IN EFI_PHYSICAL_ADDRESS  Memory,
+  IN UINTN                 NumberOfPages
+  )
+{
+  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
+  SmmFuzzGlobalData->in_fuzz = 0;
+  EFI_STATUS Status = SmmFreePages(Memory, NumberOfPages);
+  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
+  return Status;
+}
 /**
   Add free SMRAM region for use by memory service.
 
