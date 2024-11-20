@@ -10,7 +10,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "Service.h"
 #include <Library/DxeServicesLib.h>
-
+#include "libafl_qemu.h"
 PCD_DATABASE  mPcdDatabase;
 
 UINT32  mPcdTotalTokenCount;
@@ -347,7 +347,7 @@ DxeGetPcdInfo (
 
   return Status;
 }
-UINT8 DummyPCD[100] = {0xff};
+UINT64 DummyPCD;
 /**
   Get the PCD entry pointer in PCD database.
 
@@ -386,8 +386,19 @@ GetWorker (
   STRING_HEAD    StringTableIdx;
   BOOLEAN        IsPeiDb;
 
+  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  if (!EFI_ERROR(Status))
+  {
+    if (SmmFuzzGlobalData->in_fuzz && GetSize == 1) {
+      DummyPCD = LIBAFL_QEMU_SMM_GET_PCD(GetSize);
+      DEBUG((DEBUG_INFO,"get pcd %x\n",DummyPCD));
+      return (VOID*)&DummyPCD; 
+    }
+  }
+    
   if (!(TokenNumber + 1 < mPcdTotalTokenCount + 1)) {
-    return (VOID*)DummyPCD;
+    return (VOID*)&DummyPCD;
   }
   //
   // Aquire lock to prevent reentrance from TPL_CALLBACK level
@@ -1130,6 +1141,7 @@ SetWorker (
   EFI_STATUS     Status;
   UINTN          MaxSize; 
   UINTN          TmpTokenNumber;
+
   if (!(TokenNumber + 1 < mPcdTotalTokenCount + 1)) {
     return EFI_SUCCESS;
   }

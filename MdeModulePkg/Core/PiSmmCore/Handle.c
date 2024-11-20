@@ -216,6 +216,9 @@ SmmInstallProtocolInterfaceFuzz (
   IN VOID                *Interface
   )
 {
+  if(!gST) {
+    return SmmInstallProtocolInterface(UserHandle, Protocol, InterfaceType, Interface);
+  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmInstallProtocolInterface(UserHandle, Protocol, InterfaceType, Interface);
@@ -474,6 +477,9 @@ SmmUninstallProtocolInterfaceFuzz (
   IN VOID        *Interface
   )
 {
+  if(!gST) {
+    return SmmUninstallProtocolInterface(UserHandle, Protocol, Interface);
+  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmUninstallProtocolInterface(UserHandle, Protocol, Interface);
@@ -598,9 +604,17 @@ SmmHandleProtocolFuzz (
   OUT VOID        **Interface
   )
 {
+  EFI_STATUS Status;
+  if(!gST) {
+    Status = SmmHandleProtocol(UserHandle, Protocol, Interface);
+    if (Status == EFI_UNSUPPORTED && SmmHandleProtocolOld)
+      Status = SmmHandleProtocolOld(UserHandle, Protocol, Interface);
+    DEBUG((DEBUG_INFO,"SmmHandleProtocol: %g %r\n",Protocol, Status));
+    return Status;
+  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
-  EFI_STATUS Status = SmmHandleProtocol(UserHandle, Protocol, Interface);
+  Status = SmmHandleProtocol(UserHandle, Protocol, Interface);
   if (Status == EFI_UNSUPPORTED && SmmHandleProtocolOld)
     Status = SmmHandleProtocolOld(UserHandle, Protocol, Interface);
   DEBUG((DEBUG_INFO,"SmmHandleProtocol: %g %r\n",Protocol, Status));

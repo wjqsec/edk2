@@ -951,17 +951,17 @@ SmmDispatcher (
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
       InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
       SetCurrentModule(&DriverEntry->FileName);
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START);
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
       DEBUG((DEBUG_INFO,"start fuzzing entry point %g\n",&DriverEntry->FileName));
-      SmmFuzzGlobalData->in_fuzz = 1;
+      SmmFuzzGlobalData->in_fuzz = 1;  
       Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
       SmmFuzzGlobalData->in_fuzz = 0;
       DEBUG((DEBUG_INFO,"end entry point %g %r\n",&DriverEntry->FileName, Status));   
       if (EFI_ERROR (Status)) {
-        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT);
+        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT,0,0);
       }
       else {
-        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END);  
+        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
       }
       ClearCurrentModule();
 

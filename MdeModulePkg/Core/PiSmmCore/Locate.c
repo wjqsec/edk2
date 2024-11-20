@@ -267,10 +267,17 @@ SmmLocateProtocolFuzz (
   IN  VOID      *Registration OPTIONAL,
   OUT VOID      **Interface
   )
-{
+{ EFI_STATUS Status;
+  if (!gST) {
+    Status = SmmLocateProtocol(Protocol, Registration, Interface);
+    if(Status == EFI_NOT_FOUND && SmmLocateProtocolOld)
+      Status = SmmLocateProtocolOld(Protocol, Registration, Interface);
+    DEBUG((DEBUG_INFO,"SmmLocateProtocol: %g %r\n",Protocol,Status));
+    return Status;
+  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
-  EFI_STATUS Status = SmmLocateProtocol(Protocol, Registration, Interface);
+  Status = SmmLocateProtocol(Protocol, Registration, Interface);
   if(Status == EFI_NOT_FOUND && SmmLocateProtocolOld)
     Status = SmmLocateProtocolOld(Protocol, Registration, Interface);
   DEBUG((DEBUG_INFO,"SmmLocateProtocol: %g %r\n",Protocol,Status));
@@ -449,9 +456,17 @@ SmmLocateHandleFuzz (
   OUT    EFI_HANDLE              *Buffer
   )
 {
+  EFI_STATUS Status;
+  if (!gST) {
+    Status = SmmLocateHandle(SearchType, Protocol, SearchKey, BufferSize, Buffer);
+    if (Status == EFI_NOT_FOUND && SmmLocateHandleOld)
+      Status = SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
+    DEBUG((DEBUG_INFO,"SmmLocateHandle: %g %r\n",Protocol,Status));
+    return Status;
+  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
-  EFI_STATUS Status = SmmLocateHandle(SearchType, Protocol, SearchKey, BufferSize, Buffer);
+  Status = SmmLocateHandle(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   if (Status == EFI_NOT_FOUND && SmmLocateHandleOld)
     Status = SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   DEBUG((DEBUG_INFO,"SmmLocateHandle: %g %r\n",Protocol,Status));

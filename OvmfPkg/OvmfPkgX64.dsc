@@ -1032,11 +1032,11 @@
   
   # SmmFuzz
   MdeModulePkg/Universal/SmmCommunicationBufferDxe/SmmCommunicationBufferDxe.inf
-  UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
-  MdeModulePkg/Universal/Acpi/SmmS3SaveState/SmmS3SaveState.inf {
-    <LibraryClasses>
-    LockBoxLib|MdeModulePkg/Library/SmmLockBoxLib/SmmLockBoxSmmLib.inf
-  }
+  #UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
+  #MdeModulePkg/Universal/Acpi/SmmS3SaveState/SmmS3SaveState.inf {
+  #  <LibraryClasses>
+  #  LockBoxLib|MdeModulePkg/Library/SmmLockBoxLib/SmmLockBoxSmmLib.inf
+  #}
 
 
 !else

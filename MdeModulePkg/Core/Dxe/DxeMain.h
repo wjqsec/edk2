@@ -4295,6 +4295,7 @@ typedef struct _PLATFORM_NVS_AREA_PROTOCOL {
 } PLATFORM_NVS_AREA_PROTOCOL;
 
 VOID InstallSmmFuzzProtocol();
+VOID HookGBS (VOID);
 extern GUID gSmmFuzzDataProtocolGuid;
 extern GUID gPchNvsAreaProtocolGuid;
 extern GUID gSaPolicyProtocolGuid;

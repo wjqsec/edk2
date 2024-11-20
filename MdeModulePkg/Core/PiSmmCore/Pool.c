@@ -381,6 +381,9 @@ SmmAllocatePoolFuzz (
   OUT  VOID             **Buffer
   )
 {
+  if (!gST) {
+    return SmmAllocatePool(PoolType, Size, Buffer);
+  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmAllocatePool(PoolType, Size, Buffer);
@@ -499,6 +502,9 @@ SmmFreePoolFuzz (
   IN VOID  *Buffer
   )
 {
+  if (!gST) {
+    return SmmFreePool(Buffer);
+  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmFreePool(Buffer);

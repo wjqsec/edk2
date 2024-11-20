@@ -136,7 +136,7 @@ CommonExceptionHandlerWorker (
     (ExternalInterruptHandler[ExceptionType])(ExceptionType, SystemContext);
   } else if (ExceptionType < CPU_EXCEPTION_NUM) {
     DEBUG((DEBUG_ERROR,"CommonExceptionHandlerWorker exception type %d\n",ExceptionType));
-    LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH);
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH,0,0);
     //
     // Get Spinlock to display CPU information
     //

@@ -377,7 +377,7 @@ InitializePlatform (
   if (PlatformInfoHob->SmmSmramRequire) {
     RelocateSmBase ();
   }
-  InstallSmmFuzzHobList(PeiServices);
+  // InstallSmmFuzzHobList(PeiServices);
   return EFI_SUCCESS;
 }
 EFI_GUID SmmFuzzGuid = { 0x762FA2E6, 0xEA3B, 0x41C8, { 0x8C, 0x52, 0x63, 0x76, 0x6D, 0x70, 0x39, 0xE0 } };

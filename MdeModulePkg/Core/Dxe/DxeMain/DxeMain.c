@@ -534,6 +534,10 @@ DxeMain (
   ASSERT_EFI_ERROR (Status);
 
   InstallSmmFuzzProtocol();
+  HookGBS();
+  EFI_PEI_HOB_POINTERS  Hob;
+  for (Hob.Raw = HobStart; !END_OF_HOB_LIST (Hob); Hob.Raw = GET_NEXT_HOB (Hob)) {}
+  LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)HobStart, (UINT64)(Hob.Raw) - (UINT64)HobStart);
   //
   // Initialize the DXE Dispatcher
   //
@@ -979,9 +983,723 @@ DxeMainUefiDecompress (
   return UefiDecompress (Source, Destination, Scratch);
 }
 
+EFI_RAISE_TPL EFI_RAISE_TPL_Old;
+EFI_TPL EFIAPI EFI_RAISE_TPL_FUZZ(
+  IN EFI_TPL NewTpl
+) {
+  EFI_TPL Ret;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Ret = EFI_RAISE_TPL_Old(NewTpl);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Ret;
+}
+EFI_RESTORE_TPL EFI_RESTORE_TPL_Old;
+VOID
+EFIAPI EFI_RESTORE_TPL_FUZZ(
+  IN EFI_TPL      OldTpl
+) {
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  EFI_RESTORE_TPL_Old(OldTpl);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+}
+
+// Memory Services
+EFI_ALLOCATE_PAGES EFI_ALLOCATE_PAGES_Old;
+EFI_STATUS EFIAPI EFI_ALLOCATE_PAGES_FUZZ(
+  IN     EFI_ALLOCATE_TYPE            Type,
+  IN     EFI_MEMORY_TYPE              MemoryType,
+  IN     UINTN                        Pages,
+  IN OUT EFI_PHYSICAL_ADDRESS         *Memory
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_ALLOCATE_PAGES_Old(Type, MemoryType, Pages, Memory);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_FREE_PAGES EFI_FREE_PAGES_Old;
+EFI_STATUS EFIAPI EFI_FREE_PAGES_FUZZ(
+  IN  EFI_PHYSICAL_ADDRESS         Memory,
+  IN  UINTN                        Pages
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_FREE_PAGES_Old(Memory, Pages);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_GET_MEMORY_MAP EFI_GET_MEMORY_MAP_Old;
+EFI_STATUS EFIAPI EFI_GET_MEMORY_MAP_FUZZ(
+  IN OUT UINTN                       *MemoryMapSize,
+  OUT    EFI_MEMORY_DESCRIPTOR       *MemoryMap,
+  OUT    UINTN                       *MapKey,
+  OUT    UINTN                       *DescriptorSize,
+  OUT    UINT32                      *DescriptorVersion
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_GET_MEMORY_MAP_Old(MemoryMapSize, MemoryMap, MapKey, DescriptorSize, DescriptorVersion);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_ALLOCATE_POOL EFI_ALLOCATE_POOL_Old;
+EFI_STATUS EFIAPI EFI_ALLOCATE_POOL_FUZZ(
+  IN  EFI_MEMORY_TYPE              PoolType,
+  IN  UINTN                        Size,
+  OUT VOID                         **Buffer
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_ALLOCATE_POOL_Old(PoolType, Size, Buffer);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_FREE_POOL EFI_FREE_POOL_Old;
+EFI_STATUS EFIAPI EFI_FREE_POOL_FUZZ(
+  IN  VOID                         *Buffer
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_FREE_POOL_Old(Buffer);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+// Event & Timer Services
+EFI_CREATE_EVENT EFI_CREATE_EVENT_Old;
+EFI_STATUS EFIAPI EFI_CREATE_EVENT_FUZZ(
+  IN  UINT32                       Type,
+  IN  EFI_TPL                      NotifyTpl,
+  IN  EFI_EVENT_NOTIFY             NotifyFunction OPTIONAL,
+  IN  VOID                         *NotifyContext OPTIONAL,
+  OUT EFI_EVENT                    *Event
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_CREATE_EVENT_Old(Type, NotifyTpl, NotifyFunction, NotifyContext, Event);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_SET_TIMER EFI_SET_TIMER_Old;
+EFI_STATUS EFIAPI EFI_SET_TIMER_FUZZ(
+  IN  EFI_EVENT                Event,
+  IN  EFI_TIMER_DELAY          Type,
+  IN  UINT64                   TriggerTime
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_SET_TIMER_Old(Event, Type, TriggerTime);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_WAIT_FOR_EVENT EFI_WAIT_FOR_EVENT_Old;
+EFI_STATUS EFIAPI EFI_WAIT_FOR_EVENT_FUZZ(
+  IN  UINTN                    NumberOfEvents,
+  IN  EFI_EVENT                *Event,
+  OUT UINTN                    *Index
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_WAIT_FOR_EVENT_Old(NumberOfEvents, Event, Index);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_SIGNAL_EVENT EFI_SIGNAL_EVENT_Old;
+EFI_STATUS EFIAPI EFI_SIGNAL_EVENT_FUZZ(
+  IN  EFI_EVENT                Event
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_SIGNAL_EVENT_Old(Event);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_CLOSE_EVENT EFI_CLOSE_EVENT_Old;
+EFI_STATUS EFIAPI EFI_CLOSE_EVENT_FUZZ(
+  IN EFI_EVENT                Event
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_CLOSE_EVENT_Old(Event);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_CHECK_EVENT EFI_CHECK_EVENT_Old;
+EFI_STATUS EFIAPI EFI_CHECK_EVENT_FUZZ(
+  IN EFI_EVENT                Event
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_CHECK_EVENT_Old(Event);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+// Protocol Handler Services
+EFI_INSTALL_PROTOCOL_INTERFACE EFI_INSTALL_PROTOCOL_INTERFACE_Old;
+EFI_STATUS EFIAPI EFI_INSTALL_PROTOCOL_INTERFACE_FUZZ(
+  IN OUT EFI_HANDLE               *Handle,
+  IN     EFI_GUID                 *Protocol,
+  IN     EFI_INTERFACE_TYPE       InterfaceType,
+  IN     VOID                     *Interface
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_INSTALL_PROTOCOL_INTERFACE_Old(Handle, Protocol, InterfaceType, Interface);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_REINSTALL_PROTOCOL_INTERFACE EFI_REINSTALL_PROTOCOL_INTERFACE_Old;
+EFI_STATUS EFIAPI EFI_REINSTALL_PROTOCOL_INTERFACE_FUZZ(
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  IN VOID                     *OldInterface,
+  IN VOID                     *NewInterface
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_REINSTALL_PROTOCOL_INTERFACE_Old(Handle, Protocol, OldInterface, NewInterface);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_UNINSTALL_PROTOCOL_INTERFACE EFI_UNINSTALL_PROTOCOL_INTERFACE_Old;
+EFI_STATUS EFIAPI EFI_UNINSTALL_PROTOCOL_INTERFACE_FUZZ(
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  IN VOID                     *Interface
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_UNINSTALL_PROTOCOL_INTERFACE_Old(Handle, Protocol, Interface);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_HANDLE_PROTOCOL EFI_HANDLE_PROTOCOL_Old;
+EFI_STATUS EFIAPI EFI_HANDLE_PROTOCOL_FUZZ(
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  OUT VOID                    **Interface
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_HANDLE_PROTOCOL_Old(Handle, Protocol, Interface);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+EFI_REGISTER_PROTOCOL_NOTIFY EFI_REGISTER_PROTOCOL_NOTIFY_Old;
+EFI_STATUS EFIAPI EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ(
+  IN EFI_GUID                 *Protocol,
+  IN EFI_EVENT                Event,
+  OUT VOID                    **Registration
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0;
+  Status = EFI_REGISTER_PROTOCOL_NOTIFY_Old(Protocol, Event, Registration);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_LOCATE_HANDLE EFI_LOCATE_HANDLE_Old;
+EFI_STATUS EFIAPI EFI_LOCATE_HANDLE_FUZZ(
+  IN  EFI_LOCATE_SEARCH_TYPE     SearchType,
+  IN  EFI_GUID                   *Protocol OPTIONAL,
+  IN  VOID                       *SearchKey OPTIONAL,
+  IN OUT UINTN                   *BufferSize,
+  OUT EFI_HANDLE                 *Buffer
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_LOCATE_HANDLE_Old(SearchType, Protocol, SearchKey, BufferSize, Buffer);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_LOCATE_DEVICE_PATH EFI_LOCATE_DEVICE_PATH_Old;
+EFI_STATUS EFIAPI EFI_LOCATE_DEVICE_PATH_FUZZ(
+  IN     EFI_GUID                         *Protocol,
+  IN OUT EFI_DEVICE_PATH_PROTOCOL         **DevicePath,
+  OUT    EFI_HANDLE                       *Device
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_LOCATE_DEVICE_PATH_Old(Protocol, DevicePath, Device);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_INSTALL_CONFIGURATION_TABLE EFI_INSTALL_CONFIGURATION_TABLE_Old;
+EFI_STATUS EFIAPI EFI_INSTALL_CONFIGURATION_TABLE_FUZZ(
+  IN EFI_GUID                 *TableGuid,
+  IN VOID                     *Table
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_INSTALL_CONFIGURATION_TABLE_Old(TableGuid, Table);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+EFI_IMAGE_LOAD EFI_IMAGE_LOAD_Old;
+EFI_STATUS
+EFIAPI EFI_IMAGE_LOAD_FUZZ(
+  IN  BOOLEAN                      BootPolicy,
+  IN  EFI_HANDLE                   ParentImageHandle,
+  IN  EFI_DEVICE_PATH_PROTOCOL     *DevicePath   OPTIONAL,
+  IN  VOID                         *SourceBuffer OPTIONAL,
+  IN  UINTN                        SourceSize,
+  OUT EFI_HANDLE                   *ImageHandle
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_IMAGE_LOAD_Old(BootPolicy, ParentImageHandle, DevicePath, SourceBuffer, SourceSize, ImageHandle);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_IMAGE_START EFI_IMAGE_START_Old;
+EFI_STATUS EFIAPI EFI_IMAGE_START_FUZZ(
+  IN EFI_HANDLE                  ImageHandle,
+  IN OUT UINTN                   *ExitDataSize,
+  OUT CHAR16                     **ExitData
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_IMAGE_START_Old(ImageHandle, ExitDataSize, ExitData);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_EXIT EFI_EXIT_Old;
+EFI_STATUS EFIAPI EFI_EXIT_FUZZ(
+  IN EFI_HANDLE   ImageHandle,
+  IN EFI_STATUS   ExitStatus,
+  IN UINTN        ExitDataSize,
+  IN CHAR16       *ExitData
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_EXIT_Old(ImageHandle, ExitStatus, ExitDataSize, ExitData);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_IMAGE_UNLOAD EFI_IMAGE_UNLOAD_Old;
+EFI_STATUS EFIAPI EFI_IMAGE_UNLOAD_FUZZ(
+  IN EFI_HANDLE  ImageHandle
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_IMAGE_UNLOAD_Old(ImageHandle);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_EXIT_BOOT_SERVICES EFI_EXIT_BOOT_SERVICES_Old;
+EFI_STATUS EFIAPI EFI_EXIT_BOOT_SERVICES_FUZZ(
+  IN EFI_HANDLE   ImageHandle,
+  IN UINTN        MapKey
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_EXIT_BOOT_SERVICES_Old(ImageHandle, MapKey);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+// Miscellaneous Services
+EFI_GET_NEXT_MONOTONIC_COUNT EFI_GET_NEXT_MONOTONIC_COUNT_Old;
+EFI_STATUS EFIAPI EFI_GET_NEXT_MONOTONIC_COUNT_FUZZ(
+  OUT UINT64 *Count
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_GET_NEXT_MONOTONIC_COUNT_Old(Count);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_STALL EFI_STALL_Old;
+EFI_STATUS EFIAPI EFI_STALL_FUZZ(
+  IN UINTN   Microseconds
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_STALL_Old(Microseconds);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_SET_WATCHDOG_TIMER EFI_SET_WATCHDOG_TIMER_Old;
+EFI_STATUS EFIAPI EFI_SET_WATCHDOG_TIMER_FUZZ(
+  IN UINTN                    Timeout,
+  IN UINT64                   WatchdogCode,
+  IN UINTN                    DataSize,
+  IN CHAR16                   *WatchdogData OPTIONAL
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_SET_WATCHDOG_TIMER_Old(Timeout, WatchdogCode, DataSize, WatchdogData);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+// DriverSupport Services
+EFI_CONNECT_CONTROLLER EFI_CONNECT_CONTROLLER_Old;
+EFI_STATUS EFIAPI EFI_CONNECT_CONTROLLER_FUZZ(
+  IN  EFI_HANDLE                    ControllerHandle,
+  IN  EFI_HANDLE                    *DriverImageHandle    OPTIONAL,
+  IN  EFI_DEVICE_PATH_PROTOCOL      *RemainingDevicePath  OPTIONAL,
+  IN  BOOLEAN                       Recursive
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_CONNECT_CONTROLLER_Old(ControllerHandle, DriverImageHandle, RemainingDevicePath, Recursive);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_DISCONNECT_CONTROLLER EFI_DISCONNECT_CONTROLLER_Old;
+EFI_STATUS EFIAPI EFI_DISCONNECT_CONTROLLER_FUZZ(
+  IN  EFI_HANDLE                     ControllerHandle,
+  IN  EFI_HANDLE                     DriverImageHandle  OPTIONAL,
+  IN  EFI_HANDLE                     ChildHandle        OPTIONAL
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_DISCONNECT_CONTROLLER_Old(ControllerHandle, DriverImageHandle, ChildHandle);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+// Open and Close Protocol Services
+EFI_OPEN_PROTOCOL EFI_OPEN_PROTOCOL_Old;
+EFI_STATUS
+EFIAPI EFI_OPEN_PROTOCOL_FUZZ(
+  IN  EFI_HANDLE                Handle,
+  IN  EFI_GUID                  *Protocol,
+  OUT VOID                      **Interface  OPTIONAL,
+  IN  EFI_HANDLE                AgentHandle,
+  IN  EFI_HANDLE                ControllerHandle,
+  IN  UINT32                    Attributes
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_OPEN_PROTOCOL_Old(Handle, Protocol, Interface, AgentHandle, ControllerHandle, Attributes);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
 
 
+EFI_CLOSE_PROTOCOL EFI_CLOSE_PROTOCOL_Old;
+EFI_STATUS EFIAPI EFI_CLOSE_PROTOCOL_FUZZ(
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  IN EFI_HANDLE               AgentHandle,
+  IN EFI_HANDLE               ControllerHandle
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_CLOSE_PROTOCOL_Old(Handle, Protocol, AgentHandle, ControllerHandle);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
 
+EFI_OPEN_PROTOCOL_INFORMATION EFI_OPEN_PROTOCOL_INFORMATION_Old;
+EFI_STATUS EFIAPI EFI_OPEN_PROTOCOL_INFORMATION_FUZZ(
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  OUT EFI_OPEN_PROTOCOL_INFORMATION_ENTRY **EntryBuffer,
+  OUT UINTN                   *EntryCount
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_OPEN_PROTOCOL_INFORMATION_Old(Handle, Protocol, EntryBuffer, EntryCount);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+// Library Services
+EFI_PROTOCOLS_PER_HANDLE EFI_PROTOCOLS_PER_HANDLE_Old;
+EFI_STATUS EFIAPI EFI_PROTOCOLS_PER_HANDLE_FUZZ(
+  IN  EFI_HANDLE      Handle,
+  OUT EFI_GUID        ***ProtocolBuffer,
+  OUT UINTN           *ProtocolBufferCount
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_PROTOCOLS_PER_HANDLE_Old(Handle, ProtocolBuffer, ProtocolBufferCount);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_LOCATE_HANDLE_BUFFER EFI_LOCATE_HANDLE_BUFFER_Old;
+EFI_STATUS EFIAPI EFI_LOCATE_HANDLE_BUFFER_FUZZ(
+  IN     EFI_LOCATE_SEARCH_TYPE       SearchType,
+  IN     EFI_GUID                     *Protocol       OPTIONAL,
+  IN     VOID                         *SearchKey      OPTIONAL,
+  OUT    UINTN                        *NoHandles,
+  OUT    EFI_HANDLE                   **Buffer
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_LOCATE_HANDLE_BUFFER_Old(SearchType, Protocol, SearchKey, NoHandles, Buffer);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+EFI_LOCATE_PROTOCOL EFI_LOCATE_PROTOCOL_Old;
+EFI_STATUS EFIAPI EFI_LOCATE_PROTOCOL_FUZZ(
+  IN  EFI_GUID                   *Protocol,
+  IN  VOID                       *SearchKey OPTIONAL,
+  OUT VOID                       **Interface
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_LOCATE_PROTOCOL_Old(Protocol, SearchKey, Interface);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+// 32-bit CRC Services
+EFI_CALCULATE_CRC32 EFI_CALCULATE_CRC32_Old;
+EFI_STATUS EFIAPI EFI_CALCULATE_CRC32_FUZZ(
+  IN VOID        *Data,
+  IN UINTN       DataLength,
+  OUT UINT32     *Crc32
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_CALCULATE_CRC32_Old(Data, DataLength, Crc32);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+
+// Miscellaneous Services
+EFI_COPY_MEM EFI_COPY_MEM_Old;
+VOID EFIAPI EFI_COPY_MEM_FUZZ(
+  OUT VOID   *Destination,
+  IN  VOID   *Source,
+  IN  UINTN  Length
+) {
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  EFI_COPY_MEM_Old(Destination, Source, Length);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+}
+
+EFI_SET_MEM EFI_SET_MEM_Old;
+VOID EFIAPI EFI_SET_MEM_FUZZ(
+  OUT VOID   *Buffer,
+  IN  UINTN  Length,
+  IN  UINT8  Value
+) {
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  EFI_SET_MEM_Old(Buffer, Length, Value);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+}
+
+EFI_CREATE_EVENT_EX EFI_CREATE_EVENT_EX_Old;
+EFI_STATUS
+EFIAPI EFI_CREATE_EVENT_EX_FUZZ(
+  IN       UINT32                 Type,
+  IN       EFI_TPL                NotifyTpl,
+  IN       EFI_EVENT_NOTIFY       NotifyFunction OPTIONAL,
+  IN CONST VOID                   *NotifyContext OPTIONAL,
+  IN CONST EFI_GUID               *EventGroup    OPTIONAL,
+  OUT      EFI_EVENT              *Event
+) {
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = EFI_CREATE_EVENT_EX_Old(Type, NotifyTpl, NotifyFunction, NotifyContext, EventGroup, Event);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  return Status;
+}
+VOID HookGBS (VOID) {
+    // Task Priority Services
+    EFI_RAISE_TPL_Old = gBS->RaiseTPL;
+    gBS->RaiseTPL = EFI_RAISE_TPL_FUZZ;
+
+    EFI_RESTORE_TPL_Old = gBS->RestoreTPL;
+    gBS->RestoreTPL = EFI_RESTORE_TPL_FUZZ;
+
+    // Memory Services
+    EFI_ALLOCATE_PAGES_Old = gBS->AllocatePages;
+    gBS->AllocatePages = EFI_ALLOCATE_PAGES_FUZZ;
+
+    EFI_FREE_PAGES_Old = gBS->FreePages;
+    gBS->FreePages = EFI_FREE_PAGES_FUZZ;
+
+    EFI_GET_MEMORY_MAP_Old = gBS->GetMemoryMap;
+    gBS->GetMemoryMap = EFI_GET_MEMORY_MAP_FUZZ;
+
+    EFI_ALLOCATE_POOL_Old = gBS->AllocatePool;
+    gBS->AllocatePool = EFI_ALLOCATE_POOL_FUZZ;
+
+    EFI_FREE_POOL_Old = gBS->FreePool;
+    gBS->FreePool = EFI_FREE_POOL_FUZZ;
+
+    // Event & Timer Services
+    EFI_CREATE_EVENT_Old = gBS->CreateEvent;
+    gBS->CreateEvent = EFI_CREATE_EVENT_FUZZ;
+
+    EFI_SET_TIMER_Old = gBS->SetTimer;
+    gBS->SetTimer = EFI_SET_TIMER_FUZZ;
+
+    EFI_WAIT_FOR_EVENT_Old = gBS->WaitForEvent;
+    gBS->WaitForEvent = EFI_WAIT_FOR_EVENT_FUZZ;
+
+    EFI_SIGNAL_EVENT_Old = gBS->SignalEvent;
+    gBS->SignalEvent = EFI_SIGNAL_EVENT_FUZZ;
+
+    EFI_CLOSE_EVENT_Old = gBS->CloseEvent;
+    gBS->CloseEvent = EFI_CLOSE_EVENT_FUZZ;
+
+    EFI_CHECK_EVENT_Old = gBS->CheckEvent;
+    gBS->CheckEvent = EFI_CHECK_EVENT_FUZZ;
+
+    // Protocol Handler Services
+    EFI_INSTALL_PROTOCOL_INTERFACE_Old = gBS->InstallProtocolInterface;
+    gBS->InstallProtocolInterface = EFI_INSTALL_PROTOCOL_INTERFACE_FUZZ;
+
+    EFI_REINSTALL_PROTOCOL_INTERFACE_Old = gBS->ReinstallProtocolInterface;
+    gBS->ReinstallProtocolInterface = EFI_REINSTALL_PROTOCOL_INTERFACE_FUZZ;
+
+    EFI_UNINSTALL_PROTOCOL_INTERFACE_Old = gBS->UninstallProtocolInterface;
+    gBS->UninstallProtocolInterface = EFI_UNINSTALL_PROTOCOL_INTERFACE_FUZZ;
+
+    EFI_HANDLE_PROTOCOL_Old = gBS->HandleProtocol;
+    gBS->HandleProtocol = EFI_HANDLE_PROTOCOL_FUZZ;
+
+    EFI_REGISTER_PROTOCOL_NOTIFY_Old = gBS->RegisterProtocolNotify;
+    gBS->RegisterProtocolNotify = EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ;
+
+    EFI_LOCATE_HANDLE_Old = gBS->LocateHandle;
+    gBS->LocateHandle = EFI_LOCATE_HANDLE_FUZZ;
+
+    EFI_LOCATE_DEVICE_PATH_Old = gBS->LocateDevicePath;
+    gBS->LocateDevicePath = EFI_LOCATE_DEVICE_PATH_FUZZ;
+
+    EFI_INSTALL_CONFIGURATION_TABLE_Old = gBS->InstallConfigurationTable;
+    gBS->InstallConfigurationTable = EFI_INSTALL_CONFIGURATION_TABLE_FUZZ;
+
+    // Image Services
+    EFI_IMAGE_LOAD_Old = gBS->LoadImage;
+    gBS->LoadImage = EFI_IMAGE_LOAD_FUZZ;
+
+    EFI_IMAGE_START_Old = gBS->StartImage;
+    gBS->StartImage = EFI_IMAGE_START_FUZZ;
+
+    EFI_EXIT_Old = gBS->Exit;
+    gBS->Exit = EFI_EXIT_FUZZ;
+
+    EFI_IMAGE_UNLOAD_Old = gBS->UnloadImage;
+    gBS->UnloadImage = EFI_IMAGE_UNLOAD_FUZZ;
+
+    EFI_EXIT_BOOT_SERVICES_Old = gBS->ExitBootServices;
+    gBS->ExitBootServices = EFI_EXIT_BOOT_SERVICES_FUZZ;
+
+    // Miscellaneous Services
+    EFI_GET_NEXT_MONOTONIC_COUNT_Old = gBS->GetNextMonotonicCount;
+    gBS->GetNextMonotonicCount = EFI_GET_NEXT_MONOTONIC_COUNT_FUZZ;
+
+    EFI_STALL_Old = gBS->Stall;
+    gBS->Stall = EFI_STALL_FUZZ;
+
+    EFI_SET_WATCHDOG_TIMER_Old = gBS->SetWatchdogTimer;
+    gBS->SetWatchdogTimer = EFI_SET_WATCHDOG_TIMER_FUZZ;
+
+    // DriverSupport Services
+    EFI_CONNECT_CONTROLLER_Old = gBS->ConnectController;
+    gBS->ConnectController = EFI_CONNECT_CONTROLLER_FUZZ;
+
+    EFI_DISCONNECT_CONTROLLER_Old = gBS->DisconnectController;
+    gBS->DisconnectController = EFI_DISCONNECT_CONTROLLER_FUZZ;
+
+    // Open and Close Protocol Services
+    EFI_OPEN_PROTOCOL_Old = gBS->OpenProtocol;
+    gBS->OpenProtocol = EFI_OPEN_PROTOCOL_FUZZ;
+
+    EFI_CLOSE_PROTOCOL_Old = gBS->CloseProtocol;
+    gBS->CloseProtocol = EFI_CLOSE_PROTOCOL_FUZZ;
+
+    EFI_OPEN_PROTOCOL_INFORMATION_Old = gBS->OpenProtocolInformation;
+    gBS->OpenProtocolInformation = EFI_OPEN_PROTOCOL_INFORMATION_FUZZ;
+
+    // Library Services
+    EFI_PROTOCOLS_PER_HANDLE_Old = gBS->ProtocolsPerHandle;
+    gBS->ProtocolsPerHandle = EFI_PROTOCOLS_PER_HANDLE_FUZZ;
+
+    EFI_LOCATE_HANDLE_BUFFER_Old = gBS->LocateHandleBuffer;
+    gBS->LocateHandleBuffer = EFI_LOCATE_HANDLE_BUFFER_FUZZ;
+
+    EFI_LOCATE_PROTOCOL_Old = gBS->LocateProtocol;
+    gBS->LocateProtocol = EFI_LOCATE_PROTOCOL_FUZZ;
+
+    // 32-bit CRC Services
+    EFI_CALCULATE_CRC32_Old = gBS->CalculateCrc32;
+    gBS->CalculateCrc32 = EFI_CALCULATE_CRC32_FUZZ;
+
+    // Miscellaneous Services
+    EFI_COPY_MEM_Old = gBS->CopyMem;
+    gBS->CopyMem = EFI_COPY_MEM_FUZZ;
+
+    EFI_SET_MEM_Old = gBS->SetMem;
+    gBS->SetMem = EFI_SET_MEM_FUZZ;
+
+    EFI_CREATE_EVENT_EX_Old = gBS->CreateEventEx;
+    gBS->CreateEventEx = EFI_CREATE_EVENT_EX_FUZZ;
+}
 EFI_STATUS
 EFIAPI EFI_ACPI_GET_ACPI_TABLE_FUNC(
   IN EFI_ACPI_SUPPORT_PROTOCOL            *This,
@@ -1024,6 +1742,8 @@ PLATFORM_NVS_AREA_PROTOCOL mPlatformNvsAreaProtocol;
 VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
   EFI_STATUS Status;
+
+
   SmmFuzzGlobalData.in_fuzz = 0;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,

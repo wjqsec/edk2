@@ -374,8 +374,8 @@ INF  MdeModulePkg/Universal/LockBox/SmmLockBox/SmmLockBox.inf
 INF  UefiCpuPkg/PiSmmCpuDxeSmm/PiSmmCpuDxeSmm.inf
 # SmmFuzz
 INF  MdeModulePkg/Universal/SmmCommunicationBufferDxe/SmmCommunicationBufferDxe.inf
-INF  UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
-INF  MdeModulePkg/Universal/Acpi/SmmS3SaveState/SmmS3SaveState.inf
+# INF  UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
+# INF  MdeModulePkg/Universal/Acpi/SmmS3SaveState/SmmS3SaveState.inf
 
 
 #
