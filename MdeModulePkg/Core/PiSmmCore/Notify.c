@@ -113,8 +113,8 @@ SmmRegisterProtocolNotify (
   )
 {
   DEBUG((DEBUG_INFO,"SmmRegisterProtocolNotify: %g\n",Protocol));
-  // if (SmmRegisterProtocolNotifyOld)
-  //   return SmmRegisterProtocolNotifyOld(Protocol, Function, Registration);
+  if (SmmRegisterProtocolNotifyOld)
+    return SmmRegisterProtocolNotifyOld(Protocol, Function, Registration);
   PROTOCOL_ENTRY   *ProtEntry;
   PROTOCOL_NOTIFY  *ProtNotify;
   LIST_ENTRY       *Link;

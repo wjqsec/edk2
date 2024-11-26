@@ -394,7 +394,7 @@ PeiCore (
     PrivateData.ServiceTableShadow.CpuIo  = CpuIo;
     PrivateData.ServiceTableShadow.PciCfg = PciCfg;
   }
-
+   
   //
   // Cache a pointer to the PEI Services Table that is either in temporary memory or permanent memory
   //
@@ -409,12 +409,12 @@ PeiCore (
   // Initialize libraries that the PEI Core is linked against
   //
   ProcessLibraryConstructorList (NULL, (CONST EFI_PEI_SERVICES **)&PrivateData.Ps);
-
+  
   //
   // Initialize PEI Core Services
   //
   InitializeMemoryServices (&PrivateData, SecCoreData, OldCoreData);
-
+  BuildGuidHob (&gSmmFuzzHobGuid, 0x1000);
   //
   // Update performance measurements
   //
@@ -430,14 +430,13 @@ PeiCore (
     PERF_INMODULE_END ("PreMem");
     PERF_INMODULE_BEGIN ("PostMem");
   }
-
   //
   // Complete PEI Core Service initialization
   //
   InitializeSecurityServices (&PrivateData.Ps, OldCoreData);
   InitializeDispatcherData (&PrivateData, OldCoreData, SecCoreData);
   InitializeImageServices (&PrivateData, OldCoreData);
-
+  
   //
   // Perform PEI Core Phase specific actions
   //
@@ -507,7 +506,7 @@ PeiCore (
 
     PERF_INMODULE_END ("DisMem");
   }
-
+  
   //
   // Call PEIM dispatcher
   //

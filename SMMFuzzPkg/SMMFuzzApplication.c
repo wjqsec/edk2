@@ -320,44 +320,24 @@ UefiMain(
     LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
     LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,1024);
     UINT32 SmiFuzzTimes[100] = {0};
+    Print(L"Fuzz Data Report End\n");
+
 
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START,0,0);
 
-    UINTN SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
-    if (SmiFuzzSeqSz <= 1)
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
-    SmiFuzzGroupIndex = SmiFuzzSeq[0] % NumGroups;
-    for (UINTN i = 1; i < SmiFuzzSeqSz; i++) {
-      UINTN SmiFuzzIndex = SmiFuzzSeq[i] % Groups[SmiFuzzGroupIndex].NumSmiHandlers;
-      UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
-      SmmCall(&Groups[SmiFuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
-      SmiFuzzTimes[SmiFuzzIndex]++;
-      (VOID)Sz;
-    } 
-    
+    // UINTN SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
+    // if (SmiFuzzSeqSz <= 1)
+    //   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
+    // SmiFuzzGroupIndex = SmiFuzzSeq[0] % NumGroups;
+    // for (UINTN i = 1; i < SmiFuzzSeqSz; i++) {
+    //   UINTN SmiFuzzIndex = SmiFuzzSeq[i] % Groups[SmiFuzzGroupIndex].NumSmiHandlers;
+    //   UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
+    //   SmmCall(&Groups[SmiFuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
+    //   SmiFuzzTimes[SmiFuzzIndex]++;
+    //   (VOID)Sz;
+    // } 
     (VOID)SmiFuzzTimes;
     (VOID)SmiFuzzGroupIndex;
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
-    
-
-    // LIBAFL_QEMU_SMM_REPORT_NUM_STREAM(5);
-    // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START);
-    // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END);
-
-    // for(int i = 0 ; i < ReportDataBackup->NumHandlers ; i++) 
-    // {
-    //   CopyMem (&CommHeader->HeaderGuid, &ReportDataBackup->Handlers[i], sizeof(ReportDataBackup->Handlers[i]));
-    //   CommHeader->MessageLength = MinimalSizeNeeded;
-    //   CommSize = MinimalSizeNeeded;
-    //   LIBAFL_QEMU_SMM_INPUT_STREAM_VIRT(i + 1,(libafl_word)ReportData,(libafl_word)MinimalSizeNeeded);
-    //   Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,&CommSize);
-    //   if (EFI_ERROR (Status)) {
-    //     Print(L"Error: SmmCommunication error. %r\n",Status);
-    //     LIBAFL_QEMU_END(1);
-    //   }
-    // }
-
-
-    
     return EFI_SUCCESS;
 }

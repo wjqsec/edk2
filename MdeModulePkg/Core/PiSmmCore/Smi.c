@@ -198,12 +198,14 @@ SmiManage (
     if (CommBuffer && CommBufferSize)
       DEBUG((DEBUG_INFO,"SMI hanlder enter %g commbuffer:%p commbuffersize:%d\n",HandlerType,CommBuffer,*CommBufferSize));
     SetCurrentModuleBySmi(HandlerType);
+    LIBAFL_QEMU_SMM_SMI_ENTER();
     Status = SmiHandler->Handler (
                            (EFI_HANDLE)SmiHandler,
                            Context,
                            CommBuffer,
                            CommBufferSize
                            );
+    LIBAFL_QEMU_SMM_SMI_EXIT();
     ClearCurrentModule();
     DEBUG((DEBUG_INFO,"SMI hanlder exit %g %r\n",HandlerType,Status));
 

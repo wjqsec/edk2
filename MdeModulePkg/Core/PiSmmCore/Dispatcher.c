@@ -956,7 +956,7 @@ SmmDispatcher (
       SmmFuzzGlobalData->in_fuzz = 1;  
       Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
       SmmFuzzGlobalData->in_fuzz = 0;
-      DEBUG((DEBUG_INFO,"end entry point %g %r\n",&DriverEntry->FileName, Status));   
+      DEBUG((DEBUG_INFO,"end entry point %g %lx %r\n",&DriverEntry->FileName,Status, Status));   
       if (EFI_ERROR (Status)) {
         LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT,0,0);
       }
@@ -964,7 +964,7 @@ SmmDispatcher (
         LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
       }
       ClearCurrentModule();
-
+      DEBUG((DEBUG_INFO,"pass module %g\n",&DriverEntry->FileName));
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
       if (EFI_ERROR (Status)) {
         DEBUG ((

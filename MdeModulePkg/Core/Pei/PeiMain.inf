@@ -81,6 +81,8 @@
   gEdkiiMigratedFvInfoGuid                      ## SOMETIMES_PRODUCES     ## HOB
   gEdkiiMigrationInfoGuid                       ## SOMETIMES_CONSUMES     ## HOB
   gSmmRegisterInfoGuid
+  ##SmmFuzz
+  gSmmFuzzHobGuid
 
 [Ppis]
   gEfiPeiStatusCodePpiGuid                      ## SOMETIMES_CONSUMES # PeiReportStatusService is not ready if this PPI doesn't exist

@@ -211,8 +211,8 @@ SmmLocateProtocol (
   )
 {
   InsertConsumeProtocol(Protocol);
-  // if (SmmLocateProtocolOld)
-  //   return SmmLocateProtocolOld(Protocol, Registration, Interface);
+  if (SmmLocateProtocolOld)
+    return SmmLocateProtocolOld(Protocol, Registration, Interface);
   EFI_STATUS       Status;
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;
@@ -314,8 +314,8 @@ SmmLocateHandle (
 {
   
   InsertConsumeProtocol(Protocol);
-  // if (SmmLocateHandleOld)
-  //   return SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
+  if (SmmLocateHandleOld)
+    return SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   EFI_STATUS       Status;
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;

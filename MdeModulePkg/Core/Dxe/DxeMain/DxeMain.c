@@ -533,11 +533,23 @@ DxeMain (
   Status = InitializeSectionExtraction (gDxeCoreImageHandle, gDxeCoreST);
   ASSERT_EFI_ERROR (Status);
 
+  // SMM FUZZ
   InstallSmmFuzzProtocol();
   HookGBS();
   EFI_PEI_HOB_POINTERS  Hob;
-  for (Hob.Raw = HobStart; !END_OF_HOB_LIST (Hob); Hob.Raw = GET_NEXT_HOB (Hob)) {}
-  LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)HobStart, (UINT64)(Hob.Raw) - (UINT64)HobStart);
+  
+  for (Hob.Raw = HobStart ; !END_OF_HOB_LIST (Hob); Hob.Raw = GET_NEXT_HOB (Hob)) {
+    if (GET_HOB_TYPE(Hob) == EFI_HOB_TYPE_HANDOFF) {
+      Hob.HandoffInformationTable->BootMode = BOOT_ON_FLASH_UPDATE;
+    }
+    if (GET_HOB_TYPE(Hob) == EFI_HOB_TYPE_GUID_EXTENSION) {
+      if (CompareGuid(&Hob.Guid->Name, &gSmmFuzzHobGuid)) {
+        LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)Hob.Raw, (UINT64)GET_HOB_LENGTH(Hob));
+        break;
+      }
+    }
+  }
+  
   //
   // Initialize the DXE Dispatcher
   //
@@ -547,7 +559,13 @@ DxeMain (
   // Invoke the DXE Dispatcher
   //
   CoreDispatcher ();
-
+  
+  // SMMFUZZ
+  for (Hob.Raw = HobStart ; !END_OF_HOB_LIST (Hob); Hob.Raw = GET_NEXT_HOB (Hob)) {
+    if (GET_HOB_TYPE(Hob) == EFI_HOB_TYPE_HANDOFF) {
+      Hob.HandoffInformationTable->BootMode = BOOT_WITH_FULL_CONFIGURATION;
+    }
+  }
   //
   // Display Architectural protocols that were not loaded if this is DEBUG build
   //
@@ -1237,11 +1255,13 @@ EFI_STATUS EFIAPI EFI_LOCATE_HANDLE_FUZZ(
   IN OUT UINTN                   *BufferSize,
   OUT EFI_HANDLE                 *Buffer
 ) {
+  
   EFI_STATUS Status;
   UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
   SmmFuzzGlobalData.in_fuzz = 0; 
   Status = EFI_LOCATE_HANDLE_Old(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  DEBUG((DEBUG_INFO,"EFI_LOCATE_HANDLE_FUZZ %g %lx %r\n",Protocol, Status, Status));
   return Status;
 }
 
@@ -1565,6 +1585,93 @@ EFIAPI EFI_CREATE_EVENT_EX_FUZZ(
   SmmFuzzGlobalData.in_fuzz = OldInFuzz;
   return Status;
 }
+
+typedef struct _VENDOR_VARIABLE {
+  UINT32 Attributes;
+  CHAR16 *VariableName;
+  EFI_GUID VendorGuid;
+  VOID *Data;
+  UINTN DataSize;
+}VENDOR_VARIABLE;
+
+UINTN NumVendorVariables = 0;
+VENDOR_VARIABLE VendorVariables[500];
+
+EFI_GET_VARIABLE                  GetVariableOld;
+EFI_STATUS
+EFIAPI EFI_GET_VARIABLE_FUZZ(
+  IN     CHAR16                      *VariableName,
+  IN     EFI_GUID                    *VendorGuid,
+  OUT    UINT32                      *Attributes     OPTIONAL,
+  IN OUT UINTN                       *DataSize,
+  OUT    VOID                        *Data           OPTIONAL
+  )
+{
+  DEBUG((DEBUG_INFO,"EFI_GET_VARIABLE_FUZZ start %g\n",VendorGuid));
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = GetVariableOld(VariableName, VendorGuid, Attributes, DataSize, Data);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+
+  if (Status == 0xA000000000000002 || Status == EFI_NOT_FOUND) {
+    for (UINTN i = 0; i < NumVendorVariables; i++) {
+      if (CompareGuid (&VendorVariables[i].VendorGuid, VendorGuid) && !StrCmp(VendorVariables[i].VariableName, VariableName)) {
+        if (VendorVariables[i].DataSize > *DataSize) {
+          *DataSize = VendorVariables[i].DataSize;
+          return EFI_BUFFER_TOO_SMALL;
+        }
+        else {
+          *Attributes = VendorVariables[i].Attributes;
+          CopyMem(Data, VendorVariables[i].Data, VendorVariables[i].DataSize);
+          return EFI_SUCCESS;
+        }
+      }
+    }
+    return EFI_SUCCESS;
+  }
+  DEBUG((DEBUG_INFO,"EFI_GET_VARIABLE_FUZZ %g %lx %r\n",VendorGuid, Status, Status));
+  return Status;
+}
+EFI_SET_VARIABLE SetVariableOld;
+EFI_STATUS
+EFIAPI EFI_SET_VARIABLE_FUZZ(
+  IN  CHAR16                       *VariableName,
+  IN  EFI_GUID                     *VendorGuid,
+  IN  UINT32                       Attributes,
+  IN  UINTN                        DataSize,
+  IN  VOID                         *Data
+  )
+{
+  DEBUG((DEBUG_INFO,"EFI_SET_VARIABLE_FUZZ start %g\n",VendorGuid));
+  EFI_STATUS Status;
+  UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  SmmFuzzGlobalData.in_fuzz = 0; 
+  Status = SetVariableOld(VariableName, VendorGuid, Attributes, DataSize, Data);
+  SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  if (Status == 0xA000000000000002 || Status == EFI_NOT_FOUND) {
+    for (UINTN i = 0; i < NumVendorVariables; i++) {
+      if (CompareGuid (&VendorVariables[i].VendorGuid, VendorGuid) && !StrCmp(VendorVariables[i].VariableName, VariableName)) {
+        VendorVariables[i].Attributes = Attributes;
+        VendorVariables[i].Data = ReallocatePool(VendorVariables[i].DataSize,DataSize,VendorVariables[i].Data);
+        VendorVariables[i].DataSize = DataSize;
+        CopyMem(VendorVariables[i].Data, Data, DataSize);
+        return EFI_SUCCESS;
+      }
+    }
+    VendorVariables[NumVendorVariables].Attributes = Attributes;
+    CopyGuid(&VendorVariables[NumVendorVariables].VendorGuid, VendorGuid);
+    VendorVariables[NumVendorVariables].VariableName = AllocatePool(100);
+    StrCpyS(VendorVariables[NumVendorVariables].VariableName, 100, VariableName);
+    VendorVariables[NumVendorVariables].Data = AllocatePool(DataSize);
+    VendorVariables[NumVendorVariables].DataSize = DataSize;
+    CopyMem(VendorVariables[NumVendorVariables].Data, Data, DataSize);
+    NumVendorVariables++;
+    return EFI_SUCCESS;
+  }
+  DEBUG((DEBUG_INFO,"EFI_SET_VARIABLE_FUZZ %g %lx %r\n",VendorGuid, Status, Status));
+  return EFI_SUCCESS;
+}
 VOID HookGBS (VOID) {
     // Task Priority Services
     EFI_RAISE_TPL_Old = gBS->RaiseTPL;
@@ -1699,6 +1806,12 @@ VOID HookGBS (VOID) {
 
     EFI_CREATE_EVENT_EX_Old = gBS->CreateEventEx;
     gBS->CreateEventEx = EFI_CREATE_EVENT_EX_FUZZ;
+
+    GetVariableOld = gST->RuntimeServices->GetVariable;
+    gST->RuntimeServices->GetVariable = EFI_GET_VARIABLE_FUZZ;
+
+    SetVariableOld = gST->RuntimeServices->SetVariable;
+    gST->RuntimeServices->SetVariable = EFI_SET_VARIABLE_FUZZ;
 }
 EFI_STATUS
 EFIAPI EFI_ACPI_GET_ACPI_TABLE_FUNC(

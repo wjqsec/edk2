@@ -2412,6 +2412,7 @@ VariableServiceGetVariable (
   OUT     VOID      *Data OPTIONAL
   )
 {
+  DEBUG((DEBUG_INFO,"VariableServiceGetVariable\n"));
   EFI_STATUS              Status;
   VARIABLE_POINTER_TRACK  Variable;
   UINTN                   VarDataSize;

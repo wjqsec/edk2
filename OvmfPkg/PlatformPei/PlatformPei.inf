@@ -52,6 +52,7 @@
   gGhcbApicIdsGuid
   gTcg800155PlatformIdEventHobGuid              ## SOMETIMES_PRODUCES
   gSmmRegisterInfoGuid
+  gSmmFuzzHobGuid
 
 [LibraryClasses]
   BaseLib

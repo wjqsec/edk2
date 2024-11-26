@@ -377,36 +377,38 @@ InitializePlatform (
   if (PlatformInfoHob->SmmSmramRequire) {
     RelocateSmBase ();
   }
-  // InstallSmmFuzzHobList(PeiServices);
+  InstallSmmFuzzHobList(PeiServices);
   return EFI_SUCCESS;
 }
-EFI_GUID SmmFuzzGuid = { 0x762FA2E6, 0xEA3B, 0x41C8, { 0x8C, 0x52, 0x63, 0x76, 0x6D, 0x70, 0x39, 0xE0 } };
+extern GUID gSmmFuzzHobGuid;
 VOID InstallSmmFuzzHobList(CONST EFI_PEI_SERVICES     **PeiServices) {
-  PLD_SMM_REGISTERS *hob = BuildGuidHob (&gSmmRegisterInfoGuid, sizeof(PLD_SMM_REGISTERS) + sizeof(PLD_GENERIC_REGISTER) * 5);
-  hob->Revision =0;
-  hob->Count = 2;
+  // PLD_SMM_REGISTERS *hob = BuildGuidHob (&gSmmRegisterInfoGuid, sizeof(PLD_SMM_REGISTERS) + sizeof(PLD_GENERIC_REGISTER) * 5);
+  // hob->Revision =0;
+  // hob->Count = 2;
 
-  hob->Registers[0].Id = REGISTER_ID_SMI_EOS;
-  hob->Registers[0].Value = 1;
-  PLD_GENERIC_ADDRESS addr;
-  addr.AddressSpaceId = EFI_ACPI_3_0_SYSTEM_IO;
-  addr.RegisterBitWidth = 1;
-  addr.RegisterBitOffset = 0;
-  addr.AccessSize = EFI_ACPI_3_0_DWORD;
-  addr.Address = 0xfff0;
-  hob->Registers[0].Address = addr;
+  // hob->Registers[0].Id = REGISTER_ID_SMI_EOS;
+  // hob->Registers[0].Value = 1;
+  // PLD_GENERIC_ADDRESS addr;
+  // addr.AddressSpaceId = EFI_ACPI_3_0_SYSTEM_IO;
+  // addr.RegisterBitWidth = 1;
+  // addr.RegisterBitOffset = 0;
+  // addr.AccessSize = EFI_ACPI_3_0_DWORD;
+  // addr.Address = 0xfff0;
+  // hob->Registers[0].Address = addr;
 
-  hob->Registers[1].Id = REGISTER_ID_SMI_APM_STS;
-  hob->Registers[1].Value = 1;
-  addr.AddressSpaceId = EFI_ACPI_3_0_SYSTEM_IO;
-  addr.RegisterBitWidth = 1;
-  addr.RegisterBitOffset = 0;
-  addr.AccessSize = EFI_ACPI_3_0_DWORD;
-  addr.Address = 0xfff4;
-  hob->Registers[1].Address = addr;
+  // hob->Registers[1].Id = REGISTER_ID_SMI_APM_STS;
+  // hob->Registers[1].Value = 1;
+  // addr.AddressSpaceId = EFI_ACPI_3_0_SYSTEM_IO;
+  // addr.RegisterBitWidth = 1;
+  // addr.RegisterBitOffset = 0;
+  // addr.AccessSize = EFI_ACPI_3_0_DWORD;
+  // addr.Address = 0xfff4;
+  // hob->Registers[1].Address = addr;
   
-  SMM_FUZZ_HOB *Hob;
-  (*PeiServices)->CreateHob(PeiServices,EFI_HOB_TYPE_GUID_EXTENSION,sizeof(SMM_FUZZ_HOB),(VOID**)&Hob);
-  Hob->Header.Name = SmmFuzzGuid;
-  Hob->Revision    = 0;
+  // SMM_FUZZ_HOB *Hob;
+  // (*PeiServices)->CreateHob(PeiServices,EFI_HOB_TYPE_GUID_EXTENSION,sizeof(SMM_FUZZ_HOB),(VOID**)&Hob);
+  // Hob->Header.Name = gSmmFuzzHobGuid;
+  // Hob->Revision    = 0;
+
+  // BuildGuidHob (&gSmmFuzzHobGuid, 0x1000);
 }

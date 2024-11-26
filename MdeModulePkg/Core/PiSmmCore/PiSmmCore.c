@@ -966,7 +966,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
             }
             gSmmCorePrivate->SmramRanges[i].CpuStart += gSmmCorePrivate->SmramRanges[i].PhysicalSize;
             gSmmCorePrivate->SmramRanges[i].PhysicalStart += gSmmCorePrivate->SmramRanges[i].PhysicalSize;
-            gSmmCorePrivate->SmramRanges[i].PhysicalSize = 0x5000;
+            gSmmCorePrivate->SmramRanges[i].PhysicalSize = 0x100000;
           }
           LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,(UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
           DEBUG((DEBUG_INFO,"vendor smm core start\n"));
@@ -1051,7 +1051,7 @@ SmmMain (
   
   {
     gSmmCorePrivate->SmmEntryPoint = SmmEntryPointFuzz;
-    // gSmmCorePrivate->Smst->SmmInstallConfigurationTable = SmmInstallConfigurationTable;
+    gSmmCorePrivate->Smst->SmmInstallConfigurationTable = SmmInstallConfigurationTableFuzz;
     gSmmCorePrivate->Smst->SmmInstallProtocolInterface = SmmInstallProtocolInterfaceFuzz;
     gSmmCorePrivate->Smst->SmmUninstallProtocolInterface = SmmUninstallProtocolInterfaceFuzz;
     gSmmCorePrivate->Smst->SmmHandleProtocol = SmmHandleProtocolFuzz;

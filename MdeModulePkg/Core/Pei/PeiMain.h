@@ -2027,4 +2027,5 @@ VOID
 PeiReinitializeFv (
   IN  PEI_CORE_INSTANCE  *PrivateData
   );
+extern GUID gSmmFuzzHobGuid;
 #endif

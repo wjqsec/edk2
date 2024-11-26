@@ -464,6 +464,7 @@ SmmBase2GetSmstLocation (
   OUT      EFI_SMM_SYSTEM_TABLE2   **Smst
   )
 {
+  DEBUG((DEBUG_INFO,"SmmBase2GetSmstLocation\n"));
   if ((This == NULL) || (Smst == NULL)) {
     return EFI_INVALID_PARAMETER;
   }

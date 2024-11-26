@@ -259,7 +259,14 @@ SmmInstallConfigurationTable (
   IN  VOID                         *Table,
   IN  UINTN                        TableSize
   );
-
+EFI_STATUS
+EFIAPI
+SmmInstallConfigurationTableFuzz (
+  IN  CONST EFI_SMM_SYSTEM_TABLE2  *SystemTable,
+  IN  CONST EFI_GUID               *Guid,
+  IN  VOID                         *Table,
+  IN  UINTN                        TableSize
+  );
 /**
   Wrapper function to SmmInstallProtocolInterfaceNotify.  This is the public API which
   Calls the private one which contains a BOOLEAN parameter for notifications

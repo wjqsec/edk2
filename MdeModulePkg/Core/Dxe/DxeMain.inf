@@ -126,6 +126,8 @@
   gEfiEndOfDxeEventGroupGuid                    ## SOMETIMES_CONSUMES   ## Event
   gEfiHobMemoryAllocStackGuid                   ## SOMETIMES_CONSUMES   ## SystemTable
 
+  ## SmmFuzz
+  gSmmFuzzHobGuid
 [Ppis]
   gEfiVectorHandoffInfoPpiGuid                  ## UNDEFINED # HOB
 

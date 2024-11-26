@@ -1099,7 +1099,7 @@ PiSmmCoreMemoryAllocationLibConstructor (
     if ((SmmCorePrivate->SmramRanges[i].RegionState & (EFI_ALLOCATED | EFI_NEEDS_TESTING | EFI_NEEDS_ECC_INITIALIZATION)) != 0) {
       continue;
     }
-    SmmCorePrivate->SmramRanges[i].PhysicalSize = SmmCorePrivate->SmramRanges[i].PhysicalSize - 0x5000;
+    SmmCorePrivate->SmramRanges[i].PhysicalSize = SmmCorePrivate->SmramRanges[i].PhysicalSize - 0x100000;
   }
   //
   // The FreePool()/FreePages() will need use SmramRanges data to know whether

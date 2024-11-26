@@ -168,3 +168,16 @@ SmmInstallConfigurationTable (
 
   return EFI_SUCCESS;
 }
+EFI_STATUS
+EFIAPI
+SmmInstallConfigurationTableFuzz (
+  IN  CONST EFI_SMM_SYSTEM_TABLE2  *SystemTable,
+  IN  CONST EFI_GUID               *Guid,
+  IN  VOID                         *Table,
+  IN  UINTN                        TableSize
+  )
+{
+  DEBUG((DEBUG_INFO,"SmmInstallConfigurationTable %g\n",Guid));
+  EFI_STATUS Status = SmmInstallConfigurationTable(SystemTable, Guid, Table, TableSize);
+  return Status;
+}
