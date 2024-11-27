@@ -536,20 +536,6 @@ DxeMain (
   // SMM FUZZ
   InstallSmmFuzzProtocol();
   HookGBS();
-  EFI_PEI_HOB_POINTERS  Hob;
-  
-  for (Hob.Raw = HobStart ; !END_OF_HOB_LIST (Hob); Hob.Raw = GET_NEXT_HOB (Hob)) {
-    if (GET_HOB_TYPE(Hob) == EFI_HOB_TYPE_HANDOFF) {
-      Hob.HandoffInformationTable->BootMode = BOOT_ON_FLASH_UPDATE;
-    }
-    if (GET_HOB_TYPE(Hob) == EFI_HOB_TYPE_GUID_EXTENSION) {
-      if (CompareGuid(&Hob.Guid->Name, &gSmmFuzzHobGuid)) {
-        LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)Hob.Raw, (UINT64)GET_HOB_LENGTH(Hob));
-        break;
-      }
-    }
-  }
-  
   //
   // Initialize the DXE Dispatcher
   //
@@ -559,13 +545,6 @@ DxeMain (
   // Invoke the DXE Dispatcher
   //
   CoreDispatcher ();
-  
-  // SMMFUZZ
-  for (Hob.Raw = HobStart ; !END_OF_HOB_LIST (Hob); Hob.Raw = GET_NEXT_HOB (Hob)) {
-    if (GET_HOB_TYPE(Hob) == EFI_HOB_TYPE_HANDOFF) {
-      Hob.HandoffInformationTable->BootMode = BOOT_WITH_FULL_CONFIGURATION;
-    }
-  }
   //
   // Display Architectural protocols that were not loaded if this is DEBUG build
   //

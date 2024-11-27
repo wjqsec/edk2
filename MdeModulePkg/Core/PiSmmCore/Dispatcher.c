@@ -836,12 +836,9 @@ GUID OVMFSmmModules[] = {
     { 0x33FB3535, 0xF15E, 0x4C17, { 0xB3, 0x03, 0x5E, 0xB9, 0x45, 0x95, 0xEC, 0xB6 } },
     { 0xA3FF0EF5, 0x0C28, 0x42F5, { 0xB5, 0x44, 0x8C, 0x7D, 0xE1, 0xE8, 0x00, 0x14 } },
     { 0x2E7DB7A7, 0x608E, 0x4041, { 0xB4, 0x5F, 0x00, 0x35, 0x9E, 0x07, 0x66, 0xC6 } },
-    { 0x23A089B3, 0xEED5, 0x4AC5, { 0xB2, 0xAB, 0x43, 0xE3, 0x29, 0x8C, 0x23, 0x43 } },
-    { 0x84EEA114, 0xC6BE, 0x4445, { 0x8F, 0x90, 0x51, 0xD9, 0x78, 0x63, 0xE3, 0x63 } },
     { 0x470CB248, 0xE8AC, 0x473C, { 0xBB, 0x4F, 0x81, 0x06, 0x9A, 0x1F, 0xE6, 0xFD } },
+    { 0x23A089B3, 0xEED5, 0x4AC5, { 0xB2, 0xAB, 0x43, 0xE3, 0x29, 0x8C, 0x23, 0x43 } },
     { 0xE2EA6F47, 0xE678, 0x47FA, { 0x8C, 0x1B, 0x02, 0xA0, 0x3E, 0x82, 0x5C, 0x6E } },
-    { 0x60F343E3, 0x2AE2, 0x4AA7, { 0xB0, 0x1E, 0xBF, 0x9B, 0xD5, 0xC0, 0x4A, 0x3B } },
-    { 0x2D59F041, 0x53A4, 0x40D0, { 0xA6, 0xCD, 0x84, 0x4D, 0xC0, 0xDF, 0xEF, 0x17 } },
 };
 BOOLEAN IsOVMFSmmModule(GUID *guid) {
   for (UINTN i = 0; i <  ( sizeof(OVMFSmmModules) / sizeof(GUID)); i++) {
@@ -877,6 +874,14 @@ SmmDispatcher (
   BOOLEAN               ReadyToRun;
   BOOLEAN               PreviousSmmEntryPointRegistered;
 
+  VOID *OldHob = NULL;
+  for (UINTN i = 0 ; i < gST->NumberOfTableEntries; i++) {
+    if (CompareGuid(&gEfiHobListGuid, &gST->ConfigurationTable[i].VendorGuid)) {
+      OldHob = gST->ConfigurationTable[i].VendorTable;
+      break;
+    }
+  }
+  ASSERT(OldHob != NULL);
   if (!gRequestDispatch) {
     return EFI_NOT_FOUND;
   }
@@ -947,8 +952,21 @@ SmmDispatcher (
       //
       // For each SMM driver, pass NULL as ImageHandle
       //
-      RegisterSmramProfileImage (DriverEntry, TRUE);
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
+      RegisterSmramProfileImage (DriverEntry, TRUE);
+      EFI_PEI_HOB_POINTERS FuzzHob;
+      if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
+        Status = gBS->AllocatePool(EfiBootServicesData, 0x1200, (VOID**)&FuzzHob.Raw);
+        ASSERT_EFI_ERROR (Status);
+        Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, (VOID*)FuzzHob.Raw);
+        ASSERT_EFI_ERROR (Status);
+        FuzzHob.Guid->Header.HobLength = 0x1000;
+        LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)FuzzHob.Raw, (UINT64)GET_HOB_LENGTH(FuzzHob));
+        FuzzHob.Raw = GET_NEXT_HOB (FuzzHob);
+        FuzzHob.Header->HobType = EFI_HOB_TYPE_END_OF_HOB_LIST;
+        
+      }
+      
       InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
       SetCurrentModule(&DriverEntry->FileName);
       LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
@@ -965,6 +983,14 @@ SmmDispatcher (
       }
       ClearCurrentModule();
       DEBUG((DEBUG_INFO,"pass module %g\n",&DriverEntry->FileName));
+      if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
+        Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, OldHob);
+        ASSERT_EFI_ERROR (Status);
+        Status = gBS->FreePool(FuzzHob.Raw);
+        ASSERT_EFI_ERROR (Status);
+        LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)0, (UINT64)0);
+      }
+
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
       if (EFI_ERROR (Status)) {
         DEBUG ((
@@ -1065,7 +1091,6 @@ SmmDispatcher (
   }
 
   gDispatcherRunning = FALSE;
-
   return EFI_SUCCESS;
 }
 

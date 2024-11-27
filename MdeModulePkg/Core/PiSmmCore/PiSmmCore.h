@@ -1517,4 +1517,5 @@ SmmReportHandler (
   IN OUT VOID        *CommBuffer      OPTIONAL,
   IN OUT UINTN       *CommBufferSize  OPTIONAL
   );
+extern GUID gEfiHobListGuid;
 #endif

@@ -414,7 +414,6 @@ PeiCore (
   // Initialize PEI Core Services
   //
   InitializeMemoryServices (&PrivateData, SecCoreData, OldCoreData);
-  BuildGuidHob (&gSmmFuzzHobGuid, 0x1000);
   //
   // Update performance measurements
   //

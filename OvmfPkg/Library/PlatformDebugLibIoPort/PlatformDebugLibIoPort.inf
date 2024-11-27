@@ -30,6 +30,7 @@
   DebugLibDetect.h
 
 [Packages]
+  MdeModulePkg/MdeModulePkg.dec
   MdePkg/MdePkg.dec
   OvmfPkg/OvmfPkg.dec
 

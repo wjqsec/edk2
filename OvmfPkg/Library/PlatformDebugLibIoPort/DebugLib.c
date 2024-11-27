@@ -17,7 +17,7 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/DebugPrintErrorLevelLib.h>
 #include "DebugLibDetect.h"
-
+#include "libafl_qemu.h"
 //
 // Define the maximum debug and assert message length that this library supports
 //
@@ -201,7 +201,7 @@ DebugAssert (
 {
   CHAR8  Buffer[MAX_DEBUG_MESSAGE_LENGTH];
   UINTN  Length;
-
+  
   //
   // Generate the ASSERT() message in Ascii format
   //
@@ -220,7 +220,7 @@ DebugAssert (
   if (PlatformDebugLibIoPortFound ()) {
     IoWriteFifo8 (PcdGet16 (PcdDebugIoPort), Length, Buffer);
   }
-
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_ASSERT,0,0);  
   //
   // Generate a Breakpoint, DeadLoop, or NOP based on PCD settings
   //
