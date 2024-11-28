@@ -955,16 +955,17 @@ SmmDispatcher (
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
       RegisterSmramProfileImage (DriverEntry, TRUE);
       EFI_PEI_HOB_POINTERS FuzzHob;
+      EFI_PEI_HOB_POINTERS FuzzHobBackup;
       if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
         Status = gBS->AllocatePool(EfiBootServicesData, 0x1200, (VOID**)&FuzzHob.Raw);
         ASSERT_EFI_ERROR (Status);
-        Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, (VOID*)FuzzHob.Raw);
+        FuzzHobBackup.Raw = FuzzHob.Raw;
+        Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, (VOID*)FuzzHobBackup.Raw);
         ASSERT_EFI_ERROR (Status);
         FuzzHob.Guid->Header.HobLength = 0x1000;
-        LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)FuzzHob.Raw, (UINT64)GET_HOB_LENGTH(FuzzHob));
+        LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)FuzzHobBackup.Raw, (UINT64)GET_HOB_LENGTH(FuzzHobBackup));
         FuzzHob.Raw = GET_NEXT_HOB (FuzzHob);
         FuzzHob.Header->HobType = EFI_HOB_TYPE_END_OF_HOB_LIST;
-        
       }
       
       InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
@@ -986,7 +987,7 @@ SmmDispatcher (
       if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
         Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, OldHob);
         ASSERT_EFI_ERROR (Status);
-        Status = gBS->FreePool(FuzzHob.Raw);
+        Status = gBS->FreePool(FuzzHobBackup.Raw);
         ASSERT_EFI_ERROR (Status);
         LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)0, (UINT64)0);
       }
