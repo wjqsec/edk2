@@ -974,7 +974,11 @@ SmmDispatcher (
       SmmFuzzGlobalData->in_fuzz = 1;  
       LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
       DEBUG((DEBUG_INFO,"start fuzzing entry point %g numcpu:%d current cpu:%d\n",&DriverEntry->FileName,gSmmCorePrivate->Smst->NumberOfCpus, gSmmCorePrivate->Smst->CurrentlyExecutingCpu));
-      Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
+      UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
+      if (skip == 0)
+        Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
+      else
+        Status = EFI_SUCCESS;
       DEBUG((DEBUG_INFO,"end entry point %g %lx %r\n",&DriverEntry->FileName,Status, Status));   
       SmmFuzzGlobalData->in_fuzz = 0;
       if (EFI_ERROR (Status)) {
