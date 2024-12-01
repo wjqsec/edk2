@@ -954,6 +954,7 @@ SmmDispatcher (
       //
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
       RegisterSmramProfileImage (DriverEntry, TRUE);
+
       EFI_PEI_HOB_POINTERS FuzzHob;
       EFI_PEI_HOB_POINTERS FuzzHobBackup;
       if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
@@ -970,12 +971,12 @@ SmmDispatcher (
       
       InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
       SetCurrentModule(&DriverEntry->FileName);
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
-      DEBUG((DEBUG_INFO,"start fuzzing entry point %g\n",&DriverEntry->FileName));
       SmmFuzzGlobalData->in_fuzz = 1;  
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
+      DEBUG((DEBUG_INFO,"start fuzzing entry point %g numcpu:%d current cpu:%d\n",&DriverEntry->FileName,gSmmCorePrivate->Smst->NumberOfCpus, gSmmCorePrivate->Smst->CurrentlyExecutingCpu));
       Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
-      SmmFuzzGlobalData->in_fuzz = 0;
       DEBUG((DEBUG_INFO,"end entry point %g %lx %r\n",&DriverEntry->FileName,Status, Status));   
+      SmmFuzzGlobalData->in_fuzz = 0;
       if (EFI_ERROR (Status)) {
         LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT,0,0);
       }
@@ -983,7 +984,8 @@ SmmDispatcher (
         LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
       }
       ClearCurrentModule();
-      DEBUG((DEBUG_INFO,"pass module %g\n",&DriverEntry->FileName));
+      
+
       if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
         Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, OldHob);
         ASSERT_EFI_ERROR (Status);
@@ -991,7 +993,8 @@ SmmDispatcher (
         ASSERT_EFI_ERROR (Status);
         LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)0, (UINT64)0);
       }
-
+      DEBUG((DEBUG_INFO,"pass module %g\n",&DriverEntry->FileName));
+      
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
       if (EFI_ERROR (Status)) {
         DEBUG ((

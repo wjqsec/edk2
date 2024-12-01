@@ -43,7 +43,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "PrivilegePolymorphic.h"
 #include "VariableParsing.h"
-
+#include "libafl_qemu.h"
 EFI_HANDLE                      mHandle                    = NULL;
 EFI_SMM_VARIABLE_PROTOCOL       *mSmmVariable              = NULL;
 EFI_EVENT                       mVirtualAddressChangeEvent = NULL;
@@ -799,7 +799,15 @@ RuntimeServiceGetVariable (
   } else {
     Status = FindVariableInSmm (VariableName, VendorGuid, Attributes, DataSize, Data);
   }
+  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  ASSERT(!EFI_ERROR(Status));
+  if (SmmFuzzGlobalData->in_fuzz == 1) {
 
+    DEBUG((DEBUG_INFO,"RuntimeServiceGetVariable\n"));
+    LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+    Status = EFI_SUCCESS;
+  }
   ReleaseLockOnlyAtBootTime (&mVariableServicesLock);
 
   return Status;
@@ -1168,8 +1176,16 @@ RuntimeServiceSetVariable (
   // Send data to SMM.
   //
   Status = SendCommunicateBuffer (PayloadSize);
-
+  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 Done:
+  
+  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  ASSERT(!EFI_ERROR(Status));
+  if (SmmFuzzGlobalData->in_fuzz == 1) {
+    DEBUG((DEBUG_INFO,"RuntimeServiceGetVariable\n"));
+    Status = EFI_SUCCESS;
+  }
+    
   ReleaseLockOnlyAtBootTime (&mVariableServicesLock);
 
   if (!EfiAtRuntime ()) {

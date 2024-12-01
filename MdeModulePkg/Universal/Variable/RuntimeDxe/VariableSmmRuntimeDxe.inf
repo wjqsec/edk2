@@ -73,7 +73,8 @@
   gEdkiiVariableLockProtocolGuid                ## PRODUCES
   gEdkiiVarCheckProtocolGuid                    ## PRODUCES
   gEdkiiVariablePolicyProtocolGuid              ## PRODUCES
-
+  gSmmFuzzDataProtocolGuid
+  
 [FeaturePcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdVariableCollectStatistics            ## CONSUMES
 

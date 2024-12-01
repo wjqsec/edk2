@@ -20,6 +20,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
+extern EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp;
 extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
@@ -698,12 +699,11 @@ SmmEntryPoint (
   //
   // Update SMST with contents of the SmmEntryContext structure
   //
-  gSmmCoreSmst.SmmStartupThisAp      = SmmEntryContext->SmmStartupThisAp;
-  gSmmCoreSmst.CurrentlyExecutingCpu = SmmEntryContext->CurrentlyExecutingCpu;
-  gSmmCoreSmst.NumberOfCpus          = SmmEntryContext->NumberOfCpus;
-  gSmmCoreSmst.CpuSaveStateSize      = SmmEntryContext->CpuSaveStateSize;
-  gSmmCoreSmst.CpuSaveState          = SmmEntryContext->CpuSaveState;
-
+  gSmmCorePrivate->Smst->SmmStartupThisAp      = SmmEntryContext->SmmStartupThisAp;
+  gSmmCorePrivate->Smst->CurrentlyExecutingCpu = SmmEntryContext->CurrentlyExecutingCpu;
+  gSmmCorePrivate->Smst->NumberOfCpus          = SmmEntryContext->NumberOfCpus;
+  gSmmCorePrivate->Smst->CpuSaveStateSize      = SmmEntryContext->CpuSaveStateSize;
+  gSmmCorePrivate->Smst->CpuSaveState          = SmmEntryContext->CpuSaveState;
   //
   // Call platform hook before Smm Dispatch
   //
@@ -900,6 +900,17 @@ SmmCoreInstallLoadedImage (
   return;
 }
 
+EFI_STATUS
+EFIAPI EFI_MM_STARTUP_THIS_AP_FUZZ(
+  IN EFI_AP_PROCEDURE  Procedure,
+  IN UINTN             CpuNumber,
+  IN OUT VOID          *ProcArguments OPTIONAL
+  )
+{
+  DEBUG((DEBUG_INFO,"EFI_MM_STARTUP_THIS_AP_FUZZ\n"));
+  return EFI_SUCCESS;
+}
+
 EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *SystemTable) 
 {
   EFI_STATUS Status;
@@ -1038,7 +1049,7 @@ SmmMain (
       SmmFreePoolOld = gSmmCorePrivate->Smst->SmmFreePool;
       SmmAllocatePagesOld = gSmmCorePrivate->Smst->SmmAllocatePages;
       SmmFreePagesOld = gSmmCorePrivate->Smst->SmmFreePages;
-
+      SmmStartupThisAp = gSmmCorePrivate->Smst->SmmStartupThisAp;
       
   }
   else 

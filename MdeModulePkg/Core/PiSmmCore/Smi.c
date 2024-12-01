@@ -197,6 +197,8 @@ SmiManage (
     SmiHandler = CR (Link, SMI_HANDLER, Link, SMI_HANDLER_SIGNATURE);
     if (CommBuffer && CommBufferSize)
       DEBUG((DEBUG_INFO,"SMI hanlder enter %g commbuffer:%p commbuffersize:%d\n",HandlerType,CommBuffer,*CommBufferSize));
+    else
+      DEBUG((DEBUG_INFO,"SMI hanlder enter %g\n",HandlerType));
     SetCurrentModuleBySmi(HandlerType);
     LIBAFL_QEMU_SMM_SMI_ENTER();
     Status = SmiHandler->Handler (

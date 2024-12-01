@@ -182,6 +182,7 @@
   gEfiAcpiSupportProtocolGuid
   gPowerMgmtInitDoneProtocolGuid
   gPlatformNvsAreaProtocolGuid
+  gCpuNvsAreaProtocolGuid
   gUnknownHpProtocol1Guid
   gUnknownHpProtocol2Guid
   gUnknownHpProtocol3Guid

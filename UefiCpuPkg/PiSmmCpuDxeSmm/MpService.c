@@ -1421,7 +1421,7 @@ SmmStartupThisAp (
   //
   // Use wrapper function to convert EFI_AP_PROCEDURE to EFI_AP_PROCEDURE2.
   //
-  return InternalSmmStartupThisAp (
+  EFI_STATUS Status = InternalSmmStartupThisAp (
            ProcedureWrapper,
            CpuIndex,
            &gSmmCpuPrivate->ApWrapperFunc[CpuIndex],
@@ -1429,6 +1429,7 @@ SmmStartupThisAp (
            0,
            NULL
            );
+  return Status;
 }
 
 /**

@@ -22,6 +22,7 @@ EFI_FREE_POOL                       SmmFreePoolOld = NULL;
 EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld = NULL;
 EFI_FREE_PAGES                      SmmFreePagesOld = NULL;
 SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData = NULL;
+EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp = NULL;
 //
 // mProtocolDatabase     - A list of all protocols in the system.  (simple list for now)
 // gHandleList           - A list of all the handles in the system

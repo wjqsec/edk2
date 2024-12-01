@@ -147,4 +147,5 @@ typedef struct {
   BOOLEAN    AuthenticatedVariableUsage;
 } SMM_VARIABLE_COMMUNICATE_GET_RUNTIME_CACHE_INFO;
 
+extern GUID gSmmFuzzDataProtocolGuid;
 #endif // _SMM_VARIABLE_COMMON_H_
