@@ -577,7 +577,9 @@ BSPHandler (
   //
   // Invoke SMM Foundation EntryPoint with the processor information context.
   //
+  DEBUG((DEBUG_INFO,"SmmCoreEntry start\n"));
   gSmmCpuPrivate->SmmCoreEntry (&gSmmCpuPrivate->SmmCoreEntryContext);
+  DEBUG((DEBUG_INFO,"SmmCoreEntry end\n"));
 
   //
   // Make sure all APs have completed their pending none-block tasks

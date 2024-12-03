@@ -695,7 +695,7 @@ SmmEntryPoint (
   UINTN                       BufferSize;
 
   PERF_FUNCTION_BEGIN ();
-
+  DEBUG((DEBUG_INFO,"1111111111111111\n"));
   //
   // Update SMST with contents of the SmmEntryContext structure
   //
@@ -704,6 +704,7 @@ SmmEntryPoint (
   gSmmCorePrivate->Smst->NumberOfCpus          = SmmEntryContext->NumberOfCpus;
   gSmmCorePrivate->Smst->CpuSaveStateSize      = SmmEntryContext->CpuSaveStateSize;
   gSmmCorePrivate->Smst->CpuSaveState          = SmmEntryContext->CpuSaveState;
+  DEBUG((DEBUG_INFO,"2222222222222\n"));
   //
   // Call platform hook before Smm Dispatch
   //
@@ -715,7 +716,7 @@ SmmEntryPoint (
   // Call memory management hook function
   //
   SmmEntryPointMemoryManagementHook ();
-
+  DEBUG((DEBUG_INFO,"33333333333333\n"));
   //
   // If a legacy boot has occurred, then make sure gSmmCorePrivate is not accessed
   //
@@ -761,12 +762,14 @@ SmmEntryPoint (
       } else {
         CommunicateHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommunicationBuffer;
         // BufferSize was updated by the SafeUintnSub() call above. 
+        DEBUG((DEBUG_INFO,"444444444444444\n"));
         Status = SmiManage (
                    &CommunicateHeader->HeaderGuid,
                    NULL,
                    CommunicateHeader->Data,
                    &BufferSize
                    );
+        DEBUG((DEBUG_INFO,"5555555555555\n"));
         //
         // Update CommunicationBuffer, BufferSize and ReturnStatus
         // Communicate service finished, reset the pointer to CommBuffer to NULL
@@ -777,19 +780,19 @@ SmmEntryPoint (
       }
     }
   }
-
+  DEBUG((DEBUG_INFO,"666666666666\n"));
   //
   // Process Asynchronous SMI sources
   //
   SmiManage (NULL, NULL, NULL, NULL);
-
+  DEBUG((DEBUG_INFO,"7777777777777\n"));
   //
   // Call platform hook after Smm Dispatch
   //
   PERF_START (NULL, "PlatformHookAfterSmmDispatch", NULL, 0);
   PlatformHookAfterSmmDispatch ();
   PERF_END (NULL, "PlatformHookAfterSmmDispatch", NULL, 0);
-
+  DEBUG((DEBUG_INFO,"88888888888888\n"));
   //
   // If a legacy boot has occurred, then make sure gSmmCorePrivate is not accessed
   //
@@ -799,7 +802,7 @@ SmmEntryPoint (
     //
     gSmmCorePrivate->InSmm = FALSE;
   }
-
+  DEBUG((DEBUG_INFO,"99999999999999\n"));
   PERF_FUNCTION_END ();
 }
 VOID
@@ -961,7 +964,8 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           DriverEntry->FvFileDevicePath = SmmFvToDevicePath (Fv, FvHandle, &NameGuid);
           Status = SmmLoadImage (DriverEntry);
           ASSERT_EFI_ERROR (Status);
-
+          // Status = RegisterSmramProfileImage (DriverEntry, TRUE);
+          // ASSERT_EFI_ERROR (Status);
           EFI_SMRAM_DESCRIPTOR *OldSmramRange;
           EFI_SMRAM_DESCRIPTOR *TmpSmramRange;
           Status = gBS->AllocatePool (EfiBootServicesData, gSmmCorePrivate->SmramRangeCount * sizeof(EFI_SMRAM_DESCRIPTOR), (VOID **)&TmpSmramRange);
@@ -980,7 +984,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
             gSmmCorePrivate->SmramRanges[i].PhysicalSize = 0x100000;
           }
           LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,(UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
-          DEBUG((DEBUG_INFO,"vendor smm core start\n"));
+          DEBUG((DEBUG_INFO,"vendor smm core start %p-%p\n",DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageBase + DriverEntry->SmmLoadedImage.ImageSize));
           SmmFuzzGlobalData->in_fuzz = 1;
           Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(ImageHandle, gST);
           SmmFuzzGlobalData->in_fuzz = 0;
@@ -1036,6 +1040,12 @@ SmmMain (
   Status = LoadVendorCore(ImageHandle, SystemTable);
   if (!EFI_ERROR(Status))
   {
+      VOID *VendorCoreImageProtocol;
+      EFI_HANDLE TmpHandle = NULL;
+      Status = SmmLocateProtocol(&gEfiLoadedImageProtocolGuid, NULL, &VendorCoreImageProtocol);
+      ASSERT(!EFI_ERROR(Status));
+      Status = gSmmCorePrivate->Smst->SmmInstallProtocolInterface(&TmpHandle, &gEfiLoadedImageProtocolGuid, EFI_NATIVE_INTERFACE, VendorCoreImageProtocol);
+      ASSERT(!EFI_ERROR(Status));
       SmmInstallProtocolInterfaceOld = gSmmCorePrivate->Smst->SmmInstallProtocolInterface;
       SmmUninstallProtocolInterfaceOld = gSmmCorePrivate->Smst->SmmUninstallProtocolInterface;
       SmmHandleProtocolOld = gSmmCorePrivate->Smst->SmmHandleProtocol;
@@ -1050,7 +1060,6 @@ SmmMain (
       SmmAllocatePagesOld = gSmmCorePrivate->Smst->SmmAllocatePages;
       SmmFreePagesOld = gSmmCorePrivate->Smst->SmmFreePages;
       SmmStartupThisAp = gSmmCorePrivate->Smst->SmmStartupThisAp;
-      
   }
   else 
   {
@@ -1059,7 +1068,7 @@ SmmMain (
     //
     gSmmCorePrivate->Smst          = &gSmmCoreSmst;
   }
-  
+
   {
     gSmmCorePrivate->SmmEntryPoint = SmmEntryPointFuzz;
     gSmmCorePrivate->Smst->SmmInstallConfigurationTable = SmmInstallConfigurationTableFuzz;

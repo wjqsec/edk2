@@ -1053,13 +1053,11 @@ EFI_STATUS EFIAPI EFI_ALLOCATE_POOL_FUZZ(
   IN  UINTN                        Size,
   OUT VOID                         **Buffer
 ) {
-  DEBUG((DEBUG_INFO,"EFI_ALLOCATE_POOL_FUZZ %d\n",Size));
   EFI_STATUS Status;
   UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
   SmmFuzzGlobalData.in_fuzz = 0; 
   Status = EFI_ALLOCATE_POOL_Old(PoolType, Size, Buffer);
   SmmFuzzGlobalData.in_fuzz = OldInFuzz;
-  DEBUG((DEBUG_INFO,"EFI_ALLOCATE_POOL_FUZZ end %r\n",Status));
   return Status;
 }
 
@@ -1067,13 +1065,11 @@ EFI_FREE_POOL EFI_FREE_POOL_Old;
 EFI_STATUS EFIAPI EFI_FREE_POOL_FUZZ(
   IN  VOID                         *Buffer
 ) {
-  DEBUG((DEBUG_INFO,"EFI_FREE_POOL_FUZZ\n"));
   EFI_STATUS Status;
   UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
   SmmFuzzGlobalData.in_fuzz = 0; 
   Status = EFI_FREE_POOL_Old(Buffer);
   SmmFuzzGlobalData.in_fuzz = OldInFuzz;
-  DEBUG((DEBUG_INFO,"EFI_FREE_POOL_FUZZ end %r\n",Status));
   return Status;
 }
 

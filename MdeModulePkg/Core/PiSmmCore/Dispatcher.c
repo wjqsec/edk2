@@ -1443,52 +1443,55 @@ SmmDriverDispatchHandler (
                                   &Size
                                   );
         if (!EFI_ERROR (GetNextFileStatus)) {
+          GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA}};
           if (Type == EFI_FV_FILETYPE_SMM_CORE) {
-            //
-            // If this is the SMM core fill in it's DevicePath & DeviceHandle
-            //
-            if (mSmmCoreLoadedImage->FilePath == NULL) {
+            if (CompareGuid(&NameGuid, &SMMCORE_GUID)) {
               //
-              // Maybe one special FV contains only one SMM_CORE module, so its device path must
-              // be initialized completely.
+              // If this is the SMM core fill in it's DevicePath & DeviceHandle
               //
-              EfiInitializeFwVolDevicepathNode (&mFvDevicePath.File, &NameGuid);
-              SetDevicePathEndNode (&mFvDevicePath.End);
+              if (mSmmCoreLoadedImage->FilePath == NULL) {
+                //
+                // Maybe one special FV contains only one SMM_CORE module, so its device path must
+                // be initialized completely.
+                //
+                EfiInitializeFwVolDevicepathNode (&mFvDevicePath.File, &NameGuid);
+                SetDevicePathEndNode (&mFvDevicePath.End);
 
-              //
-              // Make an EfiBootServicesData buffer copy of FilePath
-              //
-              Status = gBS->AllocatePool (
-                              EfiBootServicesData,
-                              GetDevicePathSize ((EFI_DEVICE_PATH_PROTOCOL *)&mFvDevicePath),
-                              (VOID **)&mSmmCoreLoadedImage->FilePath
-                              );
-              ASSERT_EFI_ERROR (Status);
-              CopyMem (mSmmCoreLoadedImage->FilePath, &mFvDevicePath, GetDevicePathSize ((EFI_DEVICE_PATH_PROTOCOL *)&mFvDevicePath));
+                //
+                // Make an EfiBootServicesData buffer copy of FilePath
+                //
+                Status = gBS->AllocatePool (
+                                EfiBootServicesData,
+                                GetDevicePathSize ((EFI_DEVICE_PATH_PROTOCOL *)&mFvDevicePath),
+                                (VOID **)&mSmmCoreLoadedImage->FilePath
+                                );
+                ASSERT_EFI_ERROR (Status);
+                CopyMem (mSmmCoreLoadedImage->FilePath, &mFvDevicePath, GetDevicePathSize ((EFI_DEVICE_PATH_PROTOCOL *)&mFvDevicePath));
 
-              mSmmCoreLoadedImage->DeviceHandle = FvHandle;
-            }
+                mSmmCoreLoadedImage->DeviceHandle = FvHandle;
+              }
 
-            if (mSmmCoreDriverEntry->SmmLoadedImage.FilePath == NULL) {
-              //
-              // Maybe one special FV contains only one SMM_CORE module, so its device path must
-              // be initialized completely.
-              //
-              EfiInitializeFwVolDevicepathNode (&mFvDevicePath.File, &NameGuid);
-              SetDevicePathEndNode (&mFvDevicePath.End);
+              if (mSmmCoreDriverEntry->SmmLoadedImage.FilePath == NULL) {
+                //
+                // Maybe one special FV contains only one SMM_CORE module, so its device path must
+                // be initialized completely.
+                //
+                EfiInitializeFwVolDevicepathNode (&mFvDevicePath.File, &NameGuid);
+                SetDevicePathEndNode (&mFvDevicePath.End);
 
-              //
-              // Make a buffer copy FilePath
-              //
-              Status = SmmAllocatePool (
-                         EfiRuntimeServicesData,
-                         GetDevicePathSize ((EFI_DEVICE_PATH_PROTOCOL *)&mFvDevicePath),
-                         (VOID **)&mSmmCoreDriverEntry->SmmLoadedImage.FilePath
-                         );
-              ASSERT_EFI_ERROR (Status);
-              CopyMem (mSmmCoreDriverEntry->SmmLoadedImage.FilePath, &mFvDevicePath, GetDevicePathSize ((EFI_DEVICE_PATH_PROTOCOL *)&mFvDevicePath));
+                //
+                // Make a buffer copy FilePath
+                //
+                Status = SmmAllocatePool (
+                          EfiRuntimeServicesData,
+                          GetDevicePathSize ((EFI_DEVICE_PATH_PROTOCOL *)&mFvDevicePath),
+                          (VOID **)&mSmmCoreDriverEntry->SmmLoadedImage.FilePath
+                          );
+                ASSERT_EFI_ERROR (Status);
+                CopyMem (mSmmCoreDriverEntry->SmmLoadedImage.FilePath, &mFvDevicePath, GetDevicePathSize ((EFI_DEVICE_PATH_PROTOCOL *)&mFvDevicePath));
 
-              mSmmCoreDriverEntry->SmmLoadedImage.DeviceHandle = FvHandle;
+                mSmmCoreDriverEntry->SmmLoadedImage.DeviceHandle = FvHandle;
+              }
             }
           } else {
             SmmAddToDriverList (Fv, FvHandle, &NameGuid);

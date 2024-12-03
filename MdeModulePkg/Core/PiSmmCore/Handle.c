@@ -193,7 +193,7 @@ SmmInstallProtocolInterface (
   IN VOID                *Interface
   )
 {
-  DEBUG((DEBUG_INFO,"SmmInstallProtocolInterface: %g\n",Protocol));
+  DEBUG((DEBUG_INFO,"SmmInstallProtocolInterface: %g %p\n",Protocol,Interface));
   InsertProduceProtocol(Protocol);
   if (SmmInstallProtocolInterfaceOld) {
     return SmmInstallProtocolInterfaceOld(UserHandle, Protocol, InterfaceType, Interface);
@@ -620,8 +620,6 @@ SmmHandleProtocolFuzz (
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   Status = SmmHandleProtocol(UserHandle, Protocol, Interface);
-  if (Status == EFI_UNSUPPORTED && SmmHandleProtocolOld)
-    Status = SmmHandleProtocolOld(UserHandle, Protocol, Interface);
   DEBUG((DEBUG_INFO,"SmmHandleProtocol: %g %r\n",Protocol, Status));
   SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;

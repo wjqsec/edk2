@@ -314,7 +314,8 @@ GetSmmLoadedImage (
     if (EFI_ERROR (Status)) {
       continue;
     }
-
+    if(!LoadedImage->FilePath)
+      continue;
     PathStr = ConvertDevicePathToText (LoadedImage->FilePath, TRUE, TRUE);
     GetDriverGuid (LoadedImage, &Guid);
     DEBUG ((DEBUG_INFO, "Image: %g ", &Guid));

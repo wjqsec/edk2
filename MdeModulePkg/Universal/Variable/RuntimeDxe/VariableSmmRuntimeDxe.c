@@ -784,7 +784,6 @@ RuntimeServiceGetVariable (
   )
 {
   EFI_STATUS  Status;
-
   if ((VariableName == NULL) || (VendorGuid == NULL) || (DataSize == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
@@ -800,11 +799,12 @@ RuntimeServiceGetVariable (
     Status = FindVariableInSmm (VariableName, VendorGuid, Attributes, DataSize, Data);
   }
   SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
-  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-  ASSERT(!EFI_ERROR(Status));
+  EFI_STATUS Status2 = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  ASSERT(!EFI_ERROR(Status2));
+  (VOID)Status2;
   if (SmmFuzzGlobalData->in_fuzz == 1) {
 
-    DEBUG((DEBUG_INFO,"RuntimeServiceGetVariable\n"));
+    DEBUG((DEBUG_INFO,"get RuntimeServiceGetVariable Fuzz data\n"));
     LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
     Status = EFI_SUCCESS;
   }

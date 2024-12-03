@@ -49,18 +49,18 @@ SmmInstallConfigurationTable (
     return EFI_INVALID_PARAMETER;
   }
 
-  ConfigurationTable = gSmmCoreSmst.SmmConfigurationTable;
+  ConfigurationTable = gSmmCorePrivate->Smst->SmmConfigurationTable;
 
   //
   // Search all the table for an entry that matches Guid
   //
-  for (Index = 0; Index < gSmmCoreSmst.NumberOfTableEntries; Index++) {
+  for (Index = 0; Index < gSmmCorePrivate->Smst->NumberOfTableEntries; Index++) {
     if (CompareGuid (Guid, &(ConfigurationTable[Index].VendorGuid))) {
       break;
     }
   }
 
-  if (Index < gSmmCoreSmst.NumberOfTableEntries) {
+  if (Index < gSmmCorePrivate->Smst->NumberOfTableEntries) {
     //
     // A match was found, so this is either a modify or a delete operation
     //
@@ -76,7 +76,7 @@ SmmInstallConfigurationTable (
     //
     // A match was found and Table is NULL, so this is a delete operation.
     //
-    gSmmCoreSmst.NumberOfTableEntries--;
+    gSmmCorePrivate->Smst->NumberOfTableEntries--;
 
     //
     // Copy over deleted entry
@@ -84,7 +84,7 @@ SmmInstallConfigurationTable (
     CopyMem (
       &(ConfigurationTable[Index]),
       &(ConfigurationTable[Index + 1]),
-      (gSmmCoreSmst.NumberOfTableEntries - Index) * sizeof (EFI_CONFIGURATION_TABLE)
+      (gSmmCorePrivate->Smst->NumberOfTableEntries - Index) * sizeof (EFI_CONFIGURATION_TABLE)
       );
   } else {
     //
@@ -98,7 +98,7 @@ SmmInstallConfigurationTable (
     }
 
     //
-    // Assume that Index == gSmmCoreSmst.NumberOfTableEntries
+    // Assume that Index == gSmmCorePrivate->Smst->NumberOfTableEntries
     //
     if ((Index * sizeof (EFI_CONFIGURATION_TABLE)) >= mSmmSystemTableAllocateSize) {
       //
@@ -113,30 +113,30 @@ SmmInstallConfigurationTable (
         return EFI_OUT_OF_RESOURCES;
       }
 
-      if (gSmmCoreSmst.SmmConfigurationTable != NULL) {
+      if (gSmmCorePrivate->Smst->SmmConfigurationTable != NULL) {
         //
         // Copy the old table to the new table.
         //
         CopyMem (
           ConfigurationTable,
-          gSmmCoreSmst.SmmConfigurationTable,
+          gSmmCorePrivate->Smst->SmmConfigurationTable,
           Index * sizeof (EFI_CONFIGURATION_TABLE)
           );
 
         //
         // Record the old table pointer.
         //
-        OldTable = gSmmCoreSmst.SmmConfigurationTable;
+        OldTable = gSmmCorePrivate->Smst->SmmConfigurationTable;
 
         //
         // As the SmmInstallConfigurationTable() may be re-entered by FreePool() in
         // its calling stack, updating System table to the new table pointer must
         // be done before calling FreePool() to free the old table.
-        // It can make sure the gSmmCoreSmst.SmmConfigurationTable point to the new
+        // It can make sure the gSmmCorePrivate->Smst->SmmConfigurationTable point to the new
         // table and avoid the errors of use-after-free to the old table by the
         // reenter of SmmInstallConfigurationTable() in FreePool()'s calling stack.
         //
-        gSmmCoreSmst.SmmConfigurationTable = ConfigurationTable;
+        gSmmCorePrivate->Smst->SmmConfigurationTable = ConfigurationTable;
 
         //
         // Free the old table after updating System Table to the new table pointer.
@@ -146,7 +146,7 @@ SmmInstallConfigurationTable (
         //
         // Update System Table
         //
-        gSmmCoreSmst.SmmConfigurationTable = ConfigurationTable;
+        gSmmCorePrivate->Smst->SmmConfigurationTable = ConfigurationTable;
       }
     }
 
@@ -159,7 +159,7 @@ SmmInstallConfigurationTable (
     //
     // This is an add operation, so increment the number of table entries
     //
-    gSmmCoreSmst.NumberOfTableEntries++;
+    gSmmCorePrivate->Smst->NumberOfTableEntries++;
   }
 
   //

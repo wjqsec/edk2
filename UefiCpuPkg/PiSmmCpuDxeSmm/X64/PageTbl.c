@@ -722,7 +722,7 @@ SmiPFHandler (
   AcquireSpinLock (mPFLock);
 
   PFAddress = AsmReadCr2 ();
-  DEBUG((DEBUG_ERROR,"SmiPFHandler exception addr %p\n",PFAddress));
+  DEBUG((DEBUG_ERROR,"SmiPFHandler exception addr: %p pc: %p\n",PFAddress,SystemContext.SystemContextX64->Rip));
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH,0,0);
   if (PFAddress >= LShiftU64 (1, (mPhysicalAddressBits - 1))) {
     DumpCpuContext (InterruptType, SystemContext);

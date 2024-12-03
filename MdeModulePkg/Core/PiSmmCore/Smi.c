@@ -154,7 +154,6 @@ SmiManage (
   IN OUT UINTN           *CommBufferSize  OPTIONAL
   )
 {
-  DEBUG((DEBUG_INFO,"SmiManage %g\n",HandlerType));
   LIST_ENTRY   *Link;
   LIST_ENTRY   *Head;
   LIST_ENTRY   *EntryLink;
