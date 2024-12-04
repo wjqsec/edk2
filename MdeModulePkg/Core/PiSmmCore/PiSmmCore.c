@@ -695,7 +695,6 @@ SmmEntryPoint (
   UINTN                       BufferSize;
 
   PERF_FUNCTION_BEGIN ();
-  DEBUG((DEBUG_INFO,"1111111111111111\n"));
   //
   // Update SMST with contents of the SmmEntryContext structure
   //
@@ -704,7 +703,6 @@ SmmEntryPoint (
   gSmmCorePrivate->Smst->NumberOfCpus          = SmmEntryContext->NumberOfCpus;
   gSmmCorePrivate->Smst->CpuSaveStateSize      = SmmEntryContext->CpuSaveStateSize;
   gSmmCorePrivate->Smst->CpuSaveState          = SmmEntryContext->CpuSaveState;
-  DEBUG((DEBUG_INFO,"2222222222222\n"));
   //
   // Call platform hook before Smm Dispatch
   //
@@ -716,7 +714,7 @@ SmmEntryPoint (
   // Call memory management hook function
   //
   SmmEntryPointMemoryManagementHook ();
-  DEBUG((DEBUG_INFO,"33333333333333\n"));
+  
   //
   // If a legacy boot has occurred, then make sure gSmmCorePrivate is not accessed
   //
@@ -762,14 +760,12 @@ SmmEntryPoint (
       } else {
         CommunicateHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommunicationBuffer;
         // BufferSize was updated by the SafeUintnSub() call above. 
-        DEBUG((DEBUG_INFO,"444444444444444\n"));
         Status = SmiManage (
                    &CommunicateHeader->HeaderGuid,
                    NULL,
                    CommunicateHeader->Data,
                    &BufferSize
                    );
-        DEBUG((DEBUG_INFO,"5555555555555\n"));
         //
         // Update CommunicationBuffer, BufferSize and ReturnStatus
         // Communicate service finished, reset the pointer to CommBuffer to NULL
@@ -780,19 +776,19 @@ SmmEntryPoint (
       }
     }
   }
-  DEBUG((DEBUG_INFO,"666666666666\n"));
+
   //
   // Process Asynchronous SMI sources
   //
-  SmiManage (NULL, NULL, NULL, NULL);
-  DEBUG((DEBUG_INFO,"7777777777777\n"));
+  // SmiManage (NULL, NULL, NULL, NULL);
+
   //
   // Call platform hook after Smm Dispatch
   //
   PERF_START (NULL, "PlatformHookAfterSmmDispatch", NULL, 0);
   PlatformHookAfterSmmDispatch ();
   PERF_END (NULL, "PlatformHookAfterSmmDispatch", NULL, 0);
-  DEBUG((DEBUG_INFO,"88888888888888\n"));
+
   //
   // If a legacy boot has occurred, then make sure gSmmCorePrivate is not accessed
   //
@@ -802,7 +798,7 @@ SmmEntryPoint (
     //
     gSmmCorePrivate->InSmm = FALSE;
   }
-  DEBUG((DEBUG_INFO,"99999999999999\n"));
+
   PERF_FUNCTION_END ();
 }
 VOID
