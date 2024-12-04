@@ -40,12 +40,13 @@
 #include <Library/DevicePathLib.h>
 #include "libafl_qemu.h"
 #include "SmiDependency.h"
-UINT8 *CommBuffer;
+
 EFI_SMM_COMMUNICATION_PROTOCOL *SmmCommunication;
 EFI_SMM_COMMUNICATE_HEADER *CommHeader;
 UINT8 *CommData;
 
 typedef struct _SMI_HANDLER_GROUP {
+  UINTN NumModules;
   UINTN NumSmiHandlers;
   GUID Handlers[20];
 }SMI_HANDLER_GROUP;
@@ -194,8 +195,7 @@ EFI_STATUS GetSmmCommBuffer(UINTN  MinimalSizeNeeded)
     Entry = (EFI_MEMORY_DESCRIPTOR *)((UINT8 *)Entry + PiSmmCommunicationRegionTable->DescriptorSize);
   }
   ASSERT (Index < PiSmmCommunicationRegionTable->NumberOfEntries);
-  CommBuffer = (UINT8 *)(Entry->PhysicalStart);
-  CommHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommBuffer;
+  CommHeader = (EFI_SMM_COMMUNICATE_HEADER *)Entry->PhysicalStart;
   CommData = (UINT8 *)CommHeader->Data;
   return Status;
 }
@@ -222,37 +222,38 @@ EFI_STATUS SmmCall(GUID *ID, UINTN size)
   CopyMem (&CommHeader->HeaderGuid, ID, sizeof(GUID));
   CommHeader->MessageLength = size;
   CommSize = size + sizeof(EFI_SMM_COMMUNICATE_HEADER);
-  Status = SmmCommunication->Communicate(SmmCommunication,CommBuffer,&CommSize);
+  Status = SmmCommunication->Communicate(SmmCommunication,CommHeader,&CommSize);
   if (EFI_ERROR (Status)) {
     return Status;
   }
   return Status;
 }
 
+VOID InsertModuleSmiToGroup(SMI_HANDLER_GROUP *Group, SMM_MODULE_HANDLER_PROTOCOL_INFO **Dep) {
+  for(UINTN i = 0 ; i < (*Dep)->NumSmiHandlers; i++) {
+    CopyGuid(&Group->Handlers[Group->NumSmiHandlers++], &(*Dep)->SmiHandlers[i]);
+  }
+  if ((*Dep)->NumSmiHandlers > 0)
+    Group->NumModules++;
+}
+
 VOID GroupSmiHandlers(SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup) 
 {
   NumGroups = 0;
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
-    if (ReportDataBackup->info[i].NumSmiHandlers > 0) {
-      NumGroups++;
-      SMM_MODULE_HANDLER_PROTOCOL_INFO *Dep = NULL;
-      UINTN NumDep = CollectModuleDependency(ReportDataBackup, &ReportDataBackup->info[i], &Dep);
-      Print(L"SMI Module %g Dep:\n",&ReportDataBackup->info[i].Guid);
-      for (UINTN j = 0; j < NumDep; j++) {
-        if (Dep[j].NumSmiHandlers != 0) {
-          Groups[NumGroups - 1].NumSmiHandlers = 0;
-          for (UINTN k = 0; k < Dep[j].NumSmiHandlers; k++) {
-            CopyGuid(&Groups[NumGroups - 1].Handlers[Groups[NumGroups - 1].NumSmiHandlers++], &Dep[j].SmiHandlers[k]);
-          }
-          Print(L"   %g--\n",&Dep[j].Guid);
-        }
-        else
-          Print(L"   %g\n",&Dep[j].Guid);
-      }
+    if (ReportDataBackup->info[i].NumSmiHandlers == 0) 
+      continue;
+    UINTN NumDep;
+    SMM_MODULE_HANDLER_PROTOCOL_INFO **Dep = CollectModuleDependency(ReportDataBackup, &ReportDataBackup->info[i], &NumDep);
+    Groups[NumGroups].NumSmiHandlers = 0;
+    Groups[NumGroups].NumModules = 0;
+    for (UINTN j = 0; j < NumDep; j++) {
+      InsertModuleSmiToGroup(&Groups[NumGroups], &Dep[j]);
     }
+    NumGroups++;
+  }
 }
-}
-volatile UINTN TTT = 0;
+
 /**
   as the real entry point for the application.
 
@@ -309,13 +310,12 @@ UefiMain(
     Print(L"\n");
     for (UINTN i = 0; i < NumGroups; i++)
     {
-      Print(L"Fuzz Group %d\n",i);
+      Print(L"Fuzz Group %d %d\n",i, Groups[i].NumModules);
       for (UINTN j = 0; j < Groups[i].NumSmiHandlers; j++)
         Print(L"  %g\n",&Groups[i].Handlers[j]);
     }
     
     UINT8 *SmiFuzzSeq = AllocatePool(1024);
-    UINT8 SmiFuzzGroupIndex;
 
     LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
     LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,1024);
@@ -324,20 +324,18 @@ UefiMain(
 
 
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START,0,0);
+    UINTN FuzzGroupIndex = LIBAFL_QEMU_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA() % NumGroups;
+    UINTN SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
 
-    // UINTN SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
-    // if (SmiFuzzSeqSz <= 1)
-    //   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
-    // SmiFuzzGroupIndex = SmiFuzzSeq[0] % NumGroups;
-    // for (UINTN i = 1; i < SmiFuzzSeqSz; i++) {
-    //   UINTN SmiFuzzIndex = SmiFuzzSeq[i] % Groups[SmiFuzzGroupIndex].NumSmiHandlers;
-    //   UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
-    //   SmmCall(&Groups[SmiFuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
-    //   SmiFuzzTimes[SmiFuzzIndex]++;
-    //   (VOID)Sz;
-    // } 
+    for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
+      UINTN SmiFuzzIndex = SmiFuzzSeq[i] % Groups[FuzzGroupIndex].NumSmiHandlers;
+      UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
+      SmmCall(&Groups[FuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
+      SmiFuzzTimes[SmiFuzzIndex]++;
+      (VOID)Sz;
+    } 
+
     (VOID)SmiFuzzTimes;
-    (VOID)SmiFuzzGroupIndex;
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
     return EFI_SUCCESS;
 }

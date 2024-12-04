@@ -22,6 +22,8 @@ extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
 extern EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp;
 extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+
+BOOLEAN FuzzRootSmi = FALSE;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
 //
@@ -683,7 +685,8 @@ InternalIsBufferOverlapped (
 VOID
 EFIAPI
 SmmEntryPoint (
-  IN CONST EFI_SMM_ENTRY_CONTEXT  *SmmEntryContext
+  IN CONST EFI_SMM_ENTRY_CONTEXT  *SmmEntryContext,
+  BOOLEAN FuzzRoot
   )
 {
   EFI_STATUS                  Status;
@@ -780,7 +783,8 @@ SmmEntryPoint (
   //
   // Process Asynchronous SMI sources
   //
-  // SmiManage (NULL, NULL, NULL, NULL);
+  if (FuzzRoot)
+    SmiManage (NULL, NULL, NULL, NULL);
 
   //
   // Call platform hook after Smm Dispatch
@@ -808,13 +812,13 @@ SmmEntryPointFuzz (
   )
 {
   if(!gST) {
-    SmmEntryPoint(SmmEntryContext); 
+    SmmEntryPoint(SmmEntryContext, FuzzRootSmi); 
     return;
   }
     
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
-  SmmEntryPoint(SmmEntryContext);
+  SmmEntryPoint(SmmEntryContext, FuzzRootSmi);
   SmmFuzzGlobalData->in_fuzz = OldInFuzz;
 }
 /**
@@ -1171,7 +1175,7 @@ SmmReportHandler (
   EFI_PHYSICAL_ADDRESS    PhysicalStartBegin, PhysicalStartEnd;
   EFI_PHYSICAL_ADDRESS    CpuStartBegin, CpuStartEnd;
   UINT64                  PhysicalSizeEnd;
-
+  FuzzRootSmi = TRUE;
   if (mSmmMemLibInternalSmramCount > 0) {
     PhysicalStartBegin = PhysicalStartEnd = mSmmMemLibInternalSmramRanges[0].PhysicalStart;
     CpuStartBegin = CpuStartEnd = mSmmMemLibInternalSmramRanges[0].CpuStart;
@@ -1242,6 +1246,8 @@ VOID InsertRootSmiHandler(VOID)
 }
 VOID InsertProduceProtocol(CONST GUID *Protocol)
 {
+  if (Protocol == NULL)
+    return;
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
   {
     if (!CompareGuid(&CurrentModule, &SmmModulesHandlerProtocolInfo.info[i].Guid))
@@ -1280,6 +1286,8 @@ VOID InsertProduceProtocol(CONST GUID *Protocol)
 }
 VOID InsertConsumeProtocol(CONST GUID *Protocol)
 {
+  if (Protocol == NULL)
+    return;
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
   {
     if (!CompareGuid(&CurrentModule, &SmmModulesHandlerProtocolInfo.info[i].Guid))
@@ -1309,6 +1317,10 @@ VOID ClearCurrentModule(VOID)
 }
 VOID SetCurrentModule(CONST GUID *guid)
 {
+  if (guid == NULL) {
+    ClearCurrentModule();
+    return;
+  }   
   CopyGuid(&CurrentModule, guid);
 }
 VOID SetCurrentModuleBySmi(CONST GUID *guid)

@@ -310,8 +310,6 @@ SmmLocateHandle (
   OUT    EFI_HANDLE              *Buffer
   )
 {
-  
-  InsertConsumeProtocol(Protocol);
   if (SmmLocateHandleOld)
     return SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   EFI_STATUS       Status;
