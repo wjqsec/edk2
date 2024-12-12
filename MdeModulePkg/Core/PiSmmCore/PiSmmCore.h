@@ -1452,6 +1452,7 @@ SmmLoadImage (
 
 extern GUID gSmmFuzzDataProtocolGuid;
 extern EFI_GUID gEfiSmmReportSmmModuleInfoGuid;
+extern EFI_GUID gEfiSmmFuzzRootGuid;
 #define MAX_NUM_MODULES 70
 #define MAX_NUM_NONLOADED_MODULES 80
 #define MAX_NUM_UNCLASSIFIED_HANDLERS 50
@@ -1512,6 +1513,14 @@ EFI_STATUS InstallSmmFuzzSmiHandler(VOID);
 EFI_STATUS
 EFIAPI
 SmmReportHandler (
+  IN     EFI_HANDLE  DispatchHandle,
+  IN     CONST VOID  *Context         OPTIONAL,
+  IN OUT VOID        *CommBuffer      OPTIONAL,
+  IN OUT UINTN       *CommBufferSize  OPTIONAL
+  );
+EFI_STATUS
+EFIAPI
+SmmFuzzRootHandler (
   IN     EFI_HANDLE  DispatchHandle,
   IN     CONST VOID  *Context         OPTIONAL,
   IN OUT VOID        *CommBuffer      OPTIONAL,

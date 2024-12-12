@@ -124,6 +124,7 @@
   gEdkiiS3SmmInitDoneGuid ## SOMETIMES_PRODUCES ## GUID # Install protocol
 
   gEfiSmmReportSmmModuleInfoGuid
+  gEfiSmmFuzzRootGuid
 
 [UserExtensions.TianoCore."ExtraFiles"]
   PiSmmCoreExtra.uni

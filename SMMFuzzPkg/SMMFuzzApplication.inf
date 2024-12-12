@@ -29,6 +29,7 @@
   gEfiSmmLockBoxCommunicationGuid
   gEfiSmmReportSmmModuleInfoGuid
   gEfiGlobalVariableGuid
+  gEfiSmmFuzzRootGuid
 
 
 [Protocols]

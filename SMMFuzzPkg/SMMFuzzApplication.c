@@ -240,6 +240,9 @@ VOID InsertModuleSmiToGroup(SMI_HANDLER_GROUP *Group, SMM_MODULE_HANDLER_PROTOCO
 VOID GroupSmiHandlers(SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup) 
 {
   NumGroups = 0;
+  Groups[NumGroups].NumSmiHandlers = 1;
+  CopyGuid(&Groups[NumGroups].Handlers[0], &gEfiSmmFuzzRootGuid);
+  NumGroups++;
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
     if (ReportDataBackup->info[i].NumSmiHandlers == 0) 
       continue;
@@ -318,23 +321,30 @@ UefiMain(
     UINT8 *SmiFuzzSeq = AllocatePool(1024);
 
     LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
-    LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,1024);
+    LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
     UINT32 SmiFuzzTimes[100] = {0};
     Print(L"Fuzz Data Report End\n");
 
 
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START,0,0);
-    UINTN FuzzGroupIndex = LIBAFL_QEMU_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA() % NumGroups;
-    UINTN SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
-
-    for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
-      UINTN SmiFuzzIndex = SmiFuzzSeq[i] % Groups[FuzzGroupIndex].NumSmiHandlers;
-      UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
-      SmmCall(&Groups[FuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
-      SmiFuzzTimes[SmiFuzzIndex]++;
-      (VOID)Sz;
-    } 
-
+    UINTN SmiFuzzSeqSz;
+    UINTN FuzzGroupIndex;
+    UINTN Sz;
+    UINTN SmiFuzzIndex;
+    FuzzGroupIndex = LIBAFL_QEMU_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA() % NumGroups;
+    if (FuzzGroupIndex == 0) {
+      SmmCall(&Groups[FuzzGroupIndex].Handlers[0], 0);
+    } else {
+      SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
+      for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
+        SmiFuzzIndex = SmiFuzzSeq[i] % Groups[FuzzGroupIndex].NumSmiHandlers;
+        Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
+        if (Sz < sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO))
+          SmmCall(&Groups[FuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
+        SmiFuzzTimes[SmiFuzzIndex]++;
+        (VOID)Sz;
+      } 
+    }
     (VOID)SmiFuzzTimes;
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
     return EFI_SUCCESS;

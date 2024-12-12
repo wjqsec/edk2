@@ -696,7 +696,7 @@ SmmEntryPoint (
   BOOLEAN                     IsOverUnderflow;
   VOID                        *CommunicationBuffer;
   UINTN                       BufferSize;
-
+  
   PERF_FUNCTION_BEGIN ();
   //
   // Update SMST with contents of the SmmEntryContext structure
@@ -1150,6 +1150,12 @@ EFI_STATUS InstallSmmFuzzSmiHandler(VOID)
                &gEfiSmmReportSmmModuleInfoGuid,
                &Handle
                );
+  Handle = NULL;
+  Status = SmiHandlerRegister(
+               SmmFuzzRootHandler,
+               &gEfiSmmFuzzRootGuid,
+               &Handle
+               );
   return Status;
 }
 
@@ -1175,7 +1181,7 @@ SmmReportHandler (
   EFI_PHYSICAL_ADDRESS    PhysicalStartBegin, PhysicalStartEnd;
   EFI_PHYSICAL_ADDRESS    CpuStartBegin, CpuStartEnd;
   UINT64                  PhysicalSizeEnd;
-  FuzzRootSmi = TRUE;
+  // FuzzRootSmi = TRUE;
   if (mSmmMemLibInternalSmramCount > 0) {
     PhysicalStartBegin = PhysicalStartEnd = mSmmMemLibInternalSmramRanges[0].PhysicalStart;
     CpuStartBegin = CpuStartEnd = mSmmMemLibInternalSmramRanges[0].CpuStart;
@@ -1208,8 +1214,25 @@ SmmReportHandler (
       CopyGuid(&data->NonLoadedModules[data->NumNonLoadedModules++], &DriverEntry->FileName);
     }
   }
+  DEBUG((DEBUG_INFO,"start fuzzing----------------------------------\n"));
   return EFI_SUCCESS;
 }
+EFI_STATUS
+EFIAPI
+SmmFuzzRootHandler (
+  IN     EFI_HANDLE  DispatchHandle,
+  IN     CONST VOID  *Context         OPTIONAL,
+  IN OUT VOID        *CommBuffer      OPTIONAL,
+  IN OUT UINTN       *CommBufferSize  OPTIONAL
+  )
+{
+  DEBUG((DEBUG_INFO,"SmmFuzzRootHandler enter\n"));
+  SmiManage (NULL, NULL, NULL, NULL);
+  return EFI_SUCCESS;
+}
+
+
+
 VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
 {
   if (SmmModulesHandlerProtocolInfo.NumModules >= MAX_NUM_MODULES)
