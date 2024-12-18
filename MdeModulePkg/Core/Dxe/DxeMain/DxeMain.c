@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "DxeMain.h"
+#include "SmiFuzz.h"
 #include "libafl_qemu.h"
 
 SMM_FUZZ_GLOBAL_DATA SmmFuzzGlobalData;
@@ -583,7 +584,7 @@ DxeMain (
     EFI_PROGRESS_CODE,
     (EFI_SOFTWARE_DXE_CORE | EFI_SW_DXE_CORE_PC_HANDOFF_TO_NEXT)
     );
-
+  SmmFuzzMain(NULL,NULL);
   //
   // Transfer control to the BDS Architectural Protocol
   //
