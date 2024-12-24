@@ -1,9 +1,5 @@
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiLib.h>
 #include <Protocol/SmmCommunication.h>
-#include <Library/MemoryAllocationLib.h>
 #include <Library/BaseMemoryLib.h>
-#include <Library/DebugLib.h>
 #include <Core/PiSmmCore/PiSmmCore.h>
 #include <Guid/MemoryProfile.h>
 #include <Guid/PiSmmCommunicationRegionTable.h>
@@ -14,11 +10,9 @@
 #include <Library/PrintLib.h>
 #include <Guid/DxeServices.h>
 #include <Base.h>
-#include <Uefi.h>
 #include <Library/PeCoffGetEntryPointLib.h>
 #include <Library/SerialPortLib.h>
 #include <Library/SynchronizationLib.h>
-#include <Library/PrintLib.h>
 #include <Protocol/SmmBase2.h>
 #include <Register/Intel/Cpuid.h>
 #include <Register/Intel/Msr.h>
@@ -33,7 +27,6 @@
 #include <Library/UefiRuntimeLib.h>
 #include <Library/DebugLib.h>
 #include <Library/HobLib.h>
-#include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
@@ -54,6 +47,8 @@ typedef struct _SMI_HANDLER_GROUP {
 UINTN NumGroups;
 SMI_HANDLER_GROUP Groups[50];
 
+UINT32 SmiFuzzTimes[100] = {0};
+SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup;
 
 VOID PrintSmmReport(
   SMM_MODULES_HANDLER_PROTOCOL_INFO *Report
@@ -124,21 +119,6 @@ EFI_STATUS GetSmmCommBuffer(UINTN  MinimalSizeNeeded)
   return Status;
 }
 
-
-// EFI_STATUS SmmFuzzExceptionHandle()
-// {
-//   EFI_STATUS Status;
-//   EFI_CPU_ARCH_PROTOCOL *CpuProtocol = NULL;
-//   Status = gBS->LocateProtocol(&gEfiCpuArchProtocolGuid, NULL, (VOID **)&CpuProtocol);
-//   if (EFI_ERROR(Status)) {
-//       Print(L"Error: Unable to locate gEfiCpuArchProtocolGuid. %r\n",Status);
-//       return Status;
-//   }
-//   for(int i = 0 ; i < 20 ; i++)
-//     CpuProtocol->RegisterInterruptHandler(CpuProtocol, i, fuzz_interrupt_handler);
-//   return Status;
-// }
-
 EFI_STATUS SmmCall(GUID *ID, UINTN size)
 {
   UINTN CommSize;
@@ -161,8 +141,20 @@ VOID InsertModuleSmiToGroup(SMI_HANDLER_GROUP *Group, SMM_MODULE_HANDLER_PROTOCO
     Group->NumModules++;
 }
 
-VOID GroupSmiHandlers(SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup) 
+EFI_STATUS GroupSmiHandlers() 
 {
+  SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportData;
+  EFI_STATUS Status;
+  ReportData = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommData;
+  Status = SmmCall(&gEfiSmmReportSmmModuleInfoGuid, sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
+  if (EFI_ERROR(Status)) {
+      DEBUG((DEBUG_INFO,"Error: Unable to call gEfiSmmReportSmmModuleInfoGuid. %r\n",Status));
+      return Status;
+  }
+  CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
+
+
+
   NumGroups = 0;
   Groups[NumGroups].NumSmiHandlers = 1;
   CopyGuid(&Groups[NumGroups].Handlers[0], &gEfiSmmFuzzRootGuid);
@@ -179,8 +171,14 @@ VOID GroupSmiHandlers(SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup)
     }
     NumGroups++;
   }
+  return Status;
 }
 
+VOID ReportSmmModuleInfo() {
+  for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
+    LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&ReportDataBackup->info[i].Guid, (UINTN)ReportDataBackup->info[i].ImageBase, (UINTN)ReportDataBackup->info[i].ImageBase + (UINTN)ReportDataBackup->info[i].ImageSize);   
+  }
+}
 /**
   as the real entry point for the application.
 
@@ -197,79 +195,61 @@ SmmFuzzMain(
     IN EFI_HANDLE ImageHandle,
     IN EFI_SYSTEM_TABLE *SystemTable)
 {
-    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_MODULE_START,0,0);
-    EFI_STATUS Status;
     
-    SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportData;
-    SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup;
-    UINTN  MinimalSizeNeeded = sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO);
+  DEBUG((DEBUG_INFO,"start SmmFuzzMain\n"));
 
-    // SmmFuzzExceptionHandle();
+  EFI_STATUS Status;
+  
+  UINTN  MinimalSizeNeeded = sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO);
 
+  Status = gBS->LocateProtocol(&gEfiSmmCommunicationProtocolGuid, NULL, (void **)&SmmCommunication);
+  if (EFI_ERROR(Status)) {
+      DEBUG((DEBUG_INFO,"Error: Unable to locate gEfiSmmCommunicationProtocolGuid. %r\n",Status));
+      return Status;
+  }
+  Status = GetSmmCommBuffer(MinimalSizeNeeded);
+  if (EFI_ERROR(Status)) {
+      DEBUG((DEBUG_INFO,"Error: Unable to get smm comm buffer. %r\n",Status));
+      return Status;
+  }
     
-    Status = gBS->LocateProtocol(&gEfiSmmCommunicationProtocolGuid, NULL, (void **)&SmmCommunication);
-    if (EFI_ERROR(Status)) {
-        DEBUG((DEBUG_INFO,"Error: Unable to locate gEfiSmmCommunicationProtocolGuid. %r\n",Status));
-        return Status;
-    }
-    Status = GetSmmCommBuffer(MinimalSizeNeeded);
-    if (EFI_ERROR(Status)) {
-        DEBUG((DEBUG_INFO,"Error: Unable to get smm comm buffer. %r\n",Status));
-        return Status;
-    }
-    
-    
-    ReportData = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommData;
-    
-    ReportDataBackup = AllocatePool(sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
+  ReportDataBackup = AllocatePool(sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
+  UINT8 *SmiFuzzSeq = AllocatePool(1024);
+  GroupSmiHandlers();
 
-    Status = SmmCall(&gEfiSmmReportSmmModuleInfoGuid, MinimalSizeNeeded);
-    if (EFI_ERROR(Status)) {
-        DEBUG((DEBUG_INFO,"Error: Unable to call gEfiSmmReportSmmModuleInfoGuid. %r\n",Status));
-        return Status;
+  
+
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_MODULE_START,0,0);
+  ReportSmmModuleInfo();
+  LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
+  LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
+  
 
 
-    }
-    CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
-    // PrintSmmReport(ReportDataBackup);
-    DEBUG((DEBUG_INFO,"\n"));
-    GroupSmiHandlers(ReportDataBackup);
-    DEBUG((DEBUG_INFO,"\n"));
-    for (UINTN i = 0; i < NumGroups; i++)
-    {
-      DEBUG((DEBUG_INFO,"Fuzz Group %d %d\n",i, Groups[i].NumModules));
-      for (UINTN j = 0; j < Groups[i].NumSmiHandlers; j++)
-        DEBUG((DEBUG_INFO,"  %g\n",&Groups[i].Handlers[j]));
-    }
-    
-    UINT8 *SmiFuzzSeq = AllocatePool(1024);
-
-    LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
-    LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
-    UINT32 SmiFuzzTimes[100] = {0};
-    DEBUG((DEBUG_INFO,"Fuzz Data Report End\n"));
+  DEBUG((DEBUG_INFO,"Fuzz Data Report End\n"));
 
 
-    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START,0,0);
-    UINTN SmiFuzzSeqSz;
-    UINTN FuzzGroupIndex;
-    UINTN Sz;
-    UINTN SmiFuzzIndex;
-    FuzzGroupIndex = LIBAFL_QEMU_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA() % NumGroups;
-    if (FuzzGroupIndex == 0) {
-      SmmCall(&Groups[FuzzGroupIndex].Handlers[0], 0);
-    } else {
-      SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
-      for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
-        SmiFuzzIndex = SmiFuzzSeq[i] % Groups[FuzzGroupIndex].NumSmiHandlers;
-        Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
-        if (Sz < sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO))
-          SmmCall(&Groups[FuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
-        SmiFuzzTimes[SmiFuzzIndex]++;
-        (VOID)Sz;
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START,0,0);
+  ZeroMem (SmiFuzzTimes, sizeof (SmiFuzzTimes));
+  UINTN SmiFuzzSeqSz;
+  UINTN FuzzGroupIndex;
+  UINTN Sz;
+  UINTN SmiFuzzIndex;
+  FuzzGroupIndex = LIBAFL_QEMU_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA() % NumGroups;
+  if (FuzzGroupIndex == 0) {
+    SmmCall(&Groups[FuzzGroupIndex].Handlers[0], 0);
+  } else {
+    SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
+    for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
+      SmiFuzzIndex = SmiFuzzSeq[i] % Groups[FuzzGroupIndex].NumSmiHandlers;
+      Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
+      if (Sz < sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO)) {
+        SmmCall(&Groups[FuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
       } 
-    }
-    (VOID)SmiFuzzTimes;
-    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
-    return EFI_SUCCESS;
+      SmiFuzzTimes[SmiFuzzIndex]++;
+      (VOID)Sz;
+    } 
+  }
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
+  return EFI_SUCCESS;
 }
