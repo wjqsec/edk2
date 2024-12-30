@@ -73,7 +73,17 @@ typedef enum LibaflQemuCommand {
   LIBAFL_QEMU_COMMAND_SMM_ASK_SKIP_MODULE = 23,
   LIBAFL_QEMU_COMMAND_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA = 24,
   LIBAFL_QEMU_COMMAND_SMM_REPORT_SMM_MODULE_INFO = 25,
+
+  LIBAFL_QEMU_COMMAND_SMM_REPORT_SMM_FUZZ_GROUP = 26,
+  LIBAFL_QEMU_COMMAND_SMM_GET_EXEC_CMD = 27,
+  LIBAFL_QEMU_COMMAND_SMM_GET_FUZZ_SMI_INDEX = 28,
 } LibaflExit;
+
+typedef enum SmmFuzzerCmd {
+  SMM_FUZZ_RUN = 0,
+  SMM_FUZZ_REPORT = 1,
+  SMM_FUZZ_BREAK = 2,
+} SmmFuzzerCmd;
 
 typedef enum LibaflQemuEndStatus {
   LIBAFL_QEMU_END_UNKNOWN = 0,
@@ -317,6 +327,9 @@ LIBAFL_DEFINE_FUNCTIONS(backdoor, LIBAFL_BACKDOOR_OPCODE)
 #define LIBAFL_QEMU_SMM_ASK_SKIP_MODULE() _libafl_backdoor_call0(LIBAFL_QEMU_COMMAND_SMM_ASK_SKIP_MODULE)
 #define LIBAFL_QEMU_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA() _libafl_backdoor_call0(LIBAFL_QEMU_COMMAND_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA)
 #define LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO(uuid_addr, module_start_addr, module_end_addr) _libafl_backdoor_call3(LIBAFL_QEMU_COMMAND_SMM_REPORT_SMM_MODULE_INFO,uuid_addr, module_start_addr, module_end_addr)
+#define LIBAFL_QEMU_SMM_GET_EXEC_CMD() _libafl_backdoor_call0(LIBAFL_QEMU_COMMAND_SMM_GET_EXEC_CMD)
+#define LIBAFL_QEMU_SMM_REPORT_SMM_FUZZ_GROUP(group_index, smi_index) _libafl_backdoor_call2(LIBAFL_QEMU_COMMAND_SMM_REPORT_SMM_FUZZ_GROUP,group_index, smi_index)
+#define LIBAFL_QEMU_SMM_GET_FUZZ_SMI_INDEX() _libafl_backdoor_call0(LIBAFL_QEMU_COMMAND_SMM_GET_FUZZ_SMI_INDEX)
 
 
 /* === The public part ends here === */
