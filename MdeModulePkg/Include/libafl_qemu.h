@@ -77,6 +77,7 @@ typedef enum LibaflQemuCommand {
   LIBAFL_QEMU_COMMAND_SMM_REPORT_SMM_FUZZ_GROUP = 26,
   LIBAFL_QEMU_COMMAND_SMM_GET_EXEC_CMD = 27,
   LIBAFL_QEMU_COMMAND_SMM_GET_FUZZ_SMI_INDEX = 28,
+  LIBAFL_QEMU_COMMAND_SMM_REPORT_SMI_INFO = 29,
 } LibaflExit;
 
 typedef enum SmmFuzzerCmd {
@@ -330,6 +331,8 @@ LIBAFL_DEFINE_FUNCTIONS(backdoor, LIBAFL_BACKDOOR_OPCODE)
 #define LIBAFL_QEMU_SMM_GET_EXEC_CMD() _libafl_backdoor_call0(LIBAFL_QEMU_COMMAND_SMM_GET_EXEC_CMD)
 #define LIBAFL_QEMU_SMM_REPORT_SMM_FUZZ_GROUP(group_index, smi_index) _libafl_backdoor_call2(LIBAFL_QEMU_COMMAND_SMM_REPORT_SMM_FUZZ_GROUP,group_index, smi_index)
 #define LIBAFL_QEMU_SMM_GET_FUZZ_SMI_INDEX() _libafl_backdoor_call0(LIBAFL_QEMU_COMMAND_SMM_GET_FUZZ_SMI_INDEX)
+#define LIBAFL_QEMU_SMM_REPORT_SMI_INFO(index,addr) _libafl_backdoor_call2(LIBAFL_QEMU_COMMAND_SMM_REPORT_SMI_INFO,index,addr)
+
 
 
 /* === The public part ends here === */

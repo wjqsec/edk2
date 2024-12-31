@@ -1214,7 +1214,6 @@ SmmReportHandler (
       CopyGuid(&data->NonLoadedModules[data->NumNonLoadedModules++], &DriverEntry->FileName);
     }
   }
-  DEBUG((DEBUG_INFO,"start fuzzing----------------------------------\n"));
   return EFI_SUCCESS;
 }
 EFI_STATUS
