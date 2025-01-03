@@ -783,6 +783,7 @@ RuntimeServiceGetVariable (
   OUT     VOID      *Data
   )
 {
+  DEBUG((DEBUG_INFO,"RuntimeServiceGetVariable\n"));
   EFI_STATUS  Status;
   if ((VariableName == NULL) || (VendorGuid == NULL) || (DataSize == NULL)) {
     return EFI_INVALID_PARAMETER;
@@ -1736,7 +1737,7 @@ SmmVariableReady (
   gRT->GetNextVariableName = RuntimeServiceGetNextVariableName;
   gRT->SetVariable         = RuntimeServiceSetVariable;
   gRT->QueryVariableInfo   = RuntimeServiceQueryVariableInfo;
-
+  DEBUG ((DEBUG_INFO, "Variable driver runtime service is ready.\n"));
   //
   // Install the Variable Architectural Protocol on a new handle.
   //

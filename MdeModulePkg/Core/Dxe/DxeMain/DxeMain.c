@@ -1503,11 +1503,13 @@ EFI_STATUS EFIAPI EFI_LOCATE_PROTOCOL_FUZZ(
   IN  VOID                       *SearchKey OPTIONAL,
   OUT VOID                       **Interface
 ) {
+  
   EFI_STATUS Status;
   UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
   SmmFuzzGlobalData.in_fuzz = 0; 
   Status = EFI_LOCATE_PROTOCOL_Old(Protocol, SearchKey, Interface);
   SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  DEBUG((DEBUG_INFO, "EFI_LOCATE_PROTOCOL_FUZZ %g %r\n",Protocol,Status));
   return Status;
 }
 
@@ -1587,6 +1589,7 @@ EFIAPI EFI_GET_VARIABLE_FUZZ(
   OUT    VOID                        *Data           OPTIONAL
   )
 {
+  DEBUG((DEBUG_INFO, "EFI_GET_VARIABLE_FUZZ\n"));
   UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
   if (OldInFuzz == 0)
     return GetVariableOld(VariableName, VendorGuid, Attributes, DataSize, Data);
@@ -1603,6 +1606,7 @@ EFIAPI EFI_SET_VARIABLE_FUZZ(
   IN  VOID                         *Data
   )
 {
+  DEBUG((DEBUG_INFO, "EFI_SET_VARIABLE_FUZZ\n"));
   UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
   if (OldInFuzz == 0)
     return SetVariableOld(VariableName, VendorGuid, Attributes, DataSize, Data);
