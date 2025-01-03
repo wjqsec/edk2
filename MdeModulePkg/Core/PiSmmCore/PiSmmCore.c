@@ -1004,7 +1004,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
   return EFI_NOT_FOUND;
 
 }
-volatile UINT64 SmmFuzzDummyMemory = 10;
+UINT64 SmmFuzzDummyMemory = 10;
 /**
   The Entry Point for SMM Core
 
@@ -1205,7 +1205,7 @@ SmmReportHandler (
   SmmModulesHandlerProtocolInfo.PhysicalSize = PhysicalStartEnd + PhysicalSizeEnd - PhysicalStartBegin;
   SmmModulesHandlerProtocolInfo.CpuStart = CpuStartBegin;
   SmmModulesHandlerProtocolInfo.PhysicalStart = PhysicalStartBegin;
-  SmmModulesHandlerProtocolInfo.Test = &Test;
+  SmmModulesHandlerProtocolInfo.DummyAddr = &SmmFuzzDummyMemory;
   CopyMem(data,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
 
   for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {

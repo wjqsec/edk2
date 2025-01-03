@@ -266,6 +266,7 @@ SmmFuzzMain(
   ReportSmmModuleInfo();
   ReportSmmGroupInfo();
   ReportSmiInfo();
+  LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)ReportDataBackup->DummyAddr);
   LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
   
   

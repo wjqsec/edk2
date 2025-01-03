@@ -1496,7 +1496,7 @@ typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_
   UINTN NumNonLoadedModules;
   GUID NonLoadedModules[MAX_NUM_NONLOADED_MODULES];
 
-  UINT8 *Test;
+  VOID *DummyAddr;
 }SMM_MODULES_HANDLER_PROTOCOL_INFO;
 
 extern SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo;
