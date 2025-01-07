@@ -135,6 +135,7 @@
   gEdkiiPiSmmCommunicationRegionTableGuid
   gEfiSmmReportSmmModuleInfoGuid
   gEfiSmmFuzzRootGuid
+
 [Ppis]
   gEfiVectorHandoffInfoPpiGuid                  ## UNDEFINED # HOB
 
@@ -190,10 +191,11 @@
   gEfiAcpiSupportProtocolGuid
   gPowerMgmtInitDoneProtocolGuid
   gPlatformNvsAreaProtocolGuid
+  gCpuGlobalNvsAreaProtocolGuid
   gCpuNvsAreaProtocolGuid
   gUnknownHpProtocol1Guid
   gUnknownHpProtocol2Guid
-  gUnknownHpProtocol3Guid
+  gAmiSmbiosProtocolGuid
   gUnknownHpProtocol4Guid
 
 [Pcd]

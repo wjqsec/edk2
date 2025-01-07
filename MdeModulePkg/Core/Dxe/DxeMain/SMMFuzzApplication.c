@@ -194,6 +194,7 @@ EFI_STATUS GroupSmiHandlers()
     for (UINTN j = 0; j < NumDep; j++) {
       InsertModuleSmiToGroup(&Groups[NumGroups], &Dep[j]);
     }
+    FreePool(Dep);
     NumGroups++;
   }
   return Status;

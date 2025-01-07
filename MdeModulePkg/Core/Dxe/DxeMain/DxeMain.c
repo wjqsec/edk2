@@ -1792,7 +1792,91 @@ EFI_ACPI_SUPPORT_PROTOCOL mEfiAcpiSupportProtocol;
 EFI_POWER_MGMT_INIT_DONE_PROTOCOL mEfiPowerMgmtInitDoneProtocol;
 PLATFORM_NVS_AREA_PROTOCOL mPlatformNvsAreaProtocol;
 CPU_NVS_AREA_PROTOCOL mCpuNvsAreProtocol;
+CPU_GLOBAL_NVS_AREA_PROTOCOL mCpuGlobalNvsAreaProtocol;
 
+VOID* EFIAPI EFI_SMBIOS_GET_TABLE_ENTRY_FUNC () {
+  return NULL;
+}
+
+VOID* EFIAPI EFI_SMBIOS_GET_SCRATCH_BUFFER_FUNC () {
+  return NULL;
+}
+
+UINT16 EFIAPI EFI_SMBIOS_GET_BUFFER_MAX_SIZE_FUNC () {
+  return 0;
+}
+
+UINT16 EFIAPI EFI_SMBIOS_GET_FREE_HANDLE_FUNC () {
+  return 0;
+}
+
+EFI_STATUS EFIAPI EFI_SMBIOS_ADD_STRUCTURE_FUNC (
+    IN UINT8        *Buffer,
+    IN UINT16       Size
+) {
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS EFIAPI EFI_SMBIOS_ADD_STRUC_HANDLE_FUNC (
+    IN UINT16       Handle,
+    IN UINT8        *Buffer,
+    IN UINT16       Size
+) {
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS EFIAPI EFI_SMBIOS_DELETE_STRUCTURE_FUNC (
+    IN UINT16       Handle
+) {
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS EFIAPI EFI_SMBIOS_READ_STRUCTURE_FUNC (
+    IN      UINT16  Handle,
+    IN OUT  UINT8   **BufferPtr,
+    IN OUT  UINT16  *BufferSize
+) {
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS EFIAPI EFI_SMBIOS_READ_STRUC_TYPE_FUNC (
+    IN UINT8        Type,
+    IN UINT8        Instance,
+    IN UINT8        **BufferPtr,
+    IN UINT16       *BufferSize
+) {
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS EFIAPI EFI_SMBIOS_WRITE_STRUCTURE_FUNC (
+    IN UINT16       Handle,
+    IN UINT8        *BufferPtr,
+    IN UINT16       BufferSize
+) {
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS EFIAPI EFI_SMBIOS_ADD_STRUC_INDEX_FUNC (
+    IN UINT16       Handle,
+    IN UINT8        *Buffer,
+    IN UINT16       Size,
+    IN UINT16       Index
+) {
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS EFIAPI EFI_SMBIOS_UPDATE_HEADER_FUNC (
+) {
+  return EFI_SUCCESS;
+}
+
+VOID* EFIAPI EFI_SMBIOS_GET_VER_TABLE_ENTRY_FUNC (
+    IN UINT8                  SmbiosMajorVersion
+) {
+  return NULL;
+}
+
+VOID InstallSmmFuzzProtocol();
 VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
   EFI_STATUS Status;
@@ -1814,6 +1898,16 @@ VOID InstallSmmFuzzProtocol() {
                   &Handle,
                   &gPchNvsAreaProtocolGuid,
                   &mPchNvsAreaProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mCpuGlobalNvsAreaProtocol.Area = AllocatePool(sizeof(CPU_GLOBAL_NVS_AREA));
+  ZeroMem(mCpuGlobalNvsAreaProtocol.Area,sizeof(CPU_GLOBAL_NVS_AREA));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gCpuGlobalNvsAreaProtocolGuid,
+                  &mCpuGlobalNvsAreaProtocol,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
@@ -1893,10 +1987,25 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
+  AMI_SMBIOS_PROTOCOL *SmbiosProtocol = AllocatePool(sizeof(AMI_SMBIOS_PROTOCOL));
+  SmbiosProtocol->SmbiosGetTableEntryPoint = EFI_SMBIOS_GET_TABLE_ENTRY_FUNC;
+  SmbiosProtocol->SmbiosGetScratchBufferPtr = EFI_SMBIOS_GET_SCRATCH_BUFFER_FUNC;
+  SmbiosProtocol->SmbiosGetBufferMaxSize = EFI_SMBIOS_GET_BUFFER_MAX_SIZE_FUNC;
+  SmbiosProtocol->SmbiosGetFreeHandle = EFI_SMBIOS_GET_FREE_HANDLE_FUNC;
+  SmbiosProtocol->SmbiosAddStructure = EFI_SMBIOS_ADD_STRUCTURE_FUNC;
+  SmbiosProtocol->SmbiosAddStrucByHandle = EFI_SMBIOS_ADD_STRUC_HANDLE_FUNC;
+  SmbiosProtocol->SmbiosDeleteStructure = EFI_SMBIOS_DELETE_STRUCTURE_FUNC;
+  SmbiosProtocol->SmbiosReadStructure = EFI_SMBIOS_READ_STRUCTURE_FUNC;
+  SmbiosProtocol->SmbiosReadStrucByType = EFI_SMBIOS_READ_STRUC_TYPE_FUNC;
+  SmbiosProtocol->SmbiosWriteStructure = EFI_SMBIOS_WRITE_STRUCTURE_FUNC;
+  SmbiosProtocol->SmbiosAddStrucByIndex = EFI_SMBIOS_ADD_STRUC_INDEX_FUNC;
+  SmbiosProtocol->SmbiosUpdateHeader = EFI_SMBIOS_UPDATE_HEADER_FUNC;
+  SmbiosProtocol->SmbiosGetVerTableEntryPoint = EFI_SMBIOS_GET_VER_TABLE_ENTRY_FUNC;
+
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
-                  &gUnknownHpProtocol3Guid,
-                  UnknownProtocol,
+                  &gAmiSmbiosProtocolGuid,
+                  SmbiosProtocol,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
