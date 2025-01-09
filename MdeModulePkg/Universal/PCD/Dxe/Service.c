@@ -390,10 +390,12 @@ GetWorker (
   Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
   if (!EFI_ERROR(Status))
   {
-    if (SmmFuzzGlobalData->in_fuzz && GetSize == 1) {
-      DummyPCD = LIBAFL_QEMU_SMM_GET_PCD(GetSize);
-      DEBUG((DEBUG_INFO,"get pcd %x\n",DummyPCD));
-      return (VOID*)&DummyPCD; 
+    if (SmmFuzzGlobalData->in_fuzz) {
+      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(GetSize, (UINTN)&DummyPCD);
+      if (UseFuzzValue) {
+        DEBUG((DEBUG_INFO,"get fuzz pcd %x\n",DummyPCD));
+        return (VOID*)&DummyPCD;
+      }
     }
   }
     
@@ -1142,6 +1144,19 @@ SetWorker (
   UINTN          MaxSize; 
   UINTN          TmpTokenNumber;
 
+  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  if (!EFI_ERROR(Status))
+  {
+    if (SmmFuzzGlobalData->in_fuzz) {
+      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0, (UINTN)&DummyPCD);
+      if (UseFuzzValue) {
+        DEBUG((DEBUG_INFO,"set fuzz pcd\n"));
+        return EFI_SUCCESS;
+      }
+    }
+  }
+
   if (!(TokenNumber + 1 < mPcdTotalTokenCount + 1)) {
     return EFI_SUCCESS;
   }
@@ -1609,6 +1624,20 @@ GetExPcdTokenNumber (
   EFI_GUID           *GuidTable;
   EFI_GUID           *MatchGuid;
   UINTN              MatchGuidIdx;
+
+  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+  EFI_STATUS Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  if (!EFI_ERROR(Status))
+  {
+    if (SmmFuzzGlobalData->in_fuzz) {
+      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0, (UINTN)&DummyPCD);
+      if (UseFuzzValue) {
+        DEBUG((DEBUG_INFO,"GetExPcdTokenNumber fuzz pcd\n"));
+        return 0;
+      }
+    }
+  }
+
 
   if (!mPeiDatabaseEmpty) {
     ExMap     = (DYNAMICEX_MAPPING *)((UINT8 *)mPcdDatabase.PeiDb + mPcdDatabase.PeiDb->ExMapTableOffset);

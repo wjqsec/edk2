@@ -1793,6 +1793,8 @@ EFI_POWER_MGMT_INIT_DONE_PROTOCOL mEfiPowerMgmtInitDoneProtocol;
 PLATFORM_NVS_AREA_PROTOCOL mPlatformNvsAreaProtocol;
 CPU_NVS_AREA_PROTOCOL mCpuNvsAreProtocol;
 CPU_GLOBAL_NVS_AREA_PROTOCOL mCpuGlobalNvsAreaProtocol;
+AMI_SMBIOS_FLASH_DATA_PROTOCOL mAmiSmbiosFlashDataProtocol;
+
 
 VOID* EFIAPI EFI_SMBIOS_GET_TABLE_ENTRY_FUNC () {
   return NULL;
@@ -1876,6 +1878,11 @@ VOID* EFIAPI EFI_SMBIOS_GET_VER_TABLE_ENTRY_FUNC (
   return NULL;
 }
 
+EFI_STATUS EFIAPI EFI_UNKNOWN1_FUNC (
+) {
+  return EFI_SUCCESS;
+}
+
 VOID InstallSmmFuzzProtocol();
 VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
@@ -1930,7 +1937,16 @@ VOID InstallSmmFuzzProtocol() {
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
- 
+
+  mAmiSmbiosFlashDataProtocol.UNKNOWN_FUNC1 = EFI_UNKNOWN1_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &GAmiSmbiosFlashDataProtocolGuid,
+                  &mAmiSmbiosFlashDataProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
 
   mEfiAcpiSupportProtocol.GetAcpiTable = EFI_ACPI_GET_ACPI_TABLE_FUNC;
   mEfiAcpiSupportProtocol.SetAcpiTable = EFI_ACPI_SET_ACPI_TABLE_FUNC;

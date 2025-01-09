@@ -1176,8 +1176,6 @@ SmmReportHandler (
   )
 {
   SMM_MODULES_HANDLER_PROTOCOL_INFO *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommBuffer;
-  LIST_ENTRY  *Link;
-  EFI_SMM_DRIVER_ENTRY  *DriverEntry;
   EFI_PHYSICAL_ADDRESS    PhysicalStartBegin, PhysicalStartEnd;
   EFI_PHYSICAL_ADDRESS    CpuStartBegin, CpuStartEnd;
   UINT64                  PhysicalSizeEnd;
@@ -1207,13 +1205,6 @@ SmmReportHandler (
   SmmModulesHandlerProtocolInfo.PhysicalStart = PhysicalStartBegin;
   SmmModulesHandlerProtocolInfo.DummyAddr = &SmmFuzzDummyMemory;
   CopyMem(data,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
-
-  for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
-    DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
-    if (DriverEntry->Dependent && data->NumNonLoadedModules < MAX_NUM_NONLOADED_MODULES) {
-      CopyGuid(&data->NonLoadedModules[data->NumNonLoadedModules++], &DriverEntry->FileName);
-    }
-  }
   return EFI_SUCCESS;
 }
 EFI_STATUS
@@ -1258,9 +1249,6 @@ VOID InsertSmiHandler(CONST GUID *Handler)
     CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers++], Handler);
     return;
   }
-  if (SmmModulesHandlerProtocolInfo.NumUnclassifiedSmiHandlers >= MAX_NUM_UNCLASSIFIED_HANDLERS)
-    return;
-  CopyGuid(&SmmModulesHandlerProtocolInfo.UnclassifiedSmiHandlers[SmmModulesHandlerProtocolInfo.NumUnclassifiedSmiHandlers++], Handler);
 }
 VOID InsertRootSmiHandler(VOID)
 {
@@ -1293,18 +1281,6 @@ VOID InsertProduceProtocol(CONST GUID *Protocol)
     }
     return;
   }
-  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumUnclassifiedProtocols; i++)
-  {
-    if (CompareGuid(&SmmModulesHandlerProtocolInfo.UnclassifiedProtocols[i],Protocol))
-    {
-      return;
-    }
-  }
-  if (SmmModulesHandlerProtocolInfo.NumUnclassifiedProtocols >= MAX_NUM_UNCLASSIFIED_PROTOCOLS) 
-  {
-    return;
-  }
-  CopyGuid(&SmmModulesHandlerProtocolInfo.UnclassifiedProtocols[SmmModulesHandlerProtocolInfo.NumUnclassifiedProtocols++], Protocol);
 }
 VOID InsertConsumeProtocol(CONST GUID *Protocol)
 {

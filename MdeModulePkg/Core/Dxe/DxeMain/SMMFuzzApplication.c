@@ -78,15 +78,7 @@ VOID PrintSmmReport(
         DEBUG((DEBUG_INFO,"  consume protocol: %g\n",&Report->info[i].ConsumeProtocols[j]));
       }
     }
-    for(int i = 0 ; i < Report->NumUnclassifiedSmiHandlers; i++)
-    {
-      DEBUG((DEBUG_INFO,"unclassified smi handler: %g\n",&Report->UnclassifiedSmiHandlers[i]));
-    }
     DEBUG((DEBUG_INFO,"%d root handlers found\n",Report->NumRootSmiHandlers));
-    for(int i = 0 ; i < Report->NumNonLoadedModules; i++)
-    {
-      DEBUG((DEBUG_INFO, "nonloaded smm module: %g\n",&Report->NonLoadedModules[i]));
-    }
 }
 
 
@@ -295,28 +287,5 @@ SmmFuzzMain(
   ReportSmmGroupInfo();
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
   
-  
-  
-  // UINTN SmiFuzzSeqSz;
-  // UINTN FuzzGroupIndex;
-  // UINTN Sz;
-  // UINTN SmiFuzzIndex;
-  // FuzzGroupIndex = LIBAFL_QEMU_SMM_GET_SMI_GROUP_INDEX_FUZZ_DATA() % NumGroups;
-
-  // if (FuzzGroupIndex == 0) {
-  //   SmmCall(&Groups[FuzzGroupIndex].Handlers[0], 0);
-  // } else {
-  //   SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
-  //   for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
-  //     SmiFuzzIndex = SmiFuzzSeq[i] % Groups[FuzzGroupIndex].NumSmiHandlers;
-  //     Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(SmiFuzzIndex, SmiFuzzTimes[SmiFuzzIndex]);
-  //     if (Sz < sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO)) {
-  //       SmmCall(&Groups[FuzzGroupIndex].Handlers[SmiFuzzIndex], Sz);
-  //     } 
-  //     SmiFuzzTimes[SmiFuzzIndex]++;
-  //     (VOID)Sz;
-  //   } 
-  // }
-  // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
   return EFI_SUCCESS;
 }

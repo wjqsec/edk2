@@ -4585,6 +4585,10 @@ typedef struct {
     EFI_SMBIOS_GET_VER_TABLE_ENTRY  SmbiosGetVerTableEntryPoint;// Get input version of SMBIOS Table Entry Point
 } AMI_SMBIOS_PROTOCOL;
 
+typedef struct {
+  EFI_STATUS (EFIAPI *UNKNOWN_FUNC1)(VOID);
+}AMI_SMBIOS_FLASH_DATA_PROTOCOL;
+
 
 VOID InstallSmmFuzzProtocol();
 VOID HookGBS (VOID);
@@ -4602,4 +4606,5 @@ extern GUID gAmiSmbiosProtocolGuid;
 extern GUID gUnknownHpProtocol4Guid;
 extern GUID gCpuNvsAreaProtocolGuid;
 extern GUID gCpuGlobalNvsAreaProtocolGuid;
+extern GUID GAmiSmbiosFlashDataProtocolGuid;
 #endif

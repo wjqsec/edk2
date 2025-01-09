@@ -192,6 +192,7 @@
   gPowerMgmtInitDoneProtocolGuid
   gPlatformNvsAreaProtocolGuid
   gCpuGlobalNvsAreaProtocolGuid
+  GAmiSmbiosFlashDataProtocolGuid
   gCpuNvsAreaProtocolGuid
   gUnknownHpProtocol1Guid
   gUnknownHpProtocol2Guid
