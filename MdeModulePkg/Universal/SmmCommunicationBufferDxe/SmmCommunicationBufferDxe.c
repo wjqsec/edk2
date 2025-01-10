@@ -24,7 +24,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Guid/MmCommBuffer.h>
 #include <Guid/PiSmmCommunicationRegionTable.h>
 
-#define DEFAULT_COMMON_PI_SMM_COMMUNIATION_REGION_PAGES  300
+#define DEFAULT_COMMON_PI_SMM_COMMUNIATION_REGION_PAGES  15
 
 /**
   Entry Point for SMM communication buffer driver.

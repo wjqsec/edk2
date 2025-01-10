@@ -1175,7 +1175,7 @@ SmmReportHandler (
   IN OUT UINTN       *CommBufferSize  OPTIONAL
   )
 {
-  SMM_MODULES_HANDLER_PROTOCOL_INFO *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommBuffer;
+  SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR*)CommBuffer;
   EFI_PHYSICAL_ADDRESS    PhysicalStartBegin, PhysicalStartEnd;
   EFI_PHYSICAL_ADDRESS    CpuStartBegin, CpuStartEnd;
   UINT64                  PhysicalSizeEnd;
@@ -1204,7 +1204,7 @@ SmmReportHandler (
   SmmModulesHandlerProtocolInfo.CpuStart = CpuStartBegin;
   SmmModulesHandlerProtocolInfo.PhysicalStart = PhysicalStartBegin;
   SmmModulesHandlerProtocolInfo.DummyAddr = &SmmFuzzDummyMemory;
-  CopyMem(data,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
+  CopyMem(data->addr,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
   return EFI_SUCCESS;
 }
 EFI_STATUS

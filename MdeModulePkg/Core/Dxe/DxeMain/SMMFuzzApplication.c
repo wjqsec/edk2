@@ -84,6 +84,7 @@ VOID PrintSmmReport(
 
 EFI_STATUS GetSmmCommBuffer(UINTN  MinimalSizeNeeded)
 {
+  DEBUG((DEBUG_INFO,"GetSmmCommBuffer\n"));
   EDKII_PI_SMM_COMMUNICATION_REGION_TABLE  *PiSmmCommunicationRegionTable;
   EFI_STATUS Status;
   EFI_MEMORY_DESCRIPTOR  *Entry;
@@ -101,9 +102,11 @@ EFI_STATUS GetSmmCommBuffer(UINTN  MinimalSizeNeeded)
   
   Entry = (EFI_MEMORY_DESCRIPTOR *)(PiSmmCommunicationRegionTable + 1);
   Size  = 0;
+  DEBUG((DEBUG_INFO,"PiSmmCommunicationRegionTable->NumberOfEntries %x\n",PiSmmCommunicationRegionTable->NumberOfEntries));
   for (Index = 0; Index < PiSmmCommunicationRegionTable->NumberOfEntries; Index++) {
     if (Entry->Type == EfiConventionalMemory) {
       Size = EFI_PAGES_TO_SIZE ((UINTN)Entry->NumberOfPages);
+      DEBUG((DEBUG_INFO,"SmmCommunicationBuffer %x\n",Size));
       if (Size >= MinimalSizeNeeded + sizeof(EFI_MEMORY_DESCRIPTOR)) {
         break;
       }
@@ -160,16 +163,15 @@ VOID InsertModuleSmiToGroup(SMI_HANDLER_GROUP *Group, SMM_MODULE_HANDLER_PROTOCO
 
 EFI_STATUS GroupSmiHandlers() 
 {
-  SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportData;
+  SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR *ReportData;
   EFI_STATUS Status;
-  ReportData = (SMM_MODULES_HANDLER_PROTOCOL_INFO*)CommData;
+  ReportData = (SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR*)CommData;
+  ReportData->addr = ReportDataBackup;
   Status = SmmCall(&gEfiSmmReportSmmModuleInfoGuid, sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
   if (EFI_ERROR(Status)) {
       DEBUG((DEBUG_INFO,"Error: Unable to call gEfiSmmReportSmmModuleInfoGuid. %r\n",Status));
       return Status;
   }
-  CopyMem (ReportDataBackup,ReportData,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
-
 
 
   NumGroups = 0;
@@ -234,7 +236,7 @@ SmmFuzzMain(
 
   EFI_STATUS Status;
   
-  UINTN  MinimalSizeNeeded = sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO);
+  UINTN  MinimalSizeNeeded = 3 * 0x1000;
 
   Status = gBS->LocateProtocol(&gEfiSmmCommunicationProtocolGuid, NULL, (void **)&SmmCommunication);
   if (EFI_ERROR(Status)) {
@@ -277,7 +279,7 @@ SmmFuzzMain(
       SmmCall(&SmiHandlers.Handlers[index], 0);
     } else {
       UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(index, SmiFuzzTimes[index]);
-      if (Sz < sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO))
+      if (Sz < MinimalSizeNeeded)
         SmmCall(&SmiHandlers.Handlers[index], Sz);
     }
     SmiFuzzTimes[index]++;
