@@ -1175,6 +1175,8 @@ SmmReportHandler (
   IN OUT UINTN       *CommBufferSize  OPTIONAL
   )
 {
+  LIST_ENTRY  *Link;
+  EFI_SMM_DRIVER_ENTRY  *DriverEntry;
   SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR *data = (SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR*)CommBuffer;
   EFI_PHYSICAL_ADDRESS    PhysicalStartBegin, PhysicalStartEnd;
   EFI_PHYSICAL_ADDRESS    CpuStartBegin, CpuStartEnd;
@@ -1205,6 +1207,13 @@ SmmReportHandler (
   SmmModulesHandlerProtocolInfo.PhysicalStart = PhysicalStartBegin;
   SmmModulesHandlerProtocolInfo.DummyAddr = &SmmFuzzDummyMemory;
   CopyMem(data->addr,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
+
+  for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
+    DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
+    if (DriverEntry->Dependent) {
+      InsertUnloadModule(&DriverEntry->FileName);
+    }
+  }
   return EFI_SUCCESS;
 }
 EFI_STATUS
@@ -1340,4 +1349,30 @@ VOID SetCurrentModuleBySmi(CONST GUID *guid)
     }
   }
   ClearCurrentModule();
+}
+VOID InsertUnloadModule(GUID *guid)
+{
+  if (SmmModulesHandlerProtocolInfo.NumUnloadModules >= MAX_NUM_NONLOADED_MODULES)
+    return;
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumUnloadModules; i++)
+  {
+    if (CompareGuid(&SmmModulesHandlerProtocolInfo.UnloadModules[i], guid))
+      {
+        return;
+      }
+  }
+  CopyGuid(&SmmModulesHandlerProtocolInfo.UnloadModules[SmmModulesHandlerProtocolInfo.NumUnloadModules++], guid);
+}
+VOID InsertSkipModule(GUID *guid)
+{
+  if (SmmModulesHandlerProtocolInfo.NumSkipModules >= MAX_NUM_SKIP_MODULES)
+    return;
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumSkipModules; i++)
+  {
+    if (CompareGuid(&SmmModulesHandlerProtocolInfo.SkipModules[i], guid))
+      {
+        return;
+      }
+  }
+  CopyGuid(&SmmModulesHandlerProtocolInfo.SkipModules[SmmModulesHandlerProtocolInfo.NumSkipModules++], guid);
 }

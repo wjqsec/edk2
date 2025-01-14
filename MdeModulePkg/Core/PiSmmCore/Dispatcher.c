@@ -979,6 +979,7 @@ SmmDispatcher (
         Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
       else {
         DEBUG((DEBUG_INFO,"skip module %g\n",&DriverEntry->FileName));
+        InsertSkipModule(&DriverEntry->FileName);
         Status = EFI_SUCCESS;
       }
         

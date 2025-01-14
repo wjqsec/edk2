@@ -1455,6 +1455,7 @@ extern EFI_GUID gEfiSmmReportSmmModuleInfoGuid;
 extern EFI_GUID gEfiSmmFuzzRootGuid;
 #define MAX_NUM_MODULES 150
 #define MAX_NUM_NONLOADED_MODULES 80
+#define MAX_NUM_SKIP_MODULES 80
 #define MAX_NUM_UNCLASSIFIED_HANDLERS 50
 #define MAX_NUM_UNCLASSIFIED_PROTOCOLS 100
 #define MAX_NUM_HANDLERS 8
@@ -1487,6 +1488,13 @@ typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_
 
   UINTN NumRootSmiHandlers;
 
+  UINTN NumSkipModules;
+  GUID SkipModules[MAX_NUM_SKIP_MODULES];
+
+  UINTN NumUnloadModules;
+  GUID UnloadModules[MAX_NUM_NONLOADED_MODULES];
+
+
   VOID *DummyAddr;
 }SMM_MODULES_HANDLER_PROTOCOL_INFO;
 
@@ -1505,6 +1513,8 @@ VOID SetCurrentModule(CONST GUID *guid);
 VOID SetCurrentModuleBySmi(CONST GUID *guid);
 VOID ClearCurrentModule(VOID);
 VOID InstallSmmFuzzProtocol(VOID);
+VOID InsertUnloadModule(GUID *guid);
+VOID InsertSkipModule(GUID *guid);
 EFI_STATUS InstallSmmFuzzSmiHandler(VOID);
 EFI_STATUS
 EFIAPI

@@ -213,6 +213,16 @@ VOID ReportSmiInfo() {
     LIBAFL_QEMU_SMM_REPORT_SMI_INFO(i, (UINTN)&SmiHandlers.Handlers[i]);
   } 
 }
+VOID ReportSkipModuleInfo() {
+  for (UINTN i = 0; i < ReportDataBackup->NumSkipModules; i++) {
+    LIBAFL_QEMU_SMM_REPORT_SKIP_MODULE_INFO((UINTN)&ReportDataBackup->SkipModules[i]);
+  } 
+}
+VOID ReportUnloadModuleInfo() {
+  for (UINTN i = 0; i < ReportDataBackup->NumUnloadModules; i++) {
+    LIBAFL_QEMU_SMM_REPORT_UNLOAD_MODULE_INFO((UINTN)&ReportDataBackup->UnloadModules[i]);
+  } 
+}
 /**
   as the real entry point for the application.
 
@@ -260,6 +270,8 @@ SmmFuzzMain(
   ReportSmmModuleInfo();
   ReportSmmGroupInfo();
   ReportSmiInfo();
+  ReportSkipModuleInfo();
+  ReportUnloadModuleInfo();
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)ReportDataBackup->DummyAddr);
   LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
   LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER));
