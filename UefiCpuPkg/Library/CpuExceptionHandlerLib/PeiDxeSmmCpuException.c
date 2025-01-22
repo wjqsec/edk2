@@ -136,8 +136,8 @@ CommonExceptionHandlerWorker (
     (ExternalInterruptHandler[ExceptionType])(ExceptionType, SystemContext);
   } else if (ExceptionType < CPU_EXCEPTION_NUM) {
     //
-    DEBUG((DEBUG_ERROR,"CommonExceptionHandlerWorker exception type %d pc:%p rcx:%p\n",ExceptionType,SystemContext.SystemContextX64->Rip,SystemContext.SystemContextX64->Rcx));
-    LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH,0,0);
+    DEBUG((DEBUG_ERROR,"CommonExceptionHandlerWorker exception type %d pc:%p\n",ExceptionType,SystemContext.SystemContextX64->Rip));
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH,SystemContext.SystemContextX64->Rip,SystemContext.SystemContextX64->Rsp);
     //
     // Get Spinlock to display CPU information
     //
