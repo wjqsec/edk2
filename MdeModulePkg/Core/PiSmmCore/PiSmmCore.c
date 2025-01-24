@@ -929,7 +929,9 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
   EFI_FV_FILE_ATTRIBUTES         Attributes;
   UINTN                          Size;
 
-  GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xA9}};
+  GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA}};
+  GUID OLD_SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xA9}};
+  (VOID)SMMCORE_GUID;
   Status = gBS->LocateHandleBuffer (
                         ByProtocol,
                         &gEfiFirmwareVolume2ProtocolGuid,
@@ -953,7 +955,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
                                   );
       if(EFI_ERROR(GetNextFileStatus))
         return EFI_NOT_FOUND; 
-      if (CompareGuid(&NameGuid, &SMMCORE_GUID)) {
+      if (CompareGuid(&NameGuid, &OLD_SMMCORE_GUID)) {
           EFI_SMM_DRIVER_ENTRY  *DriverEntry;
           DriverEntry = AllocateZeroPool (sizeof (EFI_SMM_DRIVER_ENTRY));
           ASSERT (DriverEntry != NULL);
@@ -962,6 +964,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           DriverEntry->FvHandle         = FvHandle;
           DriverEntry->Fv               = Fv;
           DriverEntry->FvFileDevicePath = SmmFvToDevicePath (Fv, FvHandle, &NameGuid);
+          DEBUG((DEBUG_INFO,"start load vendor smm core\n"));
           Status = SmmLoadImage (DriverEntry);
           ASSERT_EFI_ERROR (Status);
           // Status = RegisterSmramProfileImage (DriverEntry, TRUE);
@@ -1207,14 +1210,16 @@ SmmReportHandler (
   SmmModulesHandlerProtocolInfo.CpuStart = CpuStartBegin;
   SmmModulesHandlerProtocolInfo.PhysicalStart = PhysicalStartBegin;
   SmmModulesHandlerProtocolInfo.DummyAddr = &SmmFuzzDummyMemory;
-  CopyMem(data->addr,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
-
+  
   for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
     DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
     if (DriverEntry->Dependent) {
       InsertUnloadModule(&DriverEntry->FileName);
     }
   }
+  CopyMem(data->addr,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
+  // LIBAFL_QEMU_SMM_HELP_COPY((UINT64)data->addr, (UINT64)&SmmModulesHandlerProtocolInfo, (UINT64)sizeof(SmmModulesHandlerProtocolInfo));
+  
   return EFI_SUCCESS;
 }
 EFI_STATUS

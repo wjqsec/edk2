@@ -81,7 +81,7 @@ typedef enum LibaflQemuCommand {
 
   LIBAFL_QEMU_COMMAND_SMM_REPORT_SKIP_MODULE_INFO = 30,
   LIBAFL_QEMU_COMMAND_SMM_REPORT_UNLOAD_MODULE_INFO = 31,
-
+  LIBAFL_QEMU_COMMAND_SMM_HELP_COPY = 32,
 } LibaflExit;
 
 typedef enum SmmFuzzerCmd {
@@ -339,6 +339,7 @@ LIBAFL_DEFINE_FUNCTIONS(backdoor, LIBAFL_BACKDOOR_OPCODE)
 
 #define LIBAFL_QEMU_SMM_REPORT_SKIP_MODULE_INFO(addr) _libafl_backdoor_call1(LIBAFL_QEMU_COMMAND_SMM_REPORT_SKIP_MODULE_INFO,addr)
 #define LIBAFL_QEMU_SMM_REPORT_UNLOAD_MODULE_INFO(addr) _libafl_backdoor_call1(LIBAFL_QEMU_COMMAND_SMM_REPORT_UNLOAD_MODULE_INFO,addr)
+#define LIBAFL_QEMU_SMM_HELP_COPY(dst,src,size) _libafl_backdoor_call3(LIBAFL_QEMU_COMMAND_SMM_HELP_COPY,dst,src,size)
 /* === The public part ends here === */
 
 typedef struct _SMM_FUZZ_GLOBAL_DATA {

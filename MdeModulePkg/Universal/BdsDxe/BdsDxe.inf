@@ -33,6 +33,10 @@
   Language.c
   BdsEntry.c
 
+  SMMFuzzApplication.c
+  SmiFuzz.h
+  SmiDependency.c
+
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -75,11 +79,20 @@
   gEdkiiStatusCodeDataTypeVariableGuid          ## SOMETIMES_CONSUMES ## GUID
   gEfiEventReadyToBootGuid                      ## CONSUMES           ## Event
 
+  ## SmmFuzz
+  gSmmFuzzHobGuid
+  gEdkiiPiSmmCommunicationRegionTableGuid
+  gEfiSmmReportSmmModuleInfoGuid
+  gEfiSmmFuzzRootGuid
+
 [Protocols]
   gEfiBdsArchProtocolGuid                       ## PRODUCES
   gEfiSimpleTextInputExProtocolGuid             ## CONSUMES
   gEdkiiVariablePolicyProtocolGuid              ## SOMETIMES_CONSUMES
   gEfiDeferredImageLoadProtocolGuid             ## CONSUMES
+
+  ## SmmFuzz
+  gEfiSmmCommunicationProtocolGuid
 
 [FeaturePcd]
   gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLangDeprecate    ## CONSUMES

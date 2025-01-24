@@ -16,7 +16,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "Language.h"
 #include "HwErrRecSupport.h"
 #include <Library/VariablePolicyHelperLib.h>
-
+#include "SmiFuzz.h"
 #define SET_BOOT_OPTION_SUPPORT_KEY_COUNT(a, c)  { \
       (a) = ((a) & ~EFI_BOOT_OPTION_SUPPORT_COUNT) | (((c) << LowBitSet32 (EFI_BOOT_OPTION_SUPPORT_COUNT)) & EFI_BOOT_OPTION_SUPPORT_COUNT); \
       }
@@ -703,7 +703,7 @@ BdsEntry (
   PERF_CROSSMODULE_END ("DXE");
   PERF_CROSSMODULE_BEGIN ("BDS");
   DEBUG ((DEBUG_INFO, "[Bds] Entry...\n"));
-
+  SmmFuzzMain(NULL, NULL);
   //
   // Fill in FirmwareVendor and FirmwareRevision from PCDs
   //
@@ -887,7 +887,6 @@ BdsEntry (
   PERF_INMODULE_BEGIN ("PlatformBootManagerBeforeConsole");
   PlatformBootManagerBeforeConsole ();
   PERF_INMODULE_END ("PlatformBootManagerBeforeConsole");
-
   //
   // Initialize hotkey service
   //
@@ -985,7 +984,6 @@ BdsEntry (
 
   DEBUG ((DEBUG_INFO, "[Bds]=============End Load Options Dumping=============\n"));
   DEBUG_CODE_END ();
-
   //
   // BootManagerMenu doesn't contain the correct information when return status is EFI_NOT_FOUND.
   //

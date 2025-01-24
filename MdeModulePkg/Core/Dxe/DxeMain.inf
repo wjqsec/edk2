@@ -68,10 +68,6 @@
   DxeMain/DxeProtocolNotify.c
   DxeMain/DxeMain.c
 
-  DxeMain/SMMFuzzApplication.c
-  DxeMain/SmiFuzz.h
-  DxeMain/SmiDependency.c
-
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
@@ -130,12 +126,6 @@
   gEfiEndOfDxeEventGroupGuid                    ## SOMETIMES_CONSUMES   ## Event
   gEfiHobMemoryAllocStackGuid                   ## SOMETIMES_CONSUMES   ## SystemTable
 
-  ## SmmFuzz
-  gSmmFuzzHobGuid
-  gEdkiiPiSmmCommunicationRegionTableGuid
-  gEfiSmmReportSmmModuleInfoGuid
-  gEfiSmmFuzzRootGuid
-
 [Ppis]
   gEfiVectorHandoffInfoPpiGuid                  ## UNDEFINED # HOB
 
@@ -182,8 +172,8 @@
   gEfiVariableArchProtocolGuid                  ## CONSUMES
   gEfiCapsuleArchProtocolGuid                   ## CONSUMES
   gEfiWatchdogTimerArchProtocolGuid             ## CONSUMES
+
   ## SmmFuzz
-  gEfiSmmCommunicationProtocolGuid
   gSmmFuzzDataProtocolGuid
   gPchNvsAreaProtocolGuid
   gSaPolicyProtocolGuid
