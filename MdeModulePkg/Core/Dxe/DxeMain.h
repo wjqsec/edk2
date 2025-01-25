@@ -4600,11 +4600,11 @@ extern GUID gDxeCpuPolicyProtocolGuid;
 extern GUID gEfiAcpiSupportProtocolGuid;
 extern GUID gPowerMgmtInitDoneProtocolGuid;
 extern GUID gPlatformNvsAreaProtocolGuid;
-extern GUID gUnknownHpProtocol1Guid;
-extern GUID gUnknownHpProtocol2Guid;
-extern GUID gAmiSmbiosProtocolGuid;
-extern GUID gUnknownHpProtocol4Guid;
 extern GUID gCpuNvsAreaProtocolGuid;
 extern GUID gCpuGlobalNvsAreaProtocolGuid;
 extern GUID GAmiSmbiosFlashDataProtocolGuid;
+extern GUID gAmiSmbiosProtocolGuid;
+extern GUID gUnknownHpProtocol1Guid;
+extern GUID gUnknownHpProtocol2Guid;
+extern GUID gUnknownHpProtocol4Guid;
 #endif
