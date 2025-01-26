@@ -932,6 +932,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
   GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA}};
   GUID OLD_SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xA9}};
   (VOID)SMMCORE_GUID;
+  (VOID)OLD_SMMCORE_GUID;
   Status = gBS->LocateHandleBuffer (
                         ByProtocol,
                         &gEfiFirmwareVolume2ProtocolGuid,
@@ -955,7 +956,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
                                   );
       if(EFI_ERROR(GetNextFileStatus))
         return EFI_NOT_FOUND; 
-      if (CompareGuid(&NameGuid, &OLD_SMMCORE_GUID)) {
+      if (!CompareGuid(&NameGuid, &SMMCORE_GUID)) {
           EFI_SMM_DRIVER_ENTRY  *DriverEntry;
           DriverEntry = AllocateZeroPool (sizeof (EFI_SMM_DRIVER_ENTRY));
           ASSERT (DriverEntry != NULL);
@@ -990,7 +991,15 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,(UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
           DEBUG((DEBUG_INFO,"vendor smm core start %p-%p\n",DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageBase + DriverEntry->SmmLoadedImage.ImageSize));
           SmmFuzzGlobalData->in_fuzz = 1;
-          Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(ImageHandle, gST);
+
+          UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
+          if (skip == 0)
+            Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(ImageHandle, gST);
+          else {
+            DEBUG((DEBUG_INFO,"skip module %g\n",&DriverEntry->FileName));
+            InsertSkipModule(&DriverEntry->FileName);
+            Status = EFI_SUCCESS;
+          }
           SmmFuzzGlobalData->in_fuzz = 0;
           DEBUG((DEBUG_INFO,"vendor smm core end %r\n",Status));
           if (EFI_ERROR (Status)) {
@@ -1000,8 +1009,10 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           }
           
           gSmmCorePrivate->SmramRanges = OldSmramRange;
-          ASSERT_EFI_ERROR (Status);
-          return Status;
+          if (skip)
+            return EFI_NOT_FOUND;
+          else
+            return EFI_SUCCESS;
       }
     }
   }
