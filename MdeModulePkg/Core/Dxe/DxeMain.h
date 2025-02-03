@@ -4585,9 +4585,3503 @@ typedef struct {
     EFI_SMBIOS_GET_VER_TABLE_ENTRY  SmbiosGetVerTableEntryPoint;// Get input version of SMBIOS Table Entry Point
 } AMI_SMBIOS_PROTOCOL;
 
+typedef struct _EFI_SMBIOS_FLASH_DATA_PROTOCOL EFI_SMBIOS_FLASH_DATA_PROTOCOL;
+
+typedef EFI_STATUS (*GET_FLASH_TABLE_INFO)(
+    IN  EFI_SMBIOS_FLASH_DATA_PROTOCOL  *This,
+    OUT VOID                            **Location,
+    OUT UINT32                          *Size
+);
+
+typedef EFI_STATUS (*GET_FIELD) (
+    IN  EFI_SMBIOS_FLASH_DATA_PROTOCOL  *This,
+    IN  UINT8                           Table,
+    IN  UINT8                           Offset,
+    OUT VOID                            **String
+);
+
+/**
+    AMI SmbiosGetFlashData Protocol
+**/
+struct _EFI_SMBIOS_FLASH_DATA_PROTOCOL {
+    GET_FLASH_TABLE_INFO                GetFlashTableInfo;
+    GET_FIELD                           GetField;
+};
+
+#pragma pack (1)
+
 typedef struct {
-  EFI_STATUS (EFIAPI *UNKNOWN_FUNC1)(VOID);
-}AMI_SMBIOS_FLASH_DATA_PROTOCOL;
+  UINT64 Base;
+  UINT64 End;
+  UINT64 Length;
+} PCI_WINDOW;
+
+typedef struct {
+/**
+  Miscellaneous Dynamic Values, the definitions below need to be matched
+  GNVS definitions in Platform.ASL
+**/
+  PCI_WINDOW PciWindow32;
+  PCI_WINDOW PciWindow64;
+  UINT64 Padding[0x50];
+} EFI_GLOBAL_NVS_AREA;
+#pragma pack ()
+
+///
+/// Global NVS Area Protocol
+///
+typedef struct _EFI_GLOBAL_NVS_AREA_PROTOCOL {
+  EFI_GLOBAL_NVS_AREA     *Area;
+} EFI_GLOBAL_NVS_AREA_PROTOCOL;
+typedef struct _EFI_BOOT_SCRIPT_SAVE_PROTOCOL EFI_BOOT_SCRIPT_SAVE_PROTOCOL;
+//
+// Protocol Data Structures
+//
+typedef
+EFI_STATUS
+(EFIAPI *EFI_BOOT_SCRIPT_WRITE) (
+  IN EFI_BOOT_SCRIPT_SAVE_PROTOCOL            * This,
+  IN UINT16                                   TableName,
+  IN UINT16                                   OpCode,
+  ...
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_BOOT_SCRIPT_CLOSE_TABLE) (
+  IN EFI_BOOT_SCRIPT_SAVE_PROTOCOL            * This,
+  IN UINT16                                   TableName,
+  OUT EFI_PHYSICAL_ADDRESS                    * Address
+  );
+
+//
+// S3 Save Protocol data structure
+//
+typedef struct _EFI_BOOT_SCRIPT_SAVE_PROTOCOL {
+  EFI_BOOT_SCRIPT_WRITE       Write;
+  EFI_BOOT_SCRIPT_CLOSE_TABLE CloseTable;
+} EFI_BOOT_SCRIPT_SAVE_PROTOCOL;
+
+
+#pragma pack (push,1)
+typedef struct {
+  UINT32   IgdOpRegionAddress;                      ///< Offset 0       IGD OpRegion base address
+  UINT8    GfxTurboIMON;                            ///< Offset 4       IMON Current Value
+  UINT8    IgdState;                                ///< Offset 5       IGD State (Primary Display = 1)
+  UINT8    IgdBootType;                             ///< Offset 6       IGD Boot Display Device
+  UINT8    IgdPanelType;                            ///< Offset 7       IGD Panel Type CMOS option
+  UINT8    IgdPanelScaling;                         ///< Offset 8       IGD Panel Scaling
+  UINT8    IgdBiaConfig;                            ///< Offset 9       IGD BIA Configuration
+  UINT8    IgdSscConfig;                            ///< Offset 10      IGD SSC Configuration
+  UINT8    IgdDvmtMemSize;                          ///< Offset 11      IGD DVMT Memory Size
+  UINT8    IgdFunc1Enable;                          ///< Offset 12      IGD Function 1 Enable
+  UINT8    IgdHpllVco;                              ///< Offset 13      HPLL VCO
+  UINT8    IgdSciSmiMode;                           ///< Offset 14      GMCH SMI/SCI mode (0=SCI)
+  UINT8    IgdPAVP;                                 ///< Offset 15      IGD PAVP data
+  UINT8    CurrentDeviceList;                       ///< Offset 16      Current Attached Device List
+  UINT16   CurrentDisplayState;                     ///< Offset 17      Current Display State
+  UINT16   NextDisplayState;                        ///< Offset 19      Next Display State
+  UINT8    NumberOfValidDeviceId;                   ///< Offset 21      Number of Valid Device IDs
+  UINT32   DeviceId1;                               ///< Offset 22      Device ID 1
+  UINT32   DeviceId2;                               ///< Offset 26      Device ID 2
+  UINT32   DeviceId3;                               ///< Offset 30      Device ID 3
+  UINT32   DeviceId4;                               ///< Offset 34      Device ID 4
+  UINT32   DeviceId5;                               ///< Offset 38      Device ID 5
+  UINT32   DeviceId6;                               ///< Offset 42      Device ID 6
+  UINT32   DeviceId7;                               ///< Offset 46      Device ID 7
+  UINT32   DeviceId8;                               ///< Offset 50      Device ID 8
+  UINT32   DeviceId9;                               ///< Offset 54      Device ID 9
+  UINT32   DeviceId10;                              ///< Offset 58      Device ID 10
+  UINT32   DeviceId11;                              ///< Offset 62      Device ID 11
+  UINT32   DeviceId12;                              ///< Offset 66      Device ID 12
+  UINT32   DeviceId13;                              ///< Offset 70      Device ID 13
+  UINT32   DeviceId14;                              ///< Offset 74      Device ID 14
+  UINT32   DeviceId15;                              ///< Offset 78      Device ID 15
+  UINT32   DeviceIdX;                               ///< Offset 82      Device ID for eDP device
+  UINT32   NextStateDid1;                           ///< Offset 86      Next state DID1 for _DGS
+  UINT32   NextStateDid2;                           ///< Offset 90      Next state DID2 for _DGS
+  UINT32   NextStateDid3;                           ///< Offset 94      Next state DID3 for _DGS
+  UINT32   NextStateDid4;                           ///< Offset 98      Next state DID4 for _DGS
+  UINT32   NextStateDid5;                           ///< Offset 102     Next state DID5 for _DGS
+  UINT32   NextStateDid6;                           ///< Offset 106     Next state DID6 for _DGS
+  UINT32   NextStateDid7;                           ///< Offset 110     Next state DID7 for _DGS
+  UINT32   NextStateDid8;                           ///< Offset 114     Next state DID8 for _DGS
+  UINT32   NextStateDidEdp;                         ///< Offset 118     Next state DID for eDP
+  UINT8    LidState;                                ///< Offset 122     Lid State (Lid Open = 1)
+  UINT32   AKsv0;                                   ///< Offset 123     First four bytes of AKSV (manufacturing mode)
+  UINT8    AKsv1;                                   ///< Offset 127     Fifth byte of AKSV (manufacturing mode)
+  UINT8    BrightnessPercentage;                    ///< Offset 128     Brightness Level Percentage
+  UINT8    AlsEnable;                               ///< Offset 129     Ambient Light Sensor Enable
+  UINT8    AlsAdjustmentFactor;                     ///< Offset 130     Ambient Light Adjusment Factor
+  UINT8    LuxLowValue;                             ///< Offset 131     LUX Low Value
+  UINT8    LuxHighValue;                            ///< Offset 132     LUX High Value
+  UINT8    ActiveLFP;                               ///< Offset 133     Active LFP
+  UINT8    ImguAcpiMode;                            ///< Offset 134     IMGU ACPI device type
+  UINT8    EdpValid;                                ///< Offset 135     Check for eDP display device
+  UINT8    SgMode;                                  ///< Offset 136     SG Mode (0=Disabled, 1=SG Muxed, 2=SG Muxless, 3=DGPU Only)
+  UINT8    SgFeatureList;                           ///< Offset 137     SG Feature List
+  UINT8    Pcie0GpioSupport;                        ///< Offset 138     PCIe0 GPIO Support (0=Disabled, 1=PCH Based, 2=I2C Based)
+  UINT8    Pcie0HoldRstExpanderNo;                  ///< Offset 139     PCIe0 HLD RST IO Expander Number
+  UINT32   Pcie0HoldRstGpioNo;                      ///< Offset 140     PCIe0 HLD RST GPIO Number
+  UINT8    Pcie0HoldRstActiveInfo;                  ///< Offset 144     PCIe0 HLD RST GPIO Active Information
+  UINT8    Pcie0PwrEnExpanderNo;                    ///< Offset 145     PCIe0 PWR Enable IO Expander Number
+  UINT32   Pcie0PwrEnGpioNo;                        ///< Offset 146     PCIe0 PWR Enable GPIO Number
+  UINT8    Pcie0PwrEnActiveInfo;                    ///< Offset 150     PCIe0 PWR Enable GPIO Active Information
+  UINT8    Pcie1GpioSupport;                        ///< Offset 151     PCIe1 GPIO Support (0=Disabled, 1=PCH Based, 2=I2C Based)
+  UINT8    Pcie1HoldRstExpanderNo;                  ///< Offset 152     PCIe1 HLD RST IO Expander Number
+  UINT32   Pcie1HoldRstGpioNo;                      ///< Offset 153     PCIe1 HLD RST GPIO Number
+  UINT8    Pcie1HoldRstActiveInfo;                  ///< Offset 157     PCIe1 HLD RST GPIO Active Information
+  UINT8    Pcie1PwrEnExpanderNo;                    ///< Offset 158     PCIe1 PWR Enable IO Expander Number
+  UINT32   Pcie1PwrEnGpioNo;                        ///< Offset 159     PCIe1 PWR Enable GPIO Number
+  UINT8    Pcie1PwrEnActiveInfo;                    ///< Offset 163     PCIe1 PWR Enable GPIO Active Information
+  UINT8    Pcie2GpioSupport;                        ///< Offset 164     PCIe2 GPIO Support (0=Disabled, 1=PCH Based, 2=I2C Based)
+  UINT8    Pcie2HoldRstExpanderNo;                  ///< Offset 165     PCIe2 HLD RST IO Expander Number
+  UINT32   Pcie2HoldRstGpioNo;                      ///< Offset 166     PCIe2 HLD RST GPIO Number
+  UINT8    Pcie2HoldRstActiveInfo;                  ///< Offset 170     PCIe2 HLD RST GPIO Active Information
+  UINT8    Pcie2PwrEnExpanderNo;                    ///< Offset 171     PCIe2 PWR Enable IO Expander Number
+  UINT32   Pcie2PwrEnGpioNo;                        ///< Offset 172     PCIe2 PWR Enable GPIO Number
+  UINT8    Pcie2PwrEnActiveInfo;                    ///< Offset 176     PCIe2 PWR Enable GPIO Active Information
+  UINT16   DelayAfterPwrEn;                         ///< Offset 177     Delay after power enable for PCIe
+  UINT16   DelayAfterHoldReset;                     ///< Offset 179     Delay after Hold Reset for PCIe
+  UINT8    Pcie0EpCapOffset;                        ///< Offset 181     PCIe0 Endpoint Capability Structure Offset
+  UINT32   XPcieCfgBaseAddress;                     ///< Offset 182     Any Device's PCIe Config Space Base Address
+  UINT16   GpioBaseAddress;                         ///< Offset 186     GPIO Base Address
+  UINT32   NvIgOpRegionAddress;                     ///< Offset 188     NVIG opregion address
+  UINT32   NvHmOpRegionAddress;                     ///< Offset 192     NVHM opregion address
+  UINT32   ApXmOpRegionAddress;                     ///< Offset 196     AMDA opregion address
+  UINT8    Peg0LtrEnable;                           ///< Offset 200     Latency Tolerance Reporting Enable
+  UINT8    Peg0ObffEnable;                          ///< Offset 201     Optimized Buffer Flush and Fill
+  UINT8    Peg1LtrEnable;                           ///< Offset 202     Latency Tolerance Reporting Enable
+  UINT8    Peg1ObffEnable;                          ///< Offset 203     Optimized Buffer Flush and Fill
+  UINT8    Peg2LtrEnable;                           ///< Offset 204     Latency Tolerance Reporting Enable
+  UINT8    Peg2ObffEnable;                          ///< Offset 205     Optimized Buffer Flush and Fill
+  UINT16   PegLtrMaxSnoopLatency;                   ///< Offset 206     SA Peg Latency Tolerance Reporting Max Snoop Latency
+  UINT16   PegLtrMaxNoSnoopLatency;                 ///< Offset 208     SA Peg Latency Tolerance Reporting Max No Snoop Latency
+  UINT8    Peg0PowerDownUnusedBundles;              ///< Offset 210     Peg0 Unused Bundle Control
+  UINT8    Peg1PowerDownUnusedBundles;              ///< Offset 211     Peg1 Unused Bundle Control
+  UINT8    Peg2PowerDownUnusedBundles;              ///< Offset 212     Peg2 Unused Bundle Control
+  UINT8    PackageCstateLimit;                      ///< Offset 213     The lowest C-state for the package
+  UINT8    PwrDnBundlesGlobalEnable;                ///< Offset 214     Pegx Unused Bundle Control Global Enable (0=Disabled, 1=Enabled)
+  UINT64   Mmio64Base;                              ///< Offset 215     Base of above 4GB MMIO resource
+  UINT64   Mmio64Length;                            ///< Offset 223     Length of above 4GB MMIO resource
+  UINT32   CpuIdInfo;                               ///< Offset 231     CPU ID info to get Family Id or Stepping
+  UINT8    Pcie1EpCapOffset;                        ///< Offset 235     PCIe1 Endpoint Capability Structure Offset
+  UINT8    Pcie2EpCapOffset;                        ///< Offset 236     PCIe2 Endpoint Capability Structure Offset
+  UINT8    Pcie0SecBusNum;                          ///< Offset 237     PCIe0 Secondary Bus Number (PCIe0 Endpoint Bus Number)
+  UINT8    Pcie1SecBusNum;                          ///< Offset 238     PCIe1 Secondary Bus Number (PCIe0 Endpoint Bus Number)
+  UINT8    Pcie2SecBusNum;                          ///< Offset 239     PCIe2 Secondary Bus Number (PCIe0 Endpoint Bus Number)
+  UINT32   Mmio32Base;                              ///< Offset 240     Base of below 4GB MMIO resource
+  UINT32   Mmio32Length;                            ///< Offset 244     Length of below 4GB MMIO resource
+  UINT32   Pcie0WakeGpioNo;                         ///< Offset 248     PCIe0 RTD3 Device Wake GPIO Number
+  UINT32   Pcie1WakeGpioNo;                         ///< Offset 252     PCIe1 RTD3 Device Wake GPIO Number
+  UINT32   Pcie2WakeGpioNo;                         ///< Offset 256     PCIe2 RTD3 Device Wake GPIO Number
+  UINT8    Reserved0[240];                          ///< Offset 260:499
+  UINT8    Reserved1[3];                            ///< Offset 500:502
+} SYSTEM_AGENT_GLOBAL_NVS_AREA;
+
+#pragma pack(pop)
+///
+/// System Agent Global NVS Area Protocol
+///
+typedef struct {
+  SYSTEM_AGENT_GLOBAL_NVS_AREA *Area;        ///< System Agent Global NVS Area Structure
+} SYSTEM_AGENT_GLOBAL_NVS_AREA_PROTOCOL;
+
+
+typedef enum {
+  EFI_PLATFORMINFO_TYPE_UNKNOWN = 0x00,     /**< Unknown target device. */
+  EFI_PLATFORMINFO_TYPE_CDP = 0x01,         /**< CDP device. */
+  EFI_PLATFORMINFO_TYPE_FFA = 0x02,         /**< Form-fit accurate device. */
+  EFI_PLATFORMINFO_TYPE_FLUID = 0x03,       /**< Forward looking user interface
+                                           demonstration device. */
+  EFI_PLATFORMINFO_TYPE_OEM = 0x05,         /**< Original equipment manufacturer
+                                                 device. */
+  EFI_PLATFORMINFO_TYPE_QT = 0x06,          /**< Qualcomm tablet device. */
+  EFI_PLATFORMINFO_TYPE_MTP = 0x08,         /**< MTP device. */
+  EFI_PLATFORMINFO_TYPE_LIQUID = 0x09,      /**< LiQUID device. */
+  EFI_PLATFORMINFO_TYPE_DRAGONBOARD = 0x0A, /**< DragonBoard@tm device. */
+  EFI_PLATFORMINFO_TYPE_QRD = 0x0B,         /**< QRD device. */
+  EFI_PLATFORMINFO_TYPE_EVB = 0x0C,         /**< EVB device. */
+  EFI_PLATFORMINFO_TYPE_HRD = 0x0D,         /**< HRD device. */
+  EFI_PLATFORMINFO_TYPE_DTV = 0x0E,  /**< DTV device. */
+  EFI_PLATFORMINFO_TYPE_RUMI = 0x0F, /**< Target is on Rumi (ASIC emulation). */
+  EFI_PLATFORMINFO_TYPE_VIRTIO = 0x10,  /**< Target is on Virtio
+                                            (system-level simulation). */
+  EFI_PLATFORMINFO_TYPE_GOBI = 0x11, /**< Gobi@tm device. */
+  EFI_PLATFORMINFO_TYPE_CBH  = 0x12,  /**< CBH device. */
+  EFI_PLATFORMINFO_TYPE_BTS = 0x13,  /**< BTS device. */
+  EFI_PLATFORMINFO_TYPE_XPM = 0x14,  /**< XPM device. */
+  EFI_PLATFORMINFO_TYPE_RCM = 0x15,  /**< RCM device. */
+  EFI_PLATFORMINFO_TYPE_DMA = 0x16,  /**< DMA device. */
+  EFI_PLATFORMINFO_TYPE_STP = 0x17,  /**< STP device. */
+  EFI_PLATFORMINFO_TYPE_SBC = 0x18,  /**< SBC device. */
+  EFI_PLATFORMINFO_TYPE_ADP = 0x19,  /**< ADP device. */
+  EFI_PLATFORMINFO_TYPE_CHI = 0x1A,  /**< CHI device. */
+  EFI_PLATFORMINFO_TYPE_SDP = 0x1B,  /**< SDP device. */
+  EFI_PLATFORMINFO_TYPE_RRP = 0x1C,  /**< RRP device. */
+  EFI_PLATFORMINFO_TYPE_CLS = 0x1D,  /**< CLS device. */
+  EFI_PLATFORMINFO_TYPE_TTP = 0x1E,  /**< TTP device. */
+  EFI_PLATFORMINFO_TYPE_HDK = 0x1F,  /**< HDK device. */
+  EFI_PLATFORMINFO_TYPE_IOT = 0x20,  /**< IOT device. */
+  EFI_PLATFORMINFO_TYPE_ATP = 0x21,  /**< ATP device. */
+  EFI_PLATFORMINFO_TYPE_IDP = 0x22,  /**< IDP device. */
+
+  EFI_PLATFORMINFO_NUM_TYPES, /**< Number of known targets
+                                                 (including unknown). @newpage
+                                 */
+  /** @cond */
+  EFI_PLATFORMINFO_TYPE_32BITS = 0x7FFFFFFF
+  /** @endcond */
+} EFI_PLATFORMINFO_PLATFORM_TYPE;
+typedef enum
+{
+  EFI_PLATFORMINFO_KEY_UNKNOWN       = 0x00,
+  EFI_PLATFORMINFO_KEY_DDR_FREQ      = 0x01,
+  EFI_PLATFORMINFO_KEY_GFX_FREQ      = 0x02,
+  EFI_PLATFORMINFO_KEY_CAMERA_FREQ   = 0x03,
+  EFI_PLATFORMINFO_KEY_FUSION        = 0x04,
+  EFI_PLATFORMINFO_KEY_CUST          = 0x05,
+  EFI_PLATFORMINFO_KEY_NAND_SCRUB    = 0x07,
+  EFI_PLATFORMINFO_KEY_SLT           = 0x07,
+  EFI_PLATFORMINFO_KEY_PMIC          = 0x08,
+
+  EFI_PLATFORMINFO_NUM_KEYS          = 0x09,
+
+  /** @cond */
+  EFI_PLATFORMINFO_KEY_32BITS = 0x7FFFFFFF
+  /** @endcond */
+} EFI_PLATFORMINFO_KEY_TYPE;
+typedef struct {
+  EFI_PLATFORMINFO_PLATFORM_TYPE platform;
+  /**< Type of the current target; see #EFI_PLATFORMINFO_PLATFORM_TYPE for
+       details. */
+  UINT32 version;
+  /**< Version of the platform in use. */
+  UINT32 subtype;
+  /**< Subtype of the platform. */
+  BOOLEAN fusion;
+  /**< TRUE if Fusion; FALSE otherwise. */
+} EFI_PLATFORMINFO_PLATFORM_INFO_TYPE;
+typedef struct _EFI_PLATFORMINFO_PROTOCOL EFI_PLATFORMINFO_PROTOCOL;
+typedef EFI_STATUS (EFIAPI *EFI_PLATFORMINFO_GET_PLATFORMINFO) (
+    IN EFI_PLATFORMINFO_PROTOCOL *This,
+    OUT EFI_PLATFORMINFO_PLATFORM_INFO_TYPE *PlatformInfo);
+typedef EFI_STATUS (EFIAPI *EFI_PLATFORMINFO_GET_KEYVALUE) (
+    IN EFI_PLATFORMINFO_PROTOCOL *This,
+    IN EFI_PLATFORMINFO_KEY_TYPE Key,
+    OUT UINT32 *Value);
+struct _EFI_PLATFORMINFO_PROTOCOL {
+  UINT64 Version;
+  EFI_PLATFORMINFO_GET_PLATFORMINFO GetPlatformInfo;
+  EFI_PLATFORMINFO_GET_KEYVALUE GetKeyValue;
+};
+
+
+typedef struct _AMI_FLASH_PROTOCOL AMI_FLASH_PROTOCOL;
+
+/**
+  Read Size number of bytes from the FlashAddress and place them into the DataBuffer.
+
+  @param FlashAddress Physical address in the flash part to start reading
+  @param Size Number of bytes to read from the flash part
+  @param DataBuffer Buffer to place the data read from the flash part
+  
+  @return EFI_STATUS
+  @retval EFI_SUCCESS
+  @retval
+**/
+typedef EFI_STATUS (EFIAPI *AMI_FLASH_READ)(
+    IN     VOID     *FlashAddress, 
+    IN     UINTN    Size, 
+    IN OUT VOID     *DataBuffer
+);
+
+/**
+  Starting at the FlashAddress, erase the requested number of bytes.
+
+  @param FlashAddress Physical address in the flash part to start reading
+  @param Size Number of bytes to read from the flash part
+  
+  @return EFI_STATUS
+  @retval EFI_SUCCESS
+  @retval
+**/
+typedef EFI_STATUS (EFIAPI *AMI_FLASH_ERASE)(
+    IN VOID *FlashAddress, 
+    IN UINTN Size
+);
+
+/**
+  Write the requested number of bytes starting at FlashAddress
+
+  @param FlashAddress Physical address in the flash part to start reading
+  @param Size Number of bytes to read from the flash part
+  @param DataBuffer Buffer with the data to write into the flash part
+  
+  @return EFI_STATUS
+  @retval EFI_SUCCESS
+  @retval
+**/
+typedef EFI_STATUS (EFIAPI *AMI_FLASH_WRITE)(
+    IN  VOID *FlashAddress, 
+    IN  UINTN Size, 
+    IN  VOID *DataBuffer
+);
+
+/**
+  Verify that the data at FlashAddress matches the passed DataBuffer. If it
+  does not match, then write the data in DataBuffer into area of the Flash.
+
+  @param FlashAddress Physical address in the flash part to start reading
+  @param Size Number of bytes to read from the flash part
+  @param DataBuffer Buffer with the data to write into the flash part
+  
+  @return EFI_STATUS
+  @retval EFI_SUCCESS
+  @retval
+**/
+typedef EFI_STATUS (EFIAPI *AMI_FLASH_UPDATE)(
+    IN  VOID *FlashAddress, 
+    IN  UINTN Size, 
+    IN  VOID *DataBuffer
+);
+
+/**
+  Enable the ability to write to the flash part.
+**/
+typedef EFI_STATUS (EFIAPI *AMI_FLASH_WRITE_ENABLE)(VOID);
+
+/**
+  Disable the ability to write to the flash part.
+**/
+typedef EFI_STATUS (EFIAPI *AMI_FLASH_WRITE_DISABLE)(VOID);
+
+struct _AMI_FLASH_PROTOCOL {
+    AMI_FLASH_READ              Read;
+    AMI_FLASH_ERASE             Erase;
+    AMI_FLASH_WRITE             Write;
+    AMI_FLASH_UPDATE            Update;
+    AMI_FLASH_WRITE_ENABLE      DeviceWriteEnable;
+    AMI_FLASH_WRITE_DISABLE     DeviceWriteDisable; 
+};
+
+typedef struct {
+    UINT64      BufAddr;
+    UINT32      BlockAddr;      //0 starts at 0xfff0_0000
+    UINT32      BlockSize;
+    UINT8       ErrorCode;
+} FUNC_BLOCK;
+
+#pragma pack(1)
+typedef struct {
+    UINT32      StartAddress;
+    UINT32      BlockSize;
+    UINT8       Type;
+} BLOCK_DESC;
+
+typedef enum {
+    BOOT_BLOCK
+    ,MAIN_BLOCK
+    ,NV_BLOCK
+#if SMI_FLASH_INTERFACE_VERSION > 10
+    ,EC_BLOCK
+#endif
+    ,OA3_FLASH_BLOCK_DESC_TYPE = 0x4A
+    ,NC_BLOCK = 0x80 //Types from NC_BLOCK to 0xFF are reserved for non critical blocks
+} FLASH_BLOCK_TYPE;
+
+
+#define FLASH_BLOCK_SIZE	0x1000
+#define FLASH_SIZE	0x800000
+#define NUMBER_OF_BLOCKS (FLASH_SIZE/FLASH_BLOCK_SIZE)
+typedef struct  {
+    UINT32      Length;
+    UINT8       Implemented;
+    UINT8       Version;
+    UINT16      TotalBlocks;
+#if SMI_FLASH_INTERFACE_VERSION > 10
+    UINT32      ECVersionOffset;
+    UINT32      ECVersionMask;
+#endif
+    BLOCK_DESC  Blocks[NUMBER_OF_BLOCKS];
+} INFO_BLOCK;
+#pragma pack()
+typedef struct _EFI_SMI_FLASH_PROTOCOL EFI_SMI_FLASH_PROTOCOL;
+
+typedef EFI_STATUS (*GET_FLASH_INFO) (
+    IN OUT INFO_BLOCK           *InfoBlock
+);
+
+typedef EFI_STATUS (*ENABLE_FLASH) (
+    IN OUT FUNC_BLOCK           *FuncBlock
+);
+
+typedef EFI_STATUS (*DISABLE_FLASH) (
+    IN OUT FUNC_BLOCK           *FuncBlock
+);
+
+typedef EFI_STATUS (*READ_FLASH) (
+    IN OUT FUNC_BLOCK           *FuncBlock
+);
+
+typedef EFI_STATUS (*WRITE_FLASH) (
+    IN OUT FUNC_BLOCK           *FuncBlock
+);
+
+typedef EFI_STATUS (*ERASE_FLASH) (
+    IN OUT FUNC_BLOCK           *FuncBlock
+);
+
+struct _EFI_SMI_FLASH_PROTOCOL {
+    GET_FLASH_INFO  GetFlashInfo;
+    ENABLE_FLASH    EnableFlashWrite;
+    DISABLE_FLASH   DisableFlashWrite;
+    READ_FLASH      ReadFlash;
+    WRITE_FLASH     WriteFlash;
+    ERASE_FLASH     EraseFlash;
+    UINT32          FlashCapacity;
+};
+
+typedef struct _EFI_HECI_PROTOCOL EFI_HECI_PROTOCOL;
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_SENDWACK) (
+  IN OUT  UINT32           *Message,
+  IN OUT  UINT32           Length,
+  IN OUT  UINT32           *RecLength,
+  IN      UINT8            HostAddress,
+  IN      UINT8            MEAddress
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_READ_MESSAGE) (
+  IN      UINT32           Blocking,
+  IN      UINT32           *MessageBody,
+  IN OUT  UINT32           *Length
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_READ_FLUSH_MESSAGE) (
+  IN      UINT32           Blocking
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_SEND_MESSAGE) (
+  IN      UINT32           *Message,
+  IN      UINT32           Length,
+  IN      UINT8            HostAddress,
+  IN      UINT8            MEAddress
+  );
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_RESET) (VOID);
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_INIT) (VOID);
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_REINIT) (VOID);
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_RESET_WAIT) (
+  IN        UINT32           Delay
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_GET_ME_STATUS) (
+  IN UINT32                       *Status
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_HECI_GET_ME_MODE) (
+  IN UINT32                       *Mode
+  );
+
+typedef struct _EFI_HECI_PROTOCOL {
+  EFI_HECI_SENDWACK           SendwACK;
+  EFI_HECI_READ_MESSAGE       ReadMsg;
+  EFI_HECI_SEND_MESSAGE       SendMsg;
+  EFI_HECI_RESET              ResetHeci;
+  EFI_HECI_INIT               InitHeci;
+  EFI_HECI_RESET_WAIT         MeResetWait;
+  EFI_HECI_REINIT             ReInitHeci;
+  EFI_HECI_GET_ME_STATUS      GetMeStatus;
+  EFI_HECI_GET_ME_MODE        GetMeMode;
+  EFI_HECI_READ_FLUSH_MESSAGE ReadAndFlush;
+} EFI_HECI_PROTOCOL;
+
+typedef struct _AMI_PCI_EXT_PROTOCOL AMI_PCI_EXT_PROTOCOL;
+
+
+//-------------------------------------------------
+// Protocol Function Definitions
+//-------------------------------------------------
+typedef EFI_STATUS (EFIAPI * AMI_PCI_EXT_IS_PCI_EXPRESS)(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		    OPTIONAL,
+    OUT VOID                                       **PciExpData    OPTIONAL
+);
+
+//-------------------------------------------------
+typedef EFI_STATUS (EFIAPI * AMI_PCI_EXT_IS_PCI_X)(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		    OPTIONAL,
+    OUT VOID                                       **PciXData    OPTIONAL
+);
+
+//-------------------------------------------------
+typedef EFI_STATUS (EFIAPI * AMI_PCI_EXT_IS_P2P_BRG)(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		    OPTIONAL,
+    OUT VOID                                     **BrgData       OPTIONAL
+);
+
+//-------------------------------------------------
+typedef EFI_STATUS (EFIAPI * AMI_PCI_EXT_IS_CRD_BRG)(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		    OPTIONAL,
+    OUT VOID                                     **BrgData       OPTIONAL
+);
+
+//-------------------------------------------------
+typedef EFI_STATUS (EFIAPI * AMI_PCI_EXT_IS_REG_DEVICE)(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		OPTIONAL
+);
+
+typedef EFI_STATUS (EFIAPI * AMI_PCI_EXT_GET_CLASS_CODES_INFO) (
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		OPTIONAL,
+	OUT VOID									*CassCodes
+);
+
+typedef EFI_STATUS (EFIAPI * AMI_PCI_EXT_GET_PCI_PIC_IRQ) (
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		OPTIONAL,
+    OUT VOID                               **PicIrqTblEntry,
+    VOID                       **ParentDevices,
+    OUT UINTN                                           *EntryCount
+);
+
+typedef EFI_STATUS (EFIAPI * AMI_PCI_EXT_GET_PCI_APIC_IRQ) (
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		OPTIONAL,
+    OUT VOID                              **ApicIrqTblEntry,
+    VOID                       **ParentDevices,
+    OUT UINTN                                           *EntryCount
+);
+
+
+
+typedef struct _AMI_PCI_EXT_PROTOCOL {
+	AMI_PCI_EXT_IS_PCI_EXPRESS			IsPciExpress;
+	AMI_PCI_EXT_IS_PCI_X				IsPciX;
+	AMI_PCI_EXT_IS_P2P_BRG				IsPci2PciBridge;
+	AMI_PCI_EXT_IS_CRD_BRG				IsPci2CrdBridge;
+	AMI_PCI_EXT_IS_REG_DEVICE			IsPciDevice;
+	AMI_PCI_EXT_GET_CLASS_CODES_INFO	GetClassCodesInfo;
+    AMI_PCI_EXT_GET_PCI_PIC_IRQ         GetPciPicIrq;
+    AMI_PCI_EXT_GET_PCI_APIC_IRQ        GetPciApicIrq;
+    EFI_HANDLE                          PciExtHanle;
+} AMI_PCI_EXT_PROTOCOL;
+
+typedef struct _EFI_PCH_INFO_PROTOCOL {
+  UINT8   Revision;
+  UINT8   BusNumber;
+  UINT32  RCVersion;
+}EFI_PCH_INFO_PROTOCOL;
+
+
+typedef struct _EFI_IIO_UDS_PROTOCOL EFI_IIO_UDS_PROTOCOL;
+
+typedef
+EFI_STATUS
+(EFIAPI *IIH_ENABLE_VC) (
+  IN EFI_IIO_UDS_PROTOCOL     *This,
+  IN UINT32                    VcCtrlData
+  );
+/**
+
+  Enables the requested VC in IIO
+
+  @param This                    Pointer to the EFI_IOH_UDS_PROTOCOL instance.
+  @param VcCtrlData              Data read from VC resourse control reg.
+
+**/
+#define MAX_DEVHIDE_REGS_PER_SYSTEM                  384
+#define MAX_SOCKET      2
+#define MAX_DIE         4
+#define MAX_DDRC        2
+#define MAX_NODE        (MAX_SOCKET * MAX_DIE)
+#define MAX_CHANNEL     4
+#define MAX_DIMM        3
+#define MAX_RANK_CH     12
+#define MAX_RANK_DIMM   4
+#define MAX_DIMM_SIZE   32  // In GB
+#define NUMBER_PORTS_PER_SOCKET       21
+#define MAX_TOTAL_PORTS               168
+typedef enum {
+  DmiTypeVc0,
+  DmiTypeVc1,
+  DmiTypeVcm,
+  MaxDmiVcType
+} DMI_VC_TYPE;
+typedef enum {
+  IioDmiTc0,
+  IioDmiTc1,
+  IioDmiTc2,
+  IioDmiTc3,
+  IioDmiTc4,
+  IioDmiTc5,
+  IioDmiTc6,
+  IioDmiTc7,
+  IioMaxDmiTc
+} IIO_DMI_TC;
+#define MaxIIO                        MAX_SOCKET
+#define IIO_CSTACK          0
+#define IIO_PSTACK0         1
+#define IIO_PSTACK1         2
+#define IIO_PSTACK2         3
+#define IIO_PSTACK3         4
+#define IIO_PSTACK4         5
+#define MAX_IIO_STACK       6
+#define MAX_KTI_PORTS                 3
+#define CONFIG_TDP_MAX_LEVEL	5
+#define MAX_IMC                       2
+#define MC_MAX_NODE                   (MAX_SOCKET * MAX_IMC)
+#define MAX_CH          2
+#pragma pack(1)
+
+
+typedef struct {
+  UINT8                     Valid;         // TRUE, if the link is valid (i.e reached normal operation)
+  UINT8                     PeerSocId;     // Socket ID
+  UINT8                     PeerSocType;   // Socket Type (0 - CPU; 1 - IIO)
+  UINT8                     PeerPort;      // Port of the peer socket
+}QPI_PEER_DATA;
+typedef struct {
+  UINT8                     Valid;
+  UINT8                     SocId;
+  QPI_PEER_DATA             PeerInfo[MAX_SOCKET];    // QPI LEP info
+} QPI_IIO_DATA;
+typedef struct {
+    UINT8       Device;
+    UINT8       Function;
+} IIO_PORT_INFO;
+typedef struct {
+    IIO_PORT_INFO           PortInfo[NUMBER_PORTS_PER_SOCKET];
+} IIO_DMI_PCIE_INFO;
+typedef union {
+  struct {
+    UINT32  Low;
+    UINT32  High;
+  } Data32;
+  UINT64 Data;
+} UINT64_STRUCT;
+typedef struct {
+  UINT8                     Valid;
+  UINT8                     SocketFirstBus;
+  UINT8                     SocketLastBus;
+  UINT8                     segmentSocket;
+  UINT8                     PcieSegment;
+  UINT64_STRUCT             SegMmcfgBase;
+  UINT8                     stackPresentBitmap;
+  UINT8                     StackBus[MAX_IIO_STACK];
+  UINT8                     M2PciePresentBitmap;
+  UINT8                     TotM3Kti;
+  UINT8                     TotCha;
+  UINT32                    ChaList;
+  UINT32                    SocId;
+  QPI_PEER_DATA             PeerInfo[MAX_KTI_PORTS];    // QPI LEP info
+} QPI_CPU_DATA;
+
+
+typedef struct _STACK_RES {
+  UINT8                   Personality;
+  UINT8                   BusBase;
+  UINT8                   BusLimit;
+  UINT16                  PciResourceIoBase;
+  UINT16                  PciResourceIoLimit;
+  UINT32                  IoApicBase;
+  UINT32                  IoApicLimit;
+  UINT32                  PciResourceMem32Base;
+  UINT32                  PciResourceMem32Limit;
+  UINT64                  PciResourceMem64Base;
+  UINT64                  PciResourceMem64Limit;
+  UINT32                  VtdBarAddress;
+} STACK_RES;
+
+typedef struct {
+    UINT8                   Valid;
+    UINT8                   SocketID;            // Socket ID of the IIO (0..3)
+    UINT8                   BusBase;
+    UINT8                   BusLimit;
+    UINT16                  PciResourceIoBase;
+    UINT16                  PciResourceIoLimit;
+    UINT32                  IoApicBase;
+    UINT32                  IoApicLimit;
+    UINT32                  PciResourceMem32Base;
+    UINT32                  PciResourceMem32Limit;
+    UINT64                  PciResourceMem64Base;
+    UINT64                  PciResourceMem64Limit;
+    STACK_RES               StackRes[MAX_IIO_STACK];
+    UINT32                  RcBaseAddress;
+    IIO_DMI_PCIE_INFO       PcieInfo;
+    UINT8                   DmaDeviceCount;
+} IIO_RESOURCE_INSTANCE;
+
+typedef struct {
+    UINT16                  PlatGlobalIoBase;       // Global IO Base
+    UINT16                  PlatGlobalIoLimit;      // Global IO Limit
+    UINT32                  PlatGlobalMmiolBase;    // Global Mmiol base
+    UINT32                  PlatGlobalMmiolLimit;   // Global Mmiol limit
+    UINT64                  PlatGlobalMmiohBase;    // Global Mmioh Base [43:0]
+    UINT64                  PlatGlobalMmiohLimit;   // Global Mmioh Limit [43:0]
+    QPI_CPU_DATA            CpuQpiInfo[MAX_SOCKET]; // QPI related info per CPU
+    QPI_IIO_DATA            IioQpiInfo[MAX_SOCKET]; // QPI related info per IIO
+    UINT32                  MemTsegSize;
+    UINT32                  MemIedSize;
+    UINT64                  PciExpressBase;
+    UINT32                  PciExpressSize;
+    UINT32                  MemTolm;
+    IIO_RESOURCE_INSTANCE   IIO_resource[MAX_SOCKET];
+    UINT8                   numofIIO;
+    UINT8                   MaxBusNumber;
+    UINT32                  packageBspApicID[MAX_SOCKET]; // This data array is valid only for SBSP, not for non-SBSP CPUs. <AS> for CpuSv
+    UINT8                   EVMode;
+    UINT8                   Pci64BitResourceAllocation;
+    UINT8                   SkuPersonality[MAX_SOCKET];
+    UINT8                   VMDStackEnable[MaxIIO][MAX_IIO_STACK];
+    UINT16                  IoGranularity;
+    UINT32                  MmiolGranularity;
+    UINT64_STRUCT           MmiohGranularity;
+    UINT8                   RemoteRequestThreshold;
+    UINT64                  Reserved;
+    BOOLEAN                 Simics;                        // TRUE - Simics Environtment; FALSE - H\w
+} PLATFORM_DATA;
+
+typedef struct {
+    UINT8                   CurrentCsiLinkSpeed;// Current programmed CSI Link speed (Slow/Full speed mode)
+    UINT8                   CurrentCsiLinkFrequency; // Current requested CSI Link frequency (in GT)
+    UINT32                  OutKtiPerLinkL1En[MAX_SOCKET];    // output kti link enabled status for PM
+    UINT8                   IsocEnable;
+    UINT32                  meRequestedSize; // Size of the memory range requested by ME FW, in MB
+    UINT8                   DmiVc1;
+    UINT8                   DmiVcm;
+    UINT32                  CpuPCPSInfo;
+    UINT8                   MinimumCpuStepping;
+    UINT8                   LtsxEnable;
+    UINT8                   MctpEn;
+    UINT8                   cpuType;
+    UINT8                   cpuSubType;
+    UINT8                   SystemRasType;
+    UINT8                   numCpus;                // 1,..4. Total number of CPU packages installed and detected (1..4)by QPI RC
+    UINT32                  FusedCores[MAX_SOCKET]; ///< Fused Core Mask in the package
+    UINT32                  ActiveCores[MAX_SOCKET];// Current actived core Mask in the package
+    UINT8                   MaxCoreToBusRatio[MAX_SOCKET]; // Package Max Non-turbo Ratio (per socket).
+    UINT8                   MinCoreToBusRatio[MAX_SOCKET]; // Package Maximum Efficiency Ratio (per socket).
+    UINT8                   CurrentCoreToBusRatio;      // Current system Core to Bus Ratio
+    UINT32                  IntelSpeedSelectCapable;    // ISS Capable (system level) Bit[7:0] and current Config TDP Level Bit[15:8]
+    UINT32                  IssConfigTdpLevelInfo;      // get B2P CONFIG_TDP_GET_LEVELS_INFO
+    UINT32                  IssConfigTdpTdpInfo[MAX_SOCKET][CONFIG_TDP_MAX_LEVEL];     // get B2P CONFIG_TDP_GET_TDP_INFO
+    UINT32                  IssConfigTdpPowerInfo[MAX_SOCKET][CONFIG_TDP_MAX_LEVEL];   // get B2P CONFIG_TDP_GET_POWER_INFO
+    UINT8                   IssConfigTdpCoreCount[MAX_SOCKET][CONFIG_TDP_MAX_LEVEL];   // get B2P CONFIG_TDP_GET_CORE_COUNT
+    UINT8                   PbfCapable;                       // PBF Capable (Prioritized Base Frequency)
+    UINT64                  PbfHighPriCoreMap[MAX_SOCKET];    // PBF High Priority Cores Bitmap
+    UINT8                   PbfP1HighRatio[MAX_SOCKET];       // PBF P1_High Ratio
+    UINT8                   PbfP1LowRatio[MAX_SOCKET];        // PBF P1_Low Ratio
+    UINT32                  socketPresentBitMap;    // bitmap of sockets with CPUs present detected by QPI RC
+    UINT32                  FpgaPresentBitMap;      // bitmap of NID w/ fpga  present detected by QPI RC
+    UINT16                  tolmLimit;
+    UINT32                  tohmLimit;
+    UINT32                  mmCfgBase;
+    UINT32                  RcVersion;
+    UINT8                   DdrXoverMode;           // DDR 2.2 Mode
+    // For RAS
+    UINT8                   bootMode;
+    UINT8                   OutClusterOnDieEn; // Whether RC enabled COD support
+    UINT8                   OutSncEn;
+    UINT8                   OutNumOfCluster;
+    UINT8                   imcEnabled[MAX_SOCKET][MAX_IMC];
+    UINT8                   numChPerMC;
+    UINT8                   maxCh;
+    UINT8                   maxIMC;
+    UINT16                  LlcSizeReg;
+    UINT8                   chEnabled[MAX_SOCKET][MAX_CH];
+    UINT8                   mcId[MAX_SOCKET][MAX_CH];
+    UINT8                   memNode[MC_MAX_NODE];
+    UINT8                   IoDcMode;
+    UINT8                   CpuAccSupport;
+    UINT8                   SmbusErrorRecovery;
+    UINT8                   MonitorMwaitEnabled;
+    UINT8                   AepDimmPresent;
+    UINT32                  VolMemMode;
+} SYSTEM_STATUS;
+
+typedef struct {
+    PLATFORM_DATA           PlatformData;
+    SYSTEM_STATUS           SystemStatus;
+    UINT32                  OemValue;
+} IIO_UDS;
+#pragma pack()
+typedef struct _EFI_IIO_UDS_PROTOCOL {
+  IIO_UDS          *IioUdsPtr;
+  IIH_ENABLE_VC    EnableVc;
+} EFI_IIO_UDS_PROTOCOL;
+
+typedef struct _EFI_WHEA_SUPPORT_PROTOCOL EFI_WHEA_SUPPORT_PROTOCOL;
+typedef enum {
+    XpfMce          = 0,
+    XpfCmc          = 1,
+    WheaErrResv1    = 2,
+    XpfNmi          = 3,
+    WheaErrResv2    = 4,
+    WheaErrResv3    = 5,
+    PcieRootAer     = 6,
+    PcieDeviceAer   = 7,
+    PcieBridgeAer   = 8,
+    GenericHw       = 9
+} WHEA_ERROR_TYPE;
+//
+// Add a new error source to for Whea Interface
+//
+typedef
+EFI_STATUS
+(EFIAPI *EFI_ADD_ERROR_SOURCE) (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  IN WHEA_ERROR_TYPE                    Type,
+  IN UINTN                              Flags,
+  IN BOOLEAN                            EnableError,
+  OUT UINT16                            *SourceID,
+  IN UINTN                              NoOfRecords,
+  IN UINTN                              MaxSections,
+  IN VOID                               *SourceData
+  );
+
+//
+// Add an last boot error data log to WHEA for error that happend on last boot.
+//
+typedef
+EFI_STATUS
+(EFIAPI *EFI_ADD_BOOT_ERROR_LOG) (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  IN UINT8                              ErrorCondtion,
+  IN UINT32                             ErrorSevirity,
+  OPTIONAL IN EFI_GUID                  *FruID, 
+  OPTIONAL IN CHAR8                     *FruDescription,
+  IN EFI_GUID                           *ErrorType, 
+  IN UINT32                             ErrorDataSize, 
+  OPTIONAL IN UINT8                     *ErrorData
+  );
+
+//
+// This funtion will install serialization instruction for error injection method for an error type (e.g. memory UE).
+// If error injection method already exist for the error type, the old method will be replced with new one.
+//
+typedef
+EFI_STATUS
+(EFIAPI *EFI_INSTALL_ERROR_INJECTION_METHOD) (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  IN UINTN                              ErrorType,
+  IN UINTN                              InstCount,
+  IN VOID                               *InstEntry
+  );
+
+//
+// Tis function will get the current error injection capability installed in a bitmap.
+//
+typedef
+EFI_STATUS
+(EFIAPI *EFI_GET_ERROR_INJECTION_CAPABILITY) (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  OUT UINTN                             *InjectCapability
+  );
+
+//
+// Returns the Error log Address Range allocated for WHEA
+//
+typedef
+EFI_STATUS
+(EFIAPI *EFI_GET_ELAR) (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  OUT UINTN                             *ElarSize,
+  OUT VOID                              **LogAddress
+  );
+
+//
+// This installs the serialization actions for accessing Error Record persitant Storage.
+//
+typedef
+EFI_STATUS
+(EFIAPI *EFI_INSTALL_ERROR_RECORD_METHOD) (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  IN UINTN                            InstCount,
+  IN VOID                           *InstEntry
+  );
+
+//
+// WHEA Support Protocol
+//
+typedef struct _EFI_WHEA_SUPPORT_PROTOCOL {
+  EFI_ADD_ERROR_SOURCE                  AddErrorSource;
+  EFI_ADD_BOOT_ERROR_LOG                AddBootErrorLog;
+  EFI_INSTALL_ERROR_INJECTION_METHOD    InstallErrorInjectionMethod;
+  EFI_GET_ERROR_INJECTION_CAPABILITY    GetErrorInjectionCapability;
+  EFI_GET_ELAR                          GetElar;
+  EFI_INSTALL_ERROR_RECORD_METHOD       InstallErrorRecordMethod;
+} EFI_WHEA_SUPPORT_PROTOCOL;
+
+
+typedef struct _PPM_PLATFORM_POLICY_PROTOCOL PPM_PLATFORM_POLICY_PROTOCOL;
+
+//
+// Protocol revision number
+// Any backwards compatible changes to this protocol will result in an update in the revision number
+// Major changes will require publication of a new protocol
+//
+// Revision 1: Original version
+// Revision 2: Added T-states field to the PPM_FUNCTION_ENABLES structure, Renamed unused fields - CxPopUpEnable, CxPopDownEnable, FastC4ExitEnable
+// Revision 3: Extended VidCpuid to 32 bits for extended CPUID support (Penryn)
+// Revision 4: Added support for extended C6 residency enabling
+//
+#define PPM_PLATFORM_POLICY_PROTOCOL_REVISION     1
+#define PPM_PLATFORM_POLICY_PROTOCOL_REVISION_2   2
+#define PPM_PLATFORM_POLICY_PROTOCOL_REVISION_3   3
+#define PPM_PLATFORM_POLICY_PROTOCOL_REVISION_4   4
+
+//
+// Define maximum number of custom VID states supported
+//
+#ifndef MAX_CUSTOM_VID_TABLE_STATES
+#define MAX_CUSTOM_VID_TABLE_STATES               6
+#endif
+//
+// Custom VID table
+//
+typedef struct {
+  UINT8   VidNumber;
+  UINT32  VidCpuid;
+  UINT16  VidMaxRatio;
+  UINT16  VidMaxVid;
+  UINT16  StateRatio[MAX_CUSTOM_VID_TABLE_STATES];
+  UINT16  StateVid[MAX_CUSTOM_VID_TABLE_STATES];
+} PPM_CUSTOM_VID_TABLE;
+
+//
+// PPM functional enables
+//
+typedef struct {
+  UINT8   EnableGv                   :1; // 0: Disabled; 1: Enabled
+  UINT8   EnableCx                   :1;
+  UINT8   EnableCxe                  :1;
+  UINT8   EnableC4                   :1;
+  UINT8   EnableC6                   :1;
+  UINT8   EnableC7                   :1;
+  UINT8   EnableTm                   :1;
+  UINT8   Reserve00                  :1;
+  UINT8   Reserve01                  :1;
+  UINT8   EnableTurboMode            :1;
+  UINT8   PowerLimit2                :1;
+  UINT8   EnableProcHot              :1;
+  UINT8   Reserve02                  :1;
+  UINT8   EnableCMP                  :1;
+  UINT8   TStatesEnable              :1;
+  UINT8   Reserve03                  :1;
+  UINT8   Reserve04                  ;
+
+} PPM_FUNCTION_ENABLES;
+
+
+///
+/// This structure is used to describe various PPM turbo settings
+///
+typedef struct _PPM_TURBO_SETTINGS {
+  UINT16 PowerLimit1;     ///< Package Long duration turbo mode power limit in 125mw or watts.
+  UINT32 PowerLimit1Time; ///< Package Long duration turbo mode time window in seconds.
+  UINT16 PowerLimit2;     ///< Package Short duration turbo mode power limit in 125mw or watts.
+  ///
+  /// Describes whether TURBO_POWER_LIMIT[63] should be set. Setting this bit will lock all Turbo settings.
+  ///
+  UINT8  TurboPowerLimitLock;
+  UINT16 DdrPowerLimit1;     ///< @deprecated in Powermgmt policy
+  UINT32 DdrPowerLimit1Time; ///< @deprecated in Powermgmt policy
+  UINT16 DdrPowerLimit2;     ///< @deprecated in Powermgmt policy
+  UINT8  DdrPowerLimitLock;  ///< @deprecated in Powermgmt policy
+  ///
+  /// Configuration for boot TDP selection, value 0 describes TDP Nominal, value 1 describes TDP Down and
+  /// value 2 describes TDP Up.
+  ///
+  UINT8  ConfigTdpLevel;
+  ///
+  /// Configurable TDP Mode Lock can be sets the to Lock ConfigTdp mode settings from runtime change.
+  ///
+  UINT8  ConfigTdpLock;
+  UINT8  ConfigTdpBios; ///< Configuration whether load Configurable TDP SSDT.
+  UINT8  EnergyPolicy;  ///< Describes the Energy efficiency policy to be set in MSR 0x1B0.
+
+  // 
+  // PL3 configuration
+  //
+  UINT16 PowerLimit3;           ///< Package PL3 power limit in 125mw or watts.
+  UINT32 PowerLimit3Time;       ///< Package PL3 time window in seconds.
+  UINT8  PowerLimit3DutyCycle;  ///< Package PL3 Duty Cycle.
+  UINT8  PowerLimit3Lock;       ///< Package PL3 MSR 615h lock.
+
+} PPM_TURBO_SETTINGS;
+
+//
+// Platform Policy
+//
+struct _PPM_PLATFORM_POLICY_PROTOCOL {
+  UINT8                                 Revision;
+  PPM_FUNCTION_ENABLES                  FunctionEnables;
+  PPM_CUSTOM_VID_TABLE                  CustomVidTable;
+  PPM_TURBO_SETTINGS                    TurboSettings;
+
+  UINT8                                 Reserve00;
+  UINT8                                 Reserve01;
+  UINT8                                 Reserve02;
+  UINT8                                 Reserve03;
+  UINT8                                 Reserve04;
+  UINT8                                 Reserve05;
+  UINT8                                 Reserve06;
+
+  UINT8                                 S3RestoreMsrSwSmiNumber;
+  UINT8                                 Reserve07;
+  UINT32                                Reserve08;
+  UINT8                                 Reserve09;
+  //
+  // Primary and Secondary Plane Current Limits
+  //
+  UINT16                                Reserve10;
+  UINT8                                 Reserve11;
+};
+
+typedef struct _PORT_DESCRIPTOR{
+  UINT8   Bus;
+  UINT8   Device;
+  UINT8   Function;
+}PORT_DESCRIPTOR;
+
+typedef struct _PORT_ATTRIB{
+  UINT8   PortWidth;
+  UINT8   PortSpeed;
+}PORT_ATTRIB;
+
+
+typedef
+EFI_STATUS
+(EFIAPI *IIO_GET_CPU_UPLINK_PORT) (
+  IN  UINT8             IioIndex,
+  OUT PORT_DESCRIPTOR   *PortDescriptor,
+  OUT BOOLEAN           *PortStatus,
+  OUT PORT_ATTRIB       *PortAttrib
+);
+
+
+
+typedef union{
+  struct{
+   UINT32  Value;
+   UINT32  ValueHigh;
+  }Address32bit;
+  UINT64 Address64bit;
+}IIO_PTR_ADDRESS;
+typedef struct {
+    UINT8       CpuType;
+    UINT8       CpuStepping;
+    UINT8       CpuSubType;
+    UINT8       SystemRasType;
+    UINT8       IsocEnable;
+    UINT8       EVMode;
+    UINT32      meRequestedSize;
+    UINT8       DmiVc[MaxDmiVcType];
+    UINT8       DmiVcId[MaxDmiVcType];
+    DMI_VC_TYPE DmiTc[IioMaxDmiTc];
+    UINT8       PlatformType;
+    UINT8       IOxAPICCallbackBootEvent;
+    UINT8       RasOperation;
+    UINT8       SocketUnderOnline;
+    UINT8       CompletedReadyToBootEventServices;
+    UINT8       SocketPresent[MaxIIO];
+    UINT8       SocketBaseBusNumber[MaxIIO];
+    UINT8       SocketLimitBusNumber[MaxIIO];
+    UINT8       StackPresentBitmap[MaxIIO];
+    UINT64_STRUCT    SegMmcfgBase[MaxIIO];
+    UINT8       SegmentSocket[MaxIIO];
+    UINT8       SocketStackPersonality[MaxIIO][MAX_IIO_STACK];
+    UINT8       SocketStackBus[MaxIIO][MAX_IIO_STACK];
+    UINT8       SocketStackBaseBusNumber[MaxIIO][MAX_IIO_STACK];
+    UINT8       SocketStackLimitBusNumber[MaxIIO][MAX_IIO_STACK];
+    UINT8       SocketPortBusNumber[MaxIIO][NUMBER_PORTS_PER_SOCKET];
+    UINT8       StackPerPort[MaxIIO][NUMBER_PORTS_PER_SOCKET];
+    UINT8       SocketUncoreBusNumber[MaxIIO];
+    UINT32      PchIoApicBase;
+    UINT32      PciResourceMem32Base[MaxIIO];
+    UINT32      PciResourceMem32Limit[MaxIIO];
+    UINT8       Pci64BitResourceAllocation;
+    UINT32      StackPciResourceMem32Limit[MaxIIO][MAX_IIO_STACK];
+    UINT32      VtdBarAddress[MaxIIO][MAX_IIO_STACK];
+    UINT32      IoApicBase[MaxIIO][MAX_IIO_STACK];
+    UINT32      RcBaseAddress;
+    UINT64      PciExpressBase;
+    UINT32      PmBase;
+    UINT32      PchSegRegBaseAddress;
+    UINT8       PcieRiser1Type;
+    UINT8       PcieRiser2Type;
+    UINT8       DmiVc1;
+    UINT8       DmiVcm;
+    UINT8       Emulation;
+    UINT8       SkuPersonality[MAX_SOCKET];
+    UINT8       VMDStackEnable[MaxIIO][MAX_IIO_STACK];
+    UINT8       IODC;
+    UINT8       MultiPch;
+    UINT8       FpgaActive[MaxIIO];
+} IIO_V_DATA;
+
+
+
+typedef struct {
+    UINT8                     Valid;
+    UINT8                     IioUplinkPortIndex;   //defines platform specific uplink port index (if any else FF)
+    IIO_PORT_INFO             UplinkPortInfo;
+}IIO_UPLINK_PORT_INFO;
+
+typedef struct _INTEL_IIO_PORT_INFO {
+    UINT8   Device;
+    UINT8   Function;
+    UINT8   RtoDevice;
+    UINT8   RtoFunction;
+    UINT8   RtoClusterDevice;
+    UINT8   RtoClusterFunction;
+    UINT8   RtoReutLinkSel;
+    UINT8   SuperClusterPort;
+} INTEL_IIO_PORT_INFO;
+
+typedef struct _INTEL_DMI_PCIE_INFO {
+    INTEL_IIO_PORT_INFO         PortInfo[NUMBER_PORTS_PER_SOCKET];
+} INTEL_DMI_PCIE_INFO;
+
+typedef struct _INTEL_IIO_PRELINK_DATA {
+    INTEL_DMI_PCIE_INFO         PcieInfo;
+    IIO_UPLINK_PORT_INFO        UplinkInfo[MaxIIO];
+} INTEL_IIO_PRELINK_DATA;
+typedef struct{
+  UINT32  DcaSupported : 1;
+  UINT32  NoSnoopSupported : 1;
+  UINT32  RelaxOrderSupported : 1;
+}CB_CONFIG_CAPABILITY;
+
+typedef struct{
+  UINT8                   CB_VER;
+  UINT8                   BusNo;
+  UINT8                   DevNo;
+  UINT8                   FunNo;
+  UINT8                   MaxNoChannels;
+  CB_CONFIG_CAPABILITY    CBConfigCap;
+}CBDMA_CONTROLLER;
+
+typedef struct{
+  CBDMA_CONTROLLER     CbDmaDevice;
+}DMA_HOST;
+typedef struct {
+  UINT8       PciePortPresent[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       PciePortConfig[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       PciePortOwnership[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       CurrentPXPMap[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       MaxPXPMap[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       LinkedPXPMap[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       SpeedPXPMap[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       LaneReversedPXPMap[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       PciePortMaxWidth[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       PciePortNegWidth[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  UINT8       PciePortNegSpeed[MaxIIO*NUMBER_PORTS_PER_SOCKET];
+  IIO_PTR_ADDRESS   PtrAddress;
+  IIO_PTR_ADDRESS   PtrPcieTopology;
+  UINT64       McastRsvdMemory;
+  DMA_HOST     DMAhost[MaxIIO];
+  UINT8        resetRequired;
+} IIO_OUT_DATA;
+
+typedef struct {
+  IIO_V_DATA   IioVData;
+  INTEL_IIO_PRELINK_DATA PreLinkData;
+  IIO_OUT_DATA IioOutData;
+} IIO_VAR;
+#define TOTAL_CB3_DEVICES             64
+#define MAX_NTB_PORTS                 24
+#define MAX_VMD_STACKS                24
+#define MAX_VMD_PORTS                 96
+#define TOTAL_IIO_STACKS              48 
+#pragma pack(1) //to align members on byte boundary
+typedef struct {
+
+/**
+==================================================================================================
+==================================      VTd Setup Options       ==================================
+==================================================================================================
+**/
+
+    UINT8                   VTdSupport;
+    UINT8                   InterruptRemap;
+    UINT8                   CoherencySupport;
+    UINT8                   ATS;
+    UINT8                   PostedInterrupt;
+    UINT8                   PassThroughDma;
+
+/**
+==================================================================================================
+==================================      PCIE Setup Options       ==================================
+==================================================================================================
+**/
+    UINT8   IioPresent[MAX_SOCKET];
+    UINT8   VtdAcsWa;
+
+    // Platform data needs to update these PCI Configuration settings
+    UINT8    SLOTIMP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // Slot Implemented - PCIE Capabilities (D0-10 / F0 / R0x92 / B8)
+    UINT16   SLOTPSP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // Physical slot Number - Slot Capabilities (D0-10 / F0 / R0xA4 / B31:19). Change to use 13 bits instead of 8
+    UINT8    SLOTEIP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // Electromechanical Interlock Present - Slot Capabilities (D0-10 / F0 / R0xA4 / B17)
+    UINT8    SLOTSPLS[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];         // Slot Power Limit Scale - Slot Capabilities (D0-10 / F0 / R0xA4 / B16:15)
+    UINT8    SLOTSPLV[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];         // Slot Power Limit Value - Slot Capabilities (D0-10 / F0 / R0xA4 / B14:7)
+    UINT8    SLOTHPCAP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];        // Slot Hot Plug capable - Slot Capabilities (D0-10 / F0 / R0xA4 / B6)
+    UINT8    SLOTHPSUP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];        // Hot Plug surprise supported - Slot Capabilities (D0-10 / F0 / R0xA4 / B5)
+    UINT8    SLOTPIP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // Power Indicator Present - Slot Capabilities (D0-10 / F0 / R0xA4 / B4)
+    UINT8    SLOTAIP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // Attention Inductor Present - Slot Capabilities (D0-10 / F0 / R0xA4 / B3)
+    UINT8    SLOTMRLSP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];        // MRL Sensor Present - Slot Capabilities (D0-10 / F0 / R0xA4 / B2)
+    UINT8    SLOTPCP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // Power Controller Present - Slot Capabilities (D0-10 / F0 / R0xA4 /B1)
+    UINT8    SLOTABP[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // Attention Button Present - Slot Capabilities (D0-10 / F0 / R0xA4 / B0)
+    UINT8    PcieSSDCapable[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // Indicate if Port will PcieSSD capable.
+
+    // General PCIE Configuration
+    UINT8   ConfigIOU0[MAX_SOCKET];         // 00-x4x4x4x4, 01-x4x4x8NA, 02-x8NAx4x4, 03-x8NAx8NA, 04-x16 (P5p6p7p8)
+    UINT8   ConfigIOU1[MAX_SOCKET];         // 00-x4x4x4x4, 01-x4x4x8NA, 02-x8NAx4x4, 03-x8NAx8NA, 04-x16 (P9p10p11p12)
+    UINT8   ConfigIOU2[MAX_SOCKET];         // 00-x4x4x4x4, 01-x4x4x8NA, 02-x8NAx4x4, 03-x8NAx8NA, 04-x16 (P1p2p3p4)
+    UINT8   ConfigMCP0[MAX_SOCKET];         // 04-x16 (p13)
+    UINT8   ConfigMCP1[MAX_SOCKET];         // 04-x16 (p14)
+    UINT8   CompletionTimeoutGlobal;            //
+    UINT8   CompletionTimeoutGlobalValue;
+    UINT8   CompletionTimeout[MAX_SOCKET];  // On Setup
+    UINT8   CompletionTimeoutValue[MAX_SOCKET]; // On Setup
+    UINT8   CoherentReadPart;
+    UINT8   CoherentReadFull;
+    UINT8   PcieGlobalAspm;                    //
+    UINT8   StopAndScream;                     //
+    UINT8   SnoopResponseHoldOff;              //
+    //
+    // PCIE capability
+    //
+    UINT8   PCIe_LTR;                          //
+    UINT8   PcieExtendedTagField;              //
+    UINT8   PCIe_AtomicOpReq;                  //
+    UINT8   PcieMaxReadRequestSize;            //
+
+
+    UINT8   RpCorrectableErrorEsc[MAX_SOCKET];           //on Setup
+    UINT8   RpUncorrectableNonFatalErrorEsc[MAX_SOCKET]; //on Setup
+    UINT8   RpUncorrectableFatalErrorEsc[MAX_SOCKET];    //on Setup
+
+
+    // mixc PCIE configuration
+    UINT8    PcieLinkDis[MAX_TOTAL_PORTS];          // On Setup
+    UINT8    PcieAspm[MAX_TOTAL_PORTS];             // On Setup
+    UINT8    PcieCommonClock[MAX_TOTAL_PORTS];  // On Setup
+    UINT8    PcieMaxPayload[MAX_TOTAL_PORTS];       // On Setup PRD
+    UINT8    PcieDState[MAX_TOTAL_PORTS];           // On Setup
+    UINT8    PcieL0sLatency[MAX_TOTAL_PORTS];       //On Setup
+    UINT8    PcieL1Latency[MAX_TOTAL_PORTS];        //On Setup
+    UINT8    MsiEn[MAX_TOTAL_PORTS];                // On Setup
+    UINT8    ExtendedSync[MAX_TOTAL_PORTS];         // On Setup
+    UINT8    InbandPresenceDetect[MAX_TOTAL_PORTS]; // Not implemented in code
+    UINT8    PciePortDisable[MAX_TOTAL_PORTS];      // Not implemented in code
+    UINT8    PciePmeIntEn[MAX_TOTAL_PORTS];         // Not implemented in code
+    UINT8    IODC[MAX_TOTAL_PORTS];                 // On Setup
+    //
+    // VPP Control
+    //
+    UINT8    VppEnable[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];        // 00 -- Disable, 01 -- Enable  //no setup option defined- aj
+    UINT8    VppPort[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];          // 00 -- Port 0, 01 -- Port 1   //no setup option defined- aj
+    UINT8    VppAddress[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];       // 01-07 for SMBUS address of Vpp   //no setup option defined- aj
+
+    //
+    // PCIE setup options for Link Control2
+    //
+    UINT8    PciePortLinkSpeed[MAX_TOTAL_PORTS];   //on Setup
+    UINT8    ComplianceMode[MAX_TOTAL_PORTS];   // On Setup  PRD
+    UINT8    PciePortLinkMaxWidth[MAX_TOTAL_PORTS]; // On Setup
+    UINT8    DeEmphasis[MAX_TOTAL_PORTS];       // On Setup
+
+    //
+    // PCIE setup options for MISCCTRLSTS
+    //
+    UINT8    EOI[MAX_TOTAL_PORTS];              // On Setup
+    UINT8    MSIFATEN[MAX_TOTAL_PORTS];         //On Setup.
+    UINT8    MSINFATEN[MAX_TOTAL_PORTS];        //On Setup.
+    UINT8    MSICOREN[MAX_TOTAL_PORTS];         //On Setup.
+    UINT8    ACPIPMEn[MAX_TOTAL_PORTS];         //On Setup
+    UINT8    DISL0STx[MAX_TOTAL_PORTS];         //On Setup
+    UINT8    P2PWrtDis[MAX_TOTAL_PORTS];        //On Setup Peer 2 Peer
+    UINT8    P2PRdDis[MAX_TOTAL_PORTS];         //On Setup Peer 2 peer
+    UINT8    DisPMETOAck[MAX_TOTAL_PORTS];      //On Setup
+    UINT8    ACPIHP[MAX_TOTAL_PORTS];           //On Setup
+    UINT8    ACPIPM[MAX_TOTAL_PORTS];           //On Setup
+    UINT8    SRIS[MAX_TOTAL_PORTS];             //On Setup
+    UINT8    TXEQ[MAX_TOTAL_PORTS];             //On Setup
+    UINT8    ECRC[MAX_TOTAL_PORTS];             //On Setup
+    //
+    // PCIE RAS (Errors)
+    //
+
+    UINT8   PcieUnsupportedRequests[MAX_TOTAL_PORTS];   // Unsupported Request per-port option
+    UINT8   Serr;
+    UINT8   Perr;
+    UINT8   IioErrorEn;
+    UINT8   LerEn;
+    UINT8   WheaPcieErrInjEn;
+
+    //
+    // PciePll
+    //
+    UINT8    PciePllSsc;                        //On Setup
+
+    //
+    // PCIE  Link Training Ctrl
+    //
+
+/**
+==================================================================================================
+==================================    Crystal Beach 3 Setup Options    ===========================
+==================================================================================================
+**/
+      UINT8                 Reserved1[MAX_SOCKET];           // on setup
+      UINT8                 Cb3DmaEn[TOTAL_CB3_DEVICES];        // on setup
+      UINT8                 Cb3NoSnoopEn[TOTAL_CB3_DEVICES];    // on setup
+      UINT8                 DisableTPH;
+      UINT8                 PrioritizeTPH;
+      UINT8                 CbRelaxedOrdering;
+/**
+==================================================================================================
+==================================    MISC IOH Setup Options            ==========================
+==================================================================================================
+**/
+
+    // The following are for hiding each individual device and function
+    UINT8   PEXPHIDE[MAX_SOCKET*NUMBER_PORTS_PER_SOCKET];  // Hide any of the DMI or PCIE devices - SKT 0,1,2,3; Device 0-10 PRD
+    UINT8   PCUF6Hide;                            // Hide Device PCU Device 30, Function 6
+    UINT8   EN1K;                                 // Enable/Disable 1K granularity of IO for P2P bridges 0:20:0:98 bit 2
+    UINT8   DualCvIoFlow;                         // Dual CV IO Flow
+    UINT8   PcieBiosTrainEnable;                  // Used as a work around for A0 PCIe
+    UINT8   MultiCastEnable;                      // MultiCastEnable test enable
+    UINT8   McastBaseAddrRegion;                  // McastBaseAddrRegion
+    UINT8   McastIndexPosition;                   // McastIndexPosition
+    UINT8   McastNumGroup;                        // McastNumGroup
+    UINT8   MctpEn;
+
+    UINT8   LegacyVgaSoc;
+    UINT8   LegacyVgaStack;
+
+    UINT8   HidePEXPMenu[MAX_TOTAL_PORTS];          // to suppress /display the PCIe port menu
+
+/**
+==================================================================================================
+==================================    NTB Related Setup Options ==========================
+==================================================================================================
+**/
+  UINT8   NtbPpd[MAX_NTB_PORTS];                   //on setup option
+  UINT8   NtbBarSizeOverride[MAX_NTB_PORTS];       //on setup option
+  UINT8   NtbSplitBar[MAX_NTB_PORTS];             //on setup option
+  UINT8   NtbBarSizePBar23[MAX_NTB_PORTS];         //on setup option
+  UINT8   NtbBarSizePBar45[MAX_NTB_PORTS];         //on setup option
+  UINT8   NtbBarSizePBar4[MAX_NTB_PORTS];          //on setup option
+  UINT8   NtbBarSizePBar5[MAX_NTB_PORTS];          //on setup option
+  UINT8   NtbBarSizeSBar23[MAX_NTB_PORTS];         //on setup option
+  UINT8   NtbBarSizeSBar45[MAX_NTB_PORTS];         //on setup option
+  UINT8   NtbBarSizeSBar4[MAX_NTB_PORTS];          //on setup option
+  UINT8   NtbBarSizeSBar5[MAX_NTB_PORTS];          //on setup option
+  UINT8   NtbSBar01Prefetch[MAX_NTB_PORTS];        //on setup option
+  UINT8   NtbXlinkCtlOverride[MAX_NTB_PORTS];      //on setup option
+
+/**
+==================================================================================================
+==================================    VMD Related Setup Options ==========================
+==================================================================================================
+**/
+  UINT8   VMDEnabled[MAX_VMD_STACKS];
+  UINT8   VMDPortEnable[MAX_VMD_PORTS];
+  UINT8   VMDHotPlugEnable[MAX_VMD_STACKS];
+  UINT8   VMDCfgBarSz[MAX_VMD_STACKS];
+  UINT8   VMDCfgBarAttr[MAX_VMD_STACKS];
+  UINT8   VMDMemBarSz1[MAX_VMD_STACKS];
+  UINT8   VMDMemBar1Attr[MAX_VMD_STACKS];
+  UINT8   VMDMemBarSz2[MAX_VMD_STACKS];
+  UINT8   VMDMemBar2Attr[MAX_VMD_STACKS];
+
+  /**
+  ==================================================================================================
+  ==================================    PcieSSD Related Setup Options ==========================
+  ==================================================================================================
+  **/
+  UINT8   PcieAICEnabled[MAX_VMD_STACKS];                         // Indicate if PCIE AIC Device will be connected behind an specific IOUx
+  UINT8   PcieAICPortEnable[MAX_VMD_PORTS];
+  UINT8   PcieAICHotPlugEnable[MAX_VMD_STACKS];
+
+/**
+==================================================================================================
+==================================    Gen3 Related Setup Options ==========================
+==================================================================================================
+**/
+
+  //PCIE Global Option
+  UINT8   NoSnoopRdCfg;                             //on Setup
+  UINT8   NoSnoopWrCfg;                             //on Setup
+  UINT8   MaxReadCompCombSize;                      //on Setup
+  UINT8   ProblematicPort;                          //on Setup
+  UINT8   DmiAllocatingFlow;                        //on Setup
+  UINT8   PcieAllocatingFlow;                       //on Setup
+  UINT8   PcieHotPlugEnable;                        //on Setup
+  UINT8   PcieAcpiHotPlugEnable;                    //on Setup
+  UINT8   HaltOnDmiDegraded;                        //on Setup
+  UINT8   RxClockWA;
+  UINT8   GlobalPme2AckTOCtrl;                      //on Setup
+
+  UINT8   PcieSlotOprom1;                           //On Setup
+  UINT8   PcieSlotOprom2;                           //On Setup
+  UINT8   PcieSlotOprom3;                           //On Setup
+  UINT8   PcieSlotOprom4;                           //On Setup
+  UINT8   PcieSlotOprom5;                           //On Setup
+  UINT8   PcieSlotOprom6;                           //On Setup
+  UINT8   PcieSlotOprom7;                           //On Setup
+  UINT8   PcieSlotOprom8;                           //On Setup
+  UINT8   PcieSlotItemCtrl;                         //On Setup
+  UINT8   PcieRelaxedOrdering;                      //On Setup
+  UINT8   PciePhyTestMode;                          //On setup
+/**
+==================================================================================================
+==================================    IOAPIC Related Setup Options ==========================
+==================================================================================================
+**/
+
+  UINT8   DevPresIoApicIio[TOTAL_IIO_STACKS];
+/**
+==================================================================================================
+==================================    Security Related Setup Options ==========================
+==================================================================================================
+**/
+  UINT8   LockChipset;
+  UINT8   PeciInTrustControlBit;
+  UINT8   ProcessorX2apic;
+  UINT8   ProcessorMsrLockControl;
+
+/**
+==================================================================================================
+==================================    Iio Related Setup Options ==========================
+==================================================================================================
+**/
+  UINT8   RtoEnable;                     // On Setup
+  UINT8   RtoLtssmLogger;                // On Setup
+  UINT8   RtoLtssmLoggerStop;            // On Setup
+  UINT8   RtoLtssmLoggerSpeed;           // On Setup
+  UINT8   RtoLtssmLoggerMask;            // On Setup
+  UINT8   RtoJitterLogger;               // On Setup
+  UINT32  RtoSocketDevFuncHide[MAX_DEVHIDE_REGS_PER_SYSTEM];     // On Setup
+  UINT8   RtoGen3NTBTestCard[MAX_TOTAL_PORTS];  // On Setup
+
+  UINT8   RtoGen3OverrideMode[MAX_TOTAL_PORTS];  		//On Setup
+  UINT8   RtoGen3TestCard[MAX_TOTAL_PORTS];				//On Setup
+  UINT8   RtoGen3ManualPh2_Precursor[MAX_TOTAL_PORTS];	//On Setup
+  UINT8   RtoGen3ManualPh2_Cursor[MAX_TOTAL_PORTS];		//On Setup
+  UINT8   RtoGen3ManualPh2_Postcursor[MAX_TOTAL_PORTS];	//On Setup
+  UINT8   RtoGen3ManualPh3_Precursor[MAX_TOTAL_PORTS];	//On Setup
+  UINT8   RtoGen3ManualPh3_Cursor[MAX_TOTAL_PORTS];		//On Setup
+  UINT8   RtoGen3ManualPh3_Postcursor[MAX_TOTAL_PORTS];	//On Setup
+  UINT8   RtoDnTxPreset[MAX_TOTAL_PORTS];				//On Setup
+  UINT8   RtoRxPreset[MAX_TOTAL_PORTS];					//On Setup
+  UINT8   RtoUpTxPreset[MAX_TOTAL_PORTS];				//On Setup
+
+  UINT8   InboundConfiguration[MAX_TOTAL_PORTS];		//On Setup
+
+} IIO_CONFIG;
+#pragma pack()
+typedef struct {
+  IIO_CONFIG   SetupData;
+  IIO_VAR      IioVar;
+} IIO_GLOBALS;
+
+#pragma pack()
+typedef struct _EFI_IIO_SYSTEM_PROTOCOL{
+  IIO_GLOBALS               *IioGlobalData;
+  IIO_GET_CPU_UPLINK_PORT   IioGetCpuUplinkPort;
+} EFI_IIO_SYSTEM_PROTOCOL;
+
+typedef struct {
+  UINT8      TranslatorHubAddress;
+  UINT8      TranslatorPortNumber;
+} EFI_USB2_HC_TRANSACTION_TRANSLATOR;
+typedef struct _EFI_USB2_HC_PROTOCOL EFI_USB2_HC_PROTOCOL;
+//
+// Protocol definitions
+//
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_GET_CAPABILITY) (
+  IN  EFI_USB2_HC_PROTOCOL  *This,
+  OUT UINT8                 *MaxSpeed,
+  OUT UINT8                 *PortNumber,
+  OUT UINT8                 *Is64BitCapable
+  );
+
+#define EFI_USB_SPEED_FULL 0x0000
+#define EFI_USB_SPEED_LOW  0x0001
+#define EFI_USB_SPEED_HIGH 0x0002
+typedef enum {
+  EfiUsbHcStateHalt,
+  EfiUsbHcStateOperational,
+  EfiUsbHcStateSuspend,
+  EfiUsbHcStateMaximum
+} EFI_USB_HC_STATE;
+typedef struct {
+  UINT8           RequestType;
+  UINT8           Request;
+  UINT16          Value;
+  UINT16          Index;
+  UINT16          Length;
+} EFI_USB_DEVICE_REQUEST;
+typedef enum {
+  EfiUsbDataIn,
+  EfiUsbDataOut,
+  EfiUsbNoData
+} EFI_USB_DATA_DIRECTION;
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_RESET) (
+  IN EFI_USB2_HC_PROTOCOL   *This,
+  IN UINT16                 Attributes
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_GET_STATE) (
+  IN  EFI_USB2_HC_PROTOCOL    *This,
+  OUT EFI_USB_HC_STATE        *State
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_SET_STATE) (
+  IN EFI_USB2_HC_PROTOCOL    *This,
+  IN EFI_USB_HC_STATE        State
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_CONTROL_TRANSFER) (
+  IN     EFI_USB2_HC_PROTOCOL               *This,
+  IN     UINT8                              DeviceAddress,
+  IN     UINT8                              DeviceSpeed,
+  IN     UINTN                              MaximumPacketLength,
+  IN     EFI_USB_DEVICE_REQUEST             *Request,
+  IN     EFI_USB_DATA_DIRECTION             TransferDirection,
+  IN OUT VOID                               *Data       OPTIONAL,
+  IN OUT UINTN                              *DataLength OPTIONAL,
+  IN     UINTN                              TimeOut,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  OUT    UINT32                             *TransferResult
+  );
+
+#define EFI_USB_MAX_BULK_BUFFER_NUM 10
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_BULK_TRANSFER) (
+  IN     EFI_USB2_HC_PROTOCOL               *This,
+  IN     UINT8                              DeviceAddress,
+  IN     UINT8                              EndPointAddress,
+  IN     UINT8                              DeviceSpeed,
+  IN     UINTN                              MaximumPacketLength,
+  IN     UINT8                              DataBuffersNumber,
+  IN OUT VOID                               *Data[EFI_USB_MAX_BULK_BUFFER_NUM],
+  IN OUT UINTN                              *DataLength,
+  IN OUT UINT8                              *DataToggle,
+  IN     UINTN                              TimeOut,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  OUT    UINT32                             *TransferResult
+  );
+typedef
+EFI_STATUS
+(EFIAPI *EFI_ASYNC_USB_TRANSFER_CALLBACK) (
+  IN VOID         *Data,
+  IN UINTN        DataLength,
+  IN VOID         *Context,
+  IN UINT32       Status
+  );
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_ASYNC_INTERRUPT_TRANSFER) (
+  IN     EFI_USB2_HC_PROTOCOL                                *This,
+  IN     UINT8                                               DeviceAddress,
+  IN     UINT8                                               EndPointAddress,
+  IN     UINT8                                               DeviceSpeed,
+  IN     UINTN                                               MaxiumPacketLength,
+  IN     BOOLEAN                                             IsNewTransfer,
+  IN OUT UINT8                                               *DataToggle,
+  IN     UINTN                                               PollingInterval  OPTIONAL,
+  IN     UINTN                                               DataLength       OPTIONAL,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  IN     EFI_ASYNC_USB_TRANSFER_CALLBACK                     CallBackFunction OPTIONAL,
+  IN     VOID                                                *Context         OPTIONAL
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_SYNC_INTERRUPT_TRANSFER) (
+  IN     EFI_USB2_HC_PROTOCOL   *This,
+  IN     UINT8                  DeviceAddress,
+  IN     UINT8                  EndPointAddress,
+  IN     UINT8                  DeviceSpeed,
+  IN     UINTN                  MaximumPacketLength,
+  IN OUT VOID                   *Data,
+  IN OUT UINTN                  *DataLength,
+  IN OUT UINT8                  *DataToggle,
+  IN     UINTN                  TimeOut,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  OUT    UINT32                 *TransferResult
+  );
+
+#define EFI_USB_MAX_ISO_BUFFER_NUM  7
+#define EFI_USB_MAX_ISO_BUFFER_NUM1 2
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_ISOCHRONOUS_TRANSFER) (
+  IN     EFI_USB2_HC_PROTOCOL               *This,
+  IN     UINT8                              DeviceAddress,
+  IN     UINT8                              EndPointAddress,
+  IN     UINT8                              DeviceSpeed,
+  IN     UINTN                              MaximumPacketLength,
+  IN     UINT8                              DataBuffersNumber,
+  IN OUT VOID                               *Data[EFI_USB_MAX_ISO_BUFFER_NUM],
+  IN     UINTN                              DataLength,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  OUT    UINT32                             *TransferResult
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_ASYNC_ISOCHRONOUS_TRANSFER) (
+  IN     EFI_USB2_HC_PROTOCOL               *This,
+  IN     UINT8                              DeviceAddress,
+  IN     UINT8                              EndPointAddress,
+  IN     UINT8                              DeviceSpeed,
+  IN     UINTN                              MaximumPacketLength,
+  IN     UINT8                              DataBuffersNumber,
+  IN OUT VOID                               *Data[EFI_USB_MAX_ISO_BUFFER_NUM],
+  IN     UINTN                              DataLength,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  IN     EFI_ASYNC_USB_TRANSFER_CALLBACK    IsochronousCallBack,
+  IN     VOID                               *Context OPTIONAL
+  );
+typedef struct {
+  UINT16          PortStatus;
+  UINT16          PortChangeStatus;
+} EFI_USB_PORT_STATUS;
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_GET_ROOTHUB_PORT_STATUS) (
+  IN EFI_USB2_HC_PROTOCOL    *This,
+  IN  UINT8                  PortNumber,
+  OUT EFI_USB_PORT_STATUS    *PortStatus
+  );
+typedef enum {
+  EfiUsbPortEnable            = 1,
+  EfiUsbPortSuspend           = 2,
+  EfiUsbPortReset             = 4,
+  EfiUsbPortPower             = 8,
+  EfiUsbPortOwner             = 13,
+  EfiUsbPortConnectChange     = 16,
+  EfiUsbPortEnableChange      = 17,
+  EfiUsbPortSuspendChange     = 18,
+  EfiUsbPortOverCurrentChange = 19,
+  EfiUsbPortResetChange       = 20
+} EFI_USB_PORT_FEATURE;
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_SET_ROOTHUB_PORT_FEATURE) (
+  IN EFI_USB2_HC_PROTOCOL    *This,
+  IN UINT8                   PortNumber,
+  IN EFI_USB_PORT_FEATURE    PortFeature
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_USB2_HC_PROTOCOL_CLEAR_ROOTHUB_PORT_FEATURE) (
+  IN EFI_USB2_HC_PROTOCOL    *This,
+  IN UINT8                   PortNumber,
+  IN EFI_USB_PORT_FEATURE    PortFeature
+  );
+
+typedef struct _EFI_USB2_HC_PROTOCOL {
+  EFI_USB2_HC_PROTOCOL_GET_CAPABILITY              GetCapability;
+  EFI_USB2_HC_PROTOCOL_RESET                       Reset;
+  EFI_USB2_HC_PROTOCOL_GET_STATE                   GetState;
+  EFI_USB2_HC_PROTOCOL_SET_STATE                   SetState;
+  EFI_USB2_HC_PROTOCOL_CONTROL_TRANSFER            ControlTransfer;
+  EFI_USB2_HC_PROTOCOL_BULK_TRANSFER               BulkTransfer;
+  EFI_USB2_HC_PROTOCOL_ASYNC_INTERRUPT_TRANSFER    AsyncInterruptTransfer;
+  EFI_USB2_HC_PROTOCOL_SYNC_INTERRUPT_TRANSFER     SyncInterruptTransfer;
+  EFI_USB2_HC_PROTOCOL_ISOCHRONOUS_TRANSFER        IsochronousTransfer;
+  EFI_USB2_HC_PROTOCOL_ASYNC_ISOCHRONOUS_TRANSFER  AsyncIsochronousTransfer;
+  EFI_USB2_HC_PROTOCOL_GET_ROOTHUB_PORT_STATUS     GetRootHubPortStatus;
+  EFI_USB2_HC_PROTOCOL_SET_ROOTHUB_PORT_FEATURE    SetRootHubPortFeature;
+  EFI_USB2_HC_PROTOCOL_CLEAR_ROOTHUB_PORT_FEATURE  ClearRootHubPortFeature;
+  UINT16                                           MajorRevision;
+  UINT16                                           MinorRevision;
+} EFI_USB2_HC_PROTOCOL;
+
+typedef struct
+{
+    UINT8 MajorVersion;
+    UINT8 MinorVersion;
+    UINT8 Reserve;
+    UINT8 Flag;
+} AMI_TCG_PROTOCOL_VERSION;
+
+typedef
+EFI_STATUS
+(EFIAPI * MEASURE_CPU_MICROCODE)(
+
+);
+typedef
+EFI_STATUS
+(EFIAPI * MEASURE_PCI_OPROMS)(
+
+);
+
+
+typedef
+EFI_STATUS
+(EFIAPI * PROCESS_TCG_SETUP)(
+
+);
+
+
+
+typedef
+EFI_STATUS
+(EFIAPI * PROCESS_TCG_PPI_REQUEST)(
+
+);
+
+
+
+
+typedef
+EFI_STATUS
+(EFIAPI * TCG_READY_TO_BOOT)(
+
+);
+typedef
+EFI_STATUS
+(EFIAPI * GET_PROTOCOL_VERSION)(
+    AMI_TCG_PROTOCOL_VERSION *
+);
+
+typedef
+VOID
+(EFIAPI * RESETOSTCGVAR)(
+); 
+
+typedef struct _AMI_TCG_PLATFORM_PROTOCOL
+{
+    MEASURE_CPU_MICROCODE       MeasureCpuMicroCode;
+    MEASURE_PCI_OPROMS          MeasurePCIOproms;
+    PROCESS_TCG_SETUP           ProcessTcgSetup;
+    PROCESS_TCG_PPI_REQUEST     ProcessTcgPpiRequest;
+    TCG_READY_TO_BOOT           SetTcgReadyToBoot;
+    GET_PROTOCOL_VERSION        GetProtocolVersion;
+    RESETOSTCGVAR               ResetOSTcgVar;
+} AMI_TCG_PLATFORM_PROTOCOL;
+
+typedef enum {
+  NbErrorNone,
+  NbEccError,
+  NbPcieError,
+  NbErrorMax,
+} AMI_NB_ERROR_LOG_TYPE;
+
+// Prototypes
+typedef struct _NB_ECC_INFO
+{
+    UINT32 Correctable:1;
+    UINT32 UnCorrectable:1;
+    UINT32 EccErrDimmNum:2;   // DIMM 0/1/2/3
+    UINT32 Reserved:28;
+    UINT32 EccErrLog0;
+    UINT32 EccErrLog1;
+    UINT32 Ch0_EccErrLog0;
+    UINT32 Ch0_EccErrLog1;
+    UINT32 Ch1_EccErrLog0;
+    UINT32 Ch1_EccErrLog1;
+} NB_ECC_INFO;
+
+typedef struct _NB_PCIE_INFO
+{
+  UINT8         Bus;
+  UINT8         Dev;
+  UINT8         Fun;
+  UINT16        VendorId;
+  UINT16        DeviceId;
+  UINT16        PciCommand;
+  UINT16        PciStatus;
+  UINT16        PciCCode;
+  UINT16        PcieStatus;
+  UINT32        PortType;
+  UINT8         Version;
+  UINT16        SecondaryStatus;
+  UINT16        BridgeControl;
+  BOOLEAN       Correctable;
+  BOOLEAN       NonFatal;
+  BOOLEAN       Fatal;
+  BOOLEAN       ParityError;
+  BOOLEAN       SystemError;
+} NB_PCIE_INFO;
+
+typedef struct _NB_ERROR_INFO
+{
+  UINT8          ErrorType;
+  NB_ECC_INFO    EccErrorInfo;
+  NB_PCIE_INFO   PcieErrorInfo;
+} NB_ERROR_INFO;
+typedef struct _EFI_NB_ERROR_LOG_DISPATCH_PROTOCOL EFI_NB_ERROR_LOG_DISPATCH_PROTOCOL;
+typedef VOID (EFIAPI *EFI_NB_ERROR_LOG_DISPATCH) (
+    IN EFI_HANDLE           DispatchHandle,
+    IN NB_ERROR_INFO        NbErrorInfo
+);
+
+typedef struct _NB_ERROR_LOG_DISPATCH_LINK NB_ERROR_LOG_DISPATCH_LINK;
+struct _NB_ERROR_LOG_DISPATCH_LINK {
+    IN NB_ERROR_LOG_DISPATCH_LINK   *Link;
+    IN EFI_NB_ERROR_LOG_DISPATCH    Function;
+};
+
+typedef EFI_STATUS (EFIAPI *EFI_NB_ERROR_LOG_REGISTER) (
+    IN EFI_NB_ERROR_LOG_DISPATCH_PROTOCOL   *This,
+    IN EFI_NB_ERROR_LOG_DISPATCH            DispatchFunction,
+    OUT EFI_HANDLE                          *DispatchHandle
+);
+
+typedef EFI_STATUS (EFIAPI *EFI_NB_ERROR_LOG_UNREGISTER) (
+    IN EFI_NB_ERROR_LOG_DISPATCH_PROTOCOL   *This,
+    IN EFI_HANDLE                           DispatchHandle
+);
+
+struct _EFI_NB_ERROR_LOG_DISPATCH_PROTOCOL {
+    EFI_NB_ERROR_LOG_REGISTER       Register;
+    EFI_NB_ERROR_LOG_UNREGISTER     UnRegister;
+};
+typedef struct _MEM_INFO_PROTOCOL MEM_INFO_PROTOCOL;
+
+//
+// Protocol definitions
+//
+
+#define CH_NUM    2
+#define DIMM_NUM  1
+#define RANK_NUM  2
+
+#pragma pack(1)
+typedef struct {
+  UINT32  memSize;
+  UINT8   ddrFreq;
+  UINT8   ddrType;
+  BOOLEAN EccSupport;
+  UINT16  dimmSize[CH_NUM * DIMM_NUM];
+  UINT8   reserved;
+  UINT16   reserved2;
+} MEMORY_INFO_DATA;
+#pragma pack()
+
+/*++
+Data definition:
+
+  memSize         Total physical memory size
+  ddrFreq         DDR Frequency
+  EccSupport      ECC Support
+  dimmSize        Dimm Size
+  DimmExist       Dimm Present or not
+  RankInDimm      No. of ranks in a dimm
+
+--*/
+
+//
+// Protocol definition
+//
+struct _MEM_INFO_PROTOCOL {
+  MEMORY_INFO_DATA  MemInfoData;
+};
+
+typedef struct _DXE_CPU_PLATFORM_POLICY_PROTOCOL DXE_CPU_PLATFORM_POLICY_PROTOCOL;
+
+//
+// Prototypes for the Platform CPU Protocol
+//
+
+///
+/// This function is for platform code to provide Microcode location since different BIOS has different flash layout.
+/// Platform code need to provide a function for CPU code to call to get the Microcode location in flash or memory.
+///
+typedef
+EFI_STATUS
+(EFIAPI *PLATFORM_CPU_RETRIEVE_MICROCODE)(
+  IN DXE_CPU_PLATFORM_POLICY_PROTOCOL *This,
+  OUT UINT8                           **MicrocodeData
+  );
+
+typedef struct {
+  UINT32 Package;
+  UINT32 Die;
+  UINT32 Core;
+  UINT32 Thread;
+} CPU_PHYSICAL_LOCATION;
+
+///
+/// The platform category, Server, Desktop and Mobile are defined.
+///
+typedef enum {
+  CpuPlatformUnknown= 0,
+  CpuPlatformDesktop,
+  CpuPlatformMobile,
+  CpuPlatformServer,
+  CpuPlatformMax
+} CPU_PLATFORM_CATEGORY;
+
+///
+/// The reason for changing the state of the processor Only applies to Disabling processors.
+/// In future, we can add add/remove support
+///
+#define CPU_CAUSE_NOT_DISABLED      0x0000
+#define CPU_CAUSE_INTERNAL_ERROR    0x0001
+#define CPU_CAUSE_THERMAL_ERROR     0x0002
+#define CPU_CAUSE_SELFTEST_FAILURE  0x0004
+#define CPU_CAUSE_PREBOOT_TIMEOUT   0x0008
+#define CPU_CAUSE_FAILED_TO_START   0x0010
+#define CPU_CAUSE_CONFIG_ERROR      0x0020
+#define CPU_CAUSE_USER_SELECTION    0x0080
+#define CPU_CAUSE_BY_ASSOCIATION    0x0100
+#define CPU_CAUSE_UNSPECIFIED       0x8000
+
+typedef UINT32 CPU_STATE_CHANGE_CAUSE;
+typedef enum {
+  EfiProcessorSocketOther = 1,
+  EfiProcessorSocketUnknown = 2,
+  EfiProcessorSocketDaughterBoard = 3,
+  EfiProcessorSocketZIF = 4,
+  EfiProcessorSocketReplacePiggyBack = 5,
+  EfiProcessorSocketNone = 6,
+  EfiProcessorSocketLIF = 7,
+  EfiProcessorSocketSlot1 = 8,
+  EfiProcessorSocketSlot2 = 9,
+  EfiProcessorSocket370Pin = 0xA,
+  EfiProcessorSocketSlotA = 0xB,
+  EfiProcessorSocketSlotM = 0xC,
+  EfiProcessorSocket423 = 0xD,
+  EfiProcessorSocketA462 = 0xE,
+  EfiProcessorSocket478 = 0xF,
+  EfiProcessorSocket754 = 0x10,
+  EfiProcessorSocket940 = 0x11,
+  EfiProcessorSocket939 = 0x12,
+  EfiProcessorSocketmPGA604 = 0x13,
+  EfiProcessorSocketLGA771 = 0x14,
+  EfiProcessorSocketLGA775 = 0x15,
+  EfiProcessorSocketS1 = 0x16,
+  EfiProcessorSocketAm2 = 0x17,
+  EfiProcessorSocketF   = 0x18,
+  EfiProcessorSocketLGA1366 = 0x19
+} EFI_PROCESSOR_SOCKET_TYPE_DATA;
+typedef UINT16  STRING_REF;
+typedef STRING_REF EFI_PROCESSOR_SOCKET_NAME_DATA;
+
+typedef union {
+  ///
+  /// Bitfield structure for the IPF Self Test State Parameter.
+  ///
+  struct {
+    UINT32  Status:2;
+    UINT32  Tested:1;
+    UINT32  Reserved1:13;
+    UINT32  VirtualMemoryUnavailable:1;
+    UINT32  Ia32ExecutionUnavailable:1;
+    UINT32  FloatingPointUnavailable:1;
+    UINT32  MiscFeaturesUnavailable:1;
+    UINT32  Reserved2:12;
+  } Bits;
+  ///
+  /// IA32 and X64 BIST data of the processor.
+  ///
+  UINT32  Uint32;
+} EFI_MP_HEALTH_FLAGS;
+
+typedef struct {
+  ///
+  /// @par IA32, X64:
+  ///   BIST (built-in self-test) data of the processor.
+  ///
+  /// @par IPF:
+  ///   Lower 32 bits of the self-test state parameter. For definition of self-test
+  ///   state parameter, please refer to Intel(R) Itanium(R) Architecture Software
+  ///   Developer's Manual, Volume 2: System Architecture.
+  ///
+  EFI_MP_HEALTH_FLAGS  Flags;
+  ///
+  /// @par IA32, X64:
+  ///   Not used.
+  ///
+  /// @par IPF:
+  ///   Higher 32 bits of self test state parameter.
+  ///
+  UINT32               TestStatus;
+} EFI_MP_HEALTH;
+
+typedef enum {
+  EfiCpuAP                = 0,  ///< The CPU is an AP (Application Processor).
+  EfiCpuBSP,                    ///< The CPU is the BSP (Boot-Strap Processor).
+  EfiCpuDesignationMaximum
+} EFI_CPU_DESIGNATION;
+
+typedef struct {
+  ///
+  /// @par IA32, X64:
+  ///   The lower 8 bits contains local APIC ID, and higher bits are reserved.
+  ///
+  /// @par IPF:
+  ///   The lower 16 bits contains id/eid as physical address of local SAPIC
+  ///   unit, and higher bits are reserved.
+  ///
+  UINT32               ApicID;
+  ///
+  /// This field indicates whether the processor is enabled.  If the value is
+  /// TRUE, then the processor is enabled. Otherwise, it is disabled.
+  ///
+  BOOLEAN              Enabled;
+  ///
+  /// This field indicates whether the processor is playing the role of BSP.
+  /// If the value is EfiCpuAP, then the processor is AP. If the value is
+  /// EfiCpuBSP, then the processor is BSP.
+  ///
+  EFI_CPU_DESIGNATION  Designation;
+  ///
+  /// @par IA32, X64:
+  ///   The Flags field of this EFI_MP_HEALTH data structure holds BIST (built-in
+  ///   self test) data of the processor. The TestStatus field is not used, and
+  ///   the value is always zero.
+  ///
+  /// @par IPF:
+  ///   Bit format of this field is the same as the definition of self-test state
+  ///   parameter, in Intel(R) Itanium(R) Architecture Software Developer's Manual,
+  ///   Volume 2: System Architecture.
+  ///
+  EFI_MP_HEALTH        Health;
+  ///
+  /// Zero-based physical package number that identifies the cartridge of the
+  /// processor.
+  ///
+  UINTN                PackageNumber;
+  ///
+  /// Zero-based physical core number within package of the processor.
+  ///
+  UINTN                NumberOfCores;
+  ///
+  /// Zero-based logical thread number within core of the processor.
+  ///
+  UINTN                NumberOfThreads;
+  ///
+  /// This field is reserved.
+  ///
+  UINT64               ProcessorPALCompatibilityFlags;
+  ///
+  /// @par IA32, X64:
+  ///   This field is not used, and the value is always zero.
+  ///
+  /// @par IPF:
+  ///   This field is a mask number that is handed off by the PAL about which
+  ///   processor tests are performed and which are masked.
+  ///
+  UINT64               ProcessorTestMask;
+} EFI_MP_PROC_CONTEXT;
+
+typedef struct {
+  UINT16    Value;
+  UINT16    Exponent;
+} EFI_EXP_BASE2_DATA;
+typedef struct {
+  UINT32  ProcessorSteppingId:4;
+  UINT32  ProcessorModel:     4;
+  UINT32  ProcessorFamily:    4;
+  UINT32  ProcessorType:      2;
+  UINT32  ProcessorReserved1: 2;
+  UINT32  ProcessorXModel:    4;
+  UINT32  ProcessorXFamily:   8;
+  UINT32  ProcessorReserved2: 4;
+} EFI_PROCESSOR_SIGNATURE;
+
+typedef struct {
+  UINT32  ProcessorBrandIndex :8;
+  UINT32  ProcessorClflush    :8;
+  UINT32  ProcessorReserved   :8;
+  UINT32  ProcessorDfltApicId :8;
+} EFI_PROCESSOR_MISC_INFO;
+
+typedef struct {
+  UINT32  ProcessorFpu:       1;
+  UINT32  ProcessorVme:       1;
+  UINT32  ProcessorDe:        1;
+  UINT32  ProcessorPse:       1;
+  UINT32  ProcessorTsc:       1;
+  UINT32  ProcessorMsr:       1;
+  UINT32  ProcessorPae:       1;
+  UINT32  ProcessorMce:       1;
+  UINT32  ProcessorCx8:       1;
+  UINT32  ProcessorApic:      1;
+  UINT32  ProcessorReserved1: 1;
+  UINT32  ProcessorSep:       1;
+  UINT32  ProcessorMtrr:      1;
+  UINT32  ProcessorPge:       1;
+  UINT32  ProcessorMca:       1;
+  UINT32  ProcessorCmov:      1;
+  UINT32  ProcessorPat:       1;
+  UINT32  ProcessorPse36:     1;
+  UINT32  ProcessorPsn:       1;
+  UINT32  ProcessorClfsh:     1;
+  UINT32  ProcessorReserved2: 1;
+  UINT32  ProcessorDs:        1;
+  UINT32  ProcessorAcpi:      1;
+  UINT32  ProcessorMmx:       1;
+  UINT32  ProcessorFxsr:      1;
+  UINT32  ProcessorSse:       1;
+  UINT32  ProcessorSse2:      1;
+  UINT32  ProcessorSs:        1;
+  UINT32  ProcessorReserved3: 1;
+  UINT32  ProcessorTm:        1;
+  UINT32  ProcessorReserved4: 2;
+} EFI_PROCESSOR_FEATURE_FLAGS;
+
+typedef struct {
+  EFI_PROCESSOR_SIGNATURE     Signature;
+  EFI_PROCESSOR_MISC_INFO     MiscInfo;
+  UINT32                      Reserved;
+  EFI_PROCESSOR_FEATURE_FLAGS FeatureFlags;
+} EFI_PROCESSOR_ID_DATA;
+typedef enum {
+  EfiProcessorIa32Microcode = 1,
+  EfiProcessorIpfPalAMicrocode = 2,
+  EfiProcessorIpfPalBMicrocode = 3
+} EFI_PROCESSOR_MICROCODE_TYPE;
+
+typedef struct {
+  EFI_PROCESSOR_MICROCODE_TYPE  ProcessorMicrocodeType;
+  UINT32                        ProcessorMicrocodeRevisionNumber;
+} EFI_PROCESSOR_MICROCODE_REVISION_DATA;
+typedef struct {
+  UINT32      CpuStatus       :3;
+  UINT32      Reserved1        :3;
+  UINT32      SocketPopulated     :1;
+  UINT32      Reserved2        :1;
+  UINT32      ApicEnable        :1;
+  UINT32      BootApplicationProcessor  :1;
+  UINT32      Reserved3        :22;
+} EFI_PROCESSOR_STATUS_DATA;
+#define EFI_CACHE_L4      4
+#define EFI_CACHE_LMAX    EFI_CACHE_L4
+typedef struct {
+  INT16     Value;
+  INT16     Exponent;
+} EFI_EXP_BASE10_DATA;
+typedef struct {
+  EFI_MP_PROC_CONTEXT                   *Context;
+  EFI_EXP_BASE10_DATA                   CoreFreq;
+  EFI_EXP_BASE10_DATA                   BusFreq;
+  EFI_EXP_BASE2_DATA                    CacheSize[EFI_CACHE_LMAX];
+  EFI_PROCESSOR_ID_DATA                 CpuId;
+  EFI_PROCESSOR_MICROCODE_REVISION_DATA MuData;
+  EFI_PROCESSOR_STATUS_DATA             Status;
+} EFI_DETAILED_CPU_INFO;
+typedef EFI_EXP_BASE10_DATA   EFI_PROCESSOR_MAX_CORE_FREQUENCY_DATA;
+typedef EFI_EXP_BASE10_DATA   EFI_PROCESSOR_MAX_FSB_FREQUENCY_DATA;
+typedef EFI_EXP_BASE10_DATA  *EFI_PROCESSOR_CORE_FREQUENCY_LIST_DATA;
+typedef EFI_EXP_BASE10_DATA  *EFI_PROCESSOR_FSB_FREQUENCY_LIST_DATA;
+///
+/// Platform Specific Processor Information
+///
+typedef struct {
+  UINT64                                 ApicID;                     ///< APIC ID
+  STRING_REF                             ReferenceString;            ///< Reference String
+  EFI_PROCESSOR_SOCKET_TYPE_DATA         SocketType;                 ///< Socket Type
+  EFI_PROCESSOR_SOCKET_NAME_DATA         SocketName;                 ///< Socket Name
+  EFI_PROCESSOR_MAX_CORE_FREQUENCY_DATA  MaxCoreFrequency;           ///< Maximum Core Frequency
+  EFI_PROCESSOR_MAX_FSB_FREQUENCY_DATA   MaxFsbFrequency;            ///< Maximum FSB Frequency
+  EFI_PROCESSOR_CORE_FREQUENCY_LIST_DATA PlatformCoreFrequencyList;  ///< Platform Core Frequency List
+  EFI_PROCESSOR_FSB_FREQUENCY_LIST_DATA  PlatformFsbFrequencyList;   ///< Platform FSB Frequency List
+  STRING_REF                             AssetTag;                   ///< Asset Tag
+  EFI_HII_HANDLE                         StringHandle;               ///< String Handle
+  STRING_REF                             SerialNumber;               ///< Serial Number
+  STRING_REF                             PartNumber;                 ///< Part Number
+} PLATFORM_CPU_INFORMATION;
+
+///
+/// This interface is for platform to provide processor support layout, such as how many packages we want
+/// processor code to support. If return EFI_UNSUPPORTED, processor code will assume MAXIMUM_CPU_NUMBER and
+/// allocate MAX memory for all APs.
+///
+typedef
+EFI_STATUS
+(EFIAPI *PLATFORM_CPU_GET_MAX_COUNT)(
+  IN DXE_CPU_PLATFORM_POLICY_PROTOCOL *This,
+  OUT UINT32                          *MaxThreadsPerCore,
+  OUT UINT32                          *MaxCoresPerDie,
+  OUT UINT32                          *MaxDiesPerPackage,
+  OUT UINT32                          *MaxPackages
+  );
+
+///
+/// Platform code can provide platform specific processor information, such as processor socket Name on board,
+/// processor Socket Type, and so on for SMBIOS table creation.
+///
+typedef
+EFI_STATUS
+(EFIAPI *PLATFORM_CPU_GET_CPU_INFO)(
+  IN DXE_CPU_PLATFORM_POLICY_PROTOCOL *This,
+  IN CPU_PHYSICAL_LOCATION            *Location,
+  IN OUT PLATFORM_CPU_INFORMATION     *PlatformCpuInfo
+  );
+
+//
+// Generic definitions for device enabling/disabling used by CPU code
+//
+#define CPU_FEATURE_ENABLE  1
+#define CPU_FEATURE_DISABLE 0
+
+//
+// Generic definitions for DTS
+//
+#define DTS_OUT_OF_SPEC_ONLY      2
+#define DTS_OUT_OF_SPEC_OCCURRED  3
+
+///
+/// General CPU feature Configuration for all processor features enabling bit definitions are in this field.
+/// Platform code can enable/disable features thru this field.
+///
+typedef struct {
+  //
+  // Byte 0, bit definition for functionality enable/disable
+  //
+  UINT8 HtState                : 1; ///< Enable or Disable Hyper Threading State; 0: Disable; 1: Enable
+  UINT8 LimitCpuidMaximumValue : 1; ///< Enable or Disable Limit Cpuid Maximum Value; 0: Disable; 1: Enable
+  UINT8 DcaState               : 1; ///< @deprecated Deprecated for Client (Server specific)
+  UINT8 ExecuteDisableBit      : 1; ///< Enable or Disable Execute Disable Bit; 0: Disable; 1: Enable
+  UINT8 VmxEnable              : 1; ///< Enable or Disable VMX; 0: Disable; 1: Enable
+  UINT8 SmxEnable              : 1; ///< Enable or Disable SMX; 0: Disable; 1: Enable
+  UINT8 FastString             : 1; ///< @deprecated
+  UINT8 MachineCheckEnable     : 1; ///< Enable or Disable Machine Check; 0: Disable; 1: Enable
+  //
+  // Byte 1, bit definition for functionality enable/disable
+  //
+  UINT8 MonitorMwaitEnable      : 1; ///< Enable or Disable Monitor Mwait mode; 0: Disable; 1: Enable
+  UINT8 XapicEnable             : 1; ///< Enable or Disable Xapic mode; 0: Disable; 1: Enable
+  UINT8 MachineCheckStatusClean : 1; ///< @deprecated
+  UINT8 IsColdReset             : 1; ///< Check if is Cold Reset; 0: Not Cold Reset; 1: Cold Reset
+  UINT8 MlcStreamerPrefetcher   : 1; ///< Enable or Disable MlcStreamerPrefetcher; 0: Disable; 1: Enable
+  UINT8 MlcSpatialPrefetcher    : 1; ///< Enable or Disable MlcSpatialPrefetcher; 0: Disable; 1: Enable
+  UINT8 EnableDts               : 2; ///< Enable or Disable DTS feature; 0=Disable; 1=Enable; 2=OUT_OF_SPEC;
+  //
+  // Byte 2, byte definition for addiional functionalities expected later
+  //
+  UINT8 FviReport                : 1; ///< Enable or Disable FVI report; 0: Disable; 1: Enable
+  UINT8 AesEnable                : 1; ///< Enable or Disable AES feature; 0: Disable; 1: Enable
+  UINT8 DebugInterfaceEnable     : 1; ///< Enable or Disable Debug Interface; This policy must be disabled for production BIOS. <b>0: Disable</b>; 1: Enable
+  UINT8 DebugInterfaceLockEnable : 1; ///< Enable or Disable Debug Interface Lock; This policy must be enabled on production platforms. 0: Disable; <b>1: Enable</b>
+  UINT8 ApIdleManner             : 2; ///< Settings for AP Threads Idle; 1: HALT 2:MWAIT 3:RUN
+  UINT8 ApHandoffManner          : 2; ///< Settings for AP Handoff to OS; 1: HALT 2:MWAIT32
+  //
+  // CPU feature configuration
+  //
+  UINT8  BspSelection;                ///< Select BSP
+  UINT32 DcaPrefetchDelayValue;       ///< @deprecated Deprecated for Client (Server specific)
+  UINT8  VirtualWireMode;             ///< @deprecated
+  UINT8  SmmbaseSwSmiNumber;          ///< SW SMI Number from Smbase.
+  //
+  // CPU Misc Config
+  //
+  UINT8 FviSmbiosType;                ///< Create SMBIOS Table Type for FVI
+  //
+  // Functions provided by platform code
+  //
+  ///
+  /// Platform code can provide microcode location thru this function.
+  ///
+  PLATFORM_CPU_RETRIEVE_MICROCODE RetrieveMicrocode;
+  ///
+  /// Platform to provide the processor detail about Max Thread per Core, Max Cores per Die, Max Dies per
+  /// Package and Max packages.
+  ///
+  PLATFORM_CPU_GET_MAX_COUNT      GetMaxCount;
+  ///
+  /// Platform code to provide platform specific processor information
+  ///
+  PLATFORM_CPU_GET_CPU_INFO       GetCpuInfo;
+} CPU_CONFIG;
+
+///
+/// TxT Platform Configuration
+///
+typedef struct {
+  UINT8 ResetAux : 1;    ///< Reset Auxiliary content when it is set "TRUE"
+  UINT8 Reserved : 7;    ///< Reserved for future use
+  UINT8 ByetReserved[1]; ///< Reserved for future use
+} TXT_FUNCTION_CONFIG;
+
+#define MAX_CUSTOM_RATIO_TABLE_ENTRIES  16
+
+///
+/// Define maximum number of custom ConfigTdp entries supported
+///
+#define MAX_CUSTOM_CTDP_ENTRIES 3
+
+///
+/// This structure is used to describe the custom processor ratio table desired by the platform
+///
+typedef struct {
+  ///
+  /// The number of custom ratio state entries, it must be a value from 2 to 16 for a valid custom ratio table.
+  ///
+  UINT8  NumberOfEntries;
+  UINT32 Cpuid;            ///< The CPU ID for which this custom ratio table applies.
+  UINT16 MaxRatio;         ///< The maximum ratio of the custom ratio table.
+  UINT16 StateRatio[MAX_CUSTOM_RATIO_TABLE_ENTRIES]; ///< The processor ratios in the custom ratio table.
+} PPM_CUSTOM_RATIO_TABLE;
+
+
+
+///
+/// PPM Custom ConfigTdp Settings
+///
+typedef struct _PPM_CUSTOM_CTDP_TABLE {
+  UINT16 CustomPowerLimit1;          ///< Short term Power Limit value for custom cTDP level in 125mw or watts.
+  UINT16 CustomPowerLimit2;          ///< Long term Power Limit value for custom cTDP level in 125mw or watts.
+  UINT8  CustomPowerLimit1Time;      ///< Short term Power Limit time window value for custom cTDP level.
+  UINT8  CustomTurboActivationRatio; ///< Turbo Activation Ratio for custom cTDP level.
+  UINT8  CustomConfigTdpControl;     ///< Config Tdp Control (0/1/2) value for custom cTDP level.
+} PPM_CUSTOM_CTDP_TABLE;
+
+///
+/// This structure is used to configure custom ConfigTdp level settings.
+///
+typedef struct _PPM_CUSTOM_CTDP {
+  UINT8                 ConfigTdpCustom;     ///< Describes whether or not Custom Config Tdp should be enabled.
+  UINT8                 CustomTdpCount;      ///< Describes the number of Custom Config Tdp levels required (1/2/3).
+  UINT8                 CustomBootModeIndex; ///< Describes the Boot mode index selection from Custom Tdp levels.Index to CustomConfigTdpTable. valid values are 0,1,2.
+  ///
+  /// Describes the details of each Custom Config Tdp levels. This supports up to  MAX_CUSTOM_CTDP_ENTRIES number
+  /// of Custom ConfigTdp levels.
+  ///
+  PPM_CUSTOM_CTDP_TABLE CustomConfigTdpTable[MAX_CUSTOM_CTDP_ENTRIES];
+} PPM_CUSTOM_CTDP;
+
+///
+/// This structure is used to control enabled / disabled various PPM MSR lock settings
+///
+typedef struct _PPM_LOCK_ENABLES {
+  UINT32 PmgCstCfgCtrlLock : 1;   ///< Setting this to 1 will set MSR 0xE2[15]
+  UINT32 OverclockingLock  : 1;   ///< Setting this to 1 will set MSR 0x194[20]
+  UINT32 ProcHotLock       : 1;   ///< Setting this to 1 will set MSR 0x1FC[23]
+  UINT32 Reserved          : 29;  ///< Bits reserved for future use.
+} PPM_LOCK_ENABLES;
+///
+/// PM Deep C State Limit
+///
+typedef enum {
+  Disabled                = 0,
+  DeepC7,
+  DeepC7S
+} DEEP_C_STATE;
+///
+/// PPM Package C State Limit
+///
+typedef enum {
+  PkgC0C1                 = 0,
+  PkgC2,
+  PkgC3,
+  PkgC6,
+  PkgC7,
+  PkgC7s,
+  PkgC8,
+  PkgC9,
+  PkgC10,
+  PkgCMax,
+  PkgCpuDefault = 254,
+  PkgAuto = 255
+} MAX_PKG_C_STATE;
+///
+/// PPM Package C State Time Limit
+///
+typedef enum {
+  TimeUnit1ns             = 0,
+  TimeUnit32ns,
+  TimeUnit1024ns,
+  TimeUnit32768ns,
+  TimeUnit1048576ns,
+  TimeUnit33554432ns
+} C_STATE_TIME_UNIT;
+///
+/// Custom Power Uints.User can choose to enter in MilliWatts or Watts
+///
+typedef enum {
+  PowerUnitWatts = 0,       ///< in Watts
+  PowerUnit125MilliWatts,   ///< in 125 Milli Watts. Example 11.250 W Value to use for Power limts 90
+  PowerUnitMax
+} CUSTOM_POWER_UNIT;
+
+typedef enum {
+  Percent5  = 242,
+  Percent10 = 229,
+  Percent15 = 217,
+  Percent20 = 204,
+  Percent25 = 191,
+  Percent30 = 178,
+  Percent35 = 166,
+  Percent40 = 153,
+  Percent45 = 140,
+  Percent50 = 127,
+  Percent55 = 115,
+  Percent60 = 102,
+  Percent65 = 89,
+  Percent70 = 76,
+  Percent75 = 64,
+  Percent80 = 51,
+  Percent85 = 38,
+  Percent90 = 25,
+  Percent95 = 13,
+  Percent100 = 0
+} PL1_THERMAL_THROTTLE_FLOOR_UNIT;
+
+typedef struct {
+    PL1_THERMAL_THROTTLE_FLOOR_UNIT FloorIA;  /// < FLOOR_IA, Default: 0 (Percent100)
+    PL1_THERMAL_THROTTLE_FLOOR_UNIT FloorGT;  /// < FLOOR_GT, Default: 0 (Percent100)
+    PL1_THERMAL_THROTTLE_FLOOR_UNIT FloorPCH; /// < FLOOR_PCH, Default: 0 (Percent100)
+} PL1_THERMAL_CONTROL_FLOOR;
+
+///
+/// This structure is used to describe which of the Thermal functions will be enabled by Thermal implementation.
+///
+typedef struct {
+  UINT16 BiProcHot             : 1; ///< Enable or Disable Bi-Directional PROCHOT#.
+  UINT16 TStates               : 1; ///< Enable or Disable T states.
+  UINT16 DisableProcHotOut     : 1; ///< Enable or Disable PROCHOT# signal being driven externally.
+  UINT16 DisableVRThermalAlert : 1; ///< Enable or Disable VR Thermal Alert.
+  UINT16 ProcHotResponce       : 1; ///< Enable or Disable PROCHOT# Responce.
+  UINT16 AutoThermalReporting  : 1; ///< Enable or Disable Thermal Reporting through ACPI tables.
+  UINT16 ThermalMonitor        : 1; ///< Enable or Disable Thermal Monitor.
+  UINT16 Pl1ThermalControl     : 2; ///< Disable(0), Enable/Manual(1), Auto(2) PL1 thermal throttling features
+  UINT16 ThermReserved         : 7; ///< Reserved
+  PL1_THERMAL_CONTROL_FLOOR Pl1ThermalControlFloor;  ///< PL1 Floor Throttle Values
+} THERM_FUNCTION_ENABLES;
+
+///
+/// Power management Configuration for all processor Power Management features enabling definitions are in this field.
+/// Platform code can enable/disable features thru this field.
+///
+typedef struct {
+  ///
+  /// This structure is used to describe which of the PPM functions should be enabled. For details of this structure,
+  /// please see Related Definitions.
+  ///
+  PPM_FUNCTION_ENABLES   *pFunctionEnables;
+  ///
+  /// This structure is used to describe the custom CPU Frequency Table that should be used. For details of this
+  /// structure, please see Related Definitions.
+  ///
+  PPM_CUSTOM_RATIO_TABLE *pCustomRatioTable;
+  ///
+  /// This structure is used to describe long duration and short duration turbo settings. For details of this
+  /// structure, please see Related Definitions.
+  ///
+  PPM_TURBO_SETTINGS     *pTurboSettings;
+  UINT8                  S3RestoreMsrSwSmiNumber; ///< SW SMI number to restore the power Mgmt MSRs during S3 resume.
+  UINT8                  *pRatioLimit;         ///< This field is a pointer to Ratio Limit.
+  PPM_LOCK_ENABLES       *pPpmLockEnables;     ///< This field is a pointer to PPM_LOCK_ENABLES structure.
+  PPM_CUSTOM_CTDP        *pCustomCtdpSettings; ///< This structure is used to describe the custom config TDP settings.
+  ///
+  /// This field is used to set the Max Pkg Cstate. Default set to Auto which limits the Max Pkg Cstate to deep C-state.
+  ///
+  MAX_PKG_C_STATE        PkgCStateLimit;
+  C_STATE_TIME_UNIT      CstateLatencyControl0TimeUnit; ///< TimeUnit for Latency Control0 MSR 0x60A[12:10].
+  C_STATE_TIME_UNIT      CstateLatencyControl1TimeUnit; ///< TimeUnit for Latency Control1 MSR 0x60B[12:10].
+  C_STATE_TIME_UNIT      CstateLatencyControl2TimeUnit; ///< TimeUnit for Latency Control2 MSR 0x60C[12:10].
+  C_STATE_TIME_UNIT      CstateLatencyControl3TimeUnit; ///< TimeUnit for Latency Control3 MSR 0x633[12:10].
+  C_STATE_TIME_UNIT      CstateLatencyControl4TimeUnit; ///< TimeUnit for Latency Control4 MSR 0x634[12:10].
+  C_STATE_TIME_UNIT      CstateLatencyControl5TimeUnit; ///< TimeUnit for Latency Control5 MSR 0x635[12:10].
+  UINT16                 CstateLatencyControl0Irtl; ///< Interrupt Response Time Limit of LatencyContol0 MSR 0x60A[9:0].
+  UINT16                 CstateLatencyControl1Irtl; ///< Interrupt Response Time Limit of LatencyContol1 MSR 0x60B[9:0].
+  UINT16                 CstateLatencyControl2Irtl; ///< Interrupt Response Time Limit of LatencyContol2 MSR 0x60C[9:0].
+  UINT16                 CstateLatencyControl3Irtl; ///< Interrupt Response Time Limit of LatencyContol3 MSR 0x633[9:0].
+  UINT16                 CstateLatencyControl4Irtl; ///< Interrupt Response Time Limit of LatencyContol4 MSR 0x634[9:0].
+  UINT16                 CstateLatencyControl5Irtl; ///< Interrupt Response Time Limit of LatencyContol5 MSR 0x635[9:0].
+  BOOLEAN                RfiFreqTunningOffsetIsNegative; ///< Specify RfiFreqTunningOffset is Positive or Negative.
+  UINT8                  RfiFreqTunningOffset; ///< specify the Target FIVR Frequency offset.
+  ///
+  /// Calibrate 24MHz BCLK support; 0: NO_CALIBRATE, 1: PCODE_CALIBRATE, 2: BIOS_CALIBRATE (Default :1)
+  ///
+  UINT8                  PcodeCalibration;
+  BOOLEAN                EnableRerunPcodeCalibration; ///< Calibrate C state 24MHz BCLK support.
+  ///
+  /// This structure is used to describe which of the Thermal functions should be enabled. For details of this
+  /// structure, please see Related Definitions.
+  ///
+  THERM_FUNCTION_ENABLES *ThermalFuncEnables;
+  CUSTOM_POWER_UNIT   CustomPowerUnit;      ///< Power Management Custom Power Limit Unit.
+
+} POWER_MGMT_CONFIG;
+///
+/// All processor security features enabling definitions are in this field.
+/// Platform code can enable/disable features thru this field.
+///
+typedef struct {
+  TXT_FUNCTION_CONFIG *TxtFunctionConfig;
+} SECURITY_CONFIG;
+
+///
+/// The CPU platform policy protocol allows the platform code to publish a set of configuration information that the
+/// CPU drivers will use to configure the processor. Platform code needs to provide the information for processor
+/// drivers to finish the initialization.
+///
+typedef struct _DXE_CPU_PLATFORM_POLICY_PROTOCOL {
+  ///
+  /// This member specifies the revision of the CPU Policy protocol. This field is used to indicate backwards
+  /// compatible changes to the protocol. Platform code that produces this protocol must fill with the correct revision
+  /// value for the PCH reference code to correctly interpret the content of the protocol fields.
+  ///
+  UINT8             Revision;
+  ///
+  /// Processor standard features configuration.
+  ///
+  CPU_CONFIG        *CpuConfig;
+  ///
+  /// Processor power management features configuration.
+  ///
+  POWER_MGMT_CONFIG *PowerMgmtConfig;
+  ///
+  /// Processor security features configuration.
+  ///
+  SECURITY_CONFIG   *SecurityConfig;
+} DXE_CPU_PLATFORM_POLICY_PROTOCOL;
+
+
+#pragma pack(1)
+typedef struct {
+  UINT8   SubCommand;
+  UINT8   Version;
+  UINT32  IanaId;
+  UINT8   SpecialCommand;
+  UINT16  SpecialCommandParam;
+  UINT16  BootOptions;
+  UINT16  OemParameters;
+} EFI_ASF_BOOT_OPTIONS;
+
+typedef struct {
+  UINT8 SubCommand;
+  UINT8 Version;
+  UINT8 EventSensorType;
+  UINT8 EventType;
+  UINT8 EventOffset;
+  UINT8 EventSourceType;
+  UINT8 EventSeverity;
+  UINT8 SensorDevice;
+  UINT8 SensorNumber;
+  UINT8 Entity;
+  UINT8 EntityInstance;
+  UINT8 Data0;
+  UINT8 Data1;
+} EFI_ASF_MESSAGE;
+
+typedef struct {
+  UINT8 SubCommand;
+  UINT8 Version;
+} EFI_ASF_CLEAR_BOOT_OPTIONS;
+#pragma pack()
+//
+// Special Command Attributes
+//
+#define NOP               0x00
+#define FORCE_PXE         0x01
+#define FORCE_HARDDRIVE   0x02
+#define FORCE_SAFEMODE    0x03
+#define FORCE_DIAGNOSTICS 0x04
+#define FORCE_CDDVD       0x05
+
+//
+// Boot Options Mask
+//
+#define LOCK_POWER_BUTTON             0x0002  ///< 0000 0000 0000 0010 - bit 1
+#define LOCK_RESET_BUTTON             0x0004  ///< 0000 0000 0000 0200 - bit 2
+#define LOCK_KEYBOARD                 0x0020  ///< 0000 0000 0010 0000 - bit 5
+#define LOCK_SLEEP_BUTTON             0x0040  ///< 0000 0000 0100 0000 - bit 6
+#define USER_PASSWORD_BYPASS          0x0800  ///< 0000 1000 0000 0000 - bit 3
+#define FORCE_PROGRESS_EVENTS         0x1000  ///< 0001 0000 0000 0000 - bit 4
+#define FIRMWARE_VERBOSITY_DEFAULT    0x0000  ///< 0000 0000 0000 0000 - bit 6:5
+#define FIRMWARE_VERBOSITY_QUIET      0x2000  ///< 0010 0000 0000 0000 - bit 6:5
+#define FIRMWARE_VERBOSITY_VERBOSE    0x4000  ///< 0100 0000 0000 0000 - bit 6:5
+#define FIRMWARE_VERBOSITY_BLANK      0x6000  ///< 0110 0000 0000 0000 - bit 6:5
+#define CONFIG_DATA_RESET             0x8000  ///< 1000 0000 0000 0000 - bit 7
+#define ASF_BOOT_OPTIONS_PRESENT      0x16
+#define ASF_BOOT_OPTIONS_NOT_PRESENT  0x17
+
+#define USE_KVM                       0x0020  ///< 0000 0000 0010 0000 - bit 5
+///
+/// ASF Internet Assigned Numbers Authority Manufacturer ID
+/// (The firmware sends 0XBE110000 for decimal value 4542)
+///
+#define INDUSTRY_IANA_SWAP32(x)       ((((x) & 0xff) << 24) | (((x) & 0xff00) << 8) | \
+                                        (((x) & 0xff0000) >> 8) | (((x) & 0xff000000) >> 24))
+#define ASF_INDUSTRY_IANA             0x000011BE
+#define ASF_INDUSTRY_CONVERTED_IANA   INDUSTRY_IANA_SWAP32 (ASF_INDUSTRY_IANA)  ///< 0XBE110000, received from ME FW
+typedef struct _EFI_ALERT_STANDARD_FORMAT_PROTOCOL EFI_ALERT_STANDARD_FORMAT_PROTOCOL;
+typedef
+EFI_STATUS
+(EFIAPI *EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_SMBUSADDR) (
+  IN  EFI_ALERT_STANDARD_FORMAT_PROTOCOL   * This,
+  OUT UINTN                                *SmbusDeviceAddress
+  )
+/**
+
+  Return the SMBus address used by the ASF driver.
+
+  @retval EFI_SUCCESS             Address returned
+  @retval EFI_INVALID_PARAMETER   Invalid SMBus address
+
+**/
+;
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_ALERT_STANDARD_FORMAT_PROTOCOL_SET_SMBUSADDR) (
+  IN  EFI_ALERT_STANDARD_FORMAT_PROTOCOL   * This,
+  IN  UINTN                                SmbusDeviceAddress
+  )
+/**
+
+  Set the SMBus address used by the ASF driver. 0 is an invalid address.
+
+  @param[in] SmbusAddr            SMBus address of the controller
+
+  @retval EFI_SUCCESS             Address set
+  @retval EFI_INVALID_PARAMETER   Invalid SMBus address
+
+**/
+;
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_BOOT_OPTIONS) (
+  IN      EFI_ALERT_STANDARD_FORMAT_PROTOCOL   * This,
+  IN  OUT EFI_ASF_BOOT_OPTIONS                 **AsfBootOptions
+  )
+/**
+
+  Return the ASF Boot Options obtained from the controller. If the
+  Boot Options parameter is NULL and no boot options have been retrieved,
+  Query the ASF controller for its boot options.
+
+  @param[in] AsfBootOptions       Pointer to ASF boot options to copy current ASF Boot options
+
+  @retval EFI_SUCCESS             Boot options copied
+  @retval EFI_NOT_READY           No boot options
+
+**/
+;
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_ALERT_STANDARD_FORMAT_PROTOCOL_SEND_ASF_MESSAGE) (
+  IN  EFI_ALERT_STANDARD_FORMAT_PROTOCOL   * This,
+  IN  EFI_ASF_MESSAGE                      * AsfMessage
+  )
+/**
+
+  Send ASF Message.
+
+  @param[in] AsfMessage           Pointer to ASF message
+
+  @retval EFI_SUCCESS             Boot options copied
+  @retval EFI_INVALID_PARAMETER   Invalid pointer
+  @retval EFI_NOT_READY           No controller
+
+**/
+;
+
+typedef struct _EFI_ALERT_STANDARD_FORMAT_PROTOCOL {
+  EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_SMBUSADDR    GetSmbusAddr;
+  EFI_ALERT_STANDARD_FORMAT_PROTOCOL_SET_SMBUSADDR    SetSmbusAddr;
+  EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_BOOT_OPTIONS GetBootOptions;
+  EFI_ALERT_STANDARD_FORMAT_PROTOCOL_SEND_ASF_MESSAGE SendAsfMessage;
+} EFI_ALERT_STANDARD_FORMAT_PROTOCOL;
+
+
+///
+/// Protocol revision number
+/// Any backwards compatible changes to this protocol will result in an update in the revision number
+/// Major changes will require publication of a new protocol
+///
+/// Revision 1: Original version
+///
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_1 1
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_2 2
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_3 3
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_4 4
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_5 5
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_6 6
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_7 7
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_8 8
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_9 9
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_10 10
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_11 11
+#define DXE_PCH_PLATFORM_POLICY_PROTOCOL_REVISION_12 12
+
+///
+/// Generic definitions for device enabling/disabling used by PCH code.
+///
+#define PCH_DEVICE_ENABLE   1
+#define PCH_DEVICE_DISABLE  0
+
+///
+/// ---------------------------- Device Enabling ------------------------------
+///
+/// PCH Device enablings
+///
+typedef struct {
+  UINT8 Lan               : 1;    /// 0: Disable; 1: Enable
+  UINT8 Azalia            : 2;    /// 0: Disable; 1: Enable; 2: Auto
+  UINT8 Sata              : 1;    /// 0: Disable; 1: Enable
+  UINT8 Smbus             : 1;    /// 0: Disable; 1: Enable
+  UINT8 LpeEnabled        : 2;    /// 0: Disabled; 1: PCI Mode 2: ACPI Mode
+  UINT8 Reserved[1];              /// Reserved fields for future expansion w/o protocol change
+} PCH_DEVICE_ENABLING;
+
+///
+/// ---------------------------- USB Config -----------------------------
+///
+///
+/// Overcurrent pins
+///
+typedef enum {
+  PchUsbOverCurrentPin0 = 0,
+  PchUsbOverCurrentPin1,
+  PchUsbOverCurrentPin2,
+  PchUsbOverCurrentPin3,
+  PchUsbOverCurrentPin4,
+  PchUsbOverCurrentPin5,
+  PchUsbOverCurrentPin6,
+  PchUsbOverCurrentPin7,
+  PchUsbOverCurrentPinSkip,
+  PchUsbOverCurrentPinMax
+} PCH_USB_OVERCURRENT_PIN;
+
+typedef struct {
+  UINT8   Enable            : 1;    /// 0: Disable; 1: Enable. This would take effect while UsbPerPortCtl is enabled
+  UINT8   Panel             : 1;    /// 0: Back Panel Port; 1: Front Panel Port.
+  UINT8   Dock              : 1;    /// 0: Not docking port; 1: Docking Port.
+  UINT8   Rsvdbits          : 5;
+} PCH_USB_PORT_SETTINGS;
+
+typedef struct {
+  UINT8 Enable              : 1;    /// 0: Disable; 1: Enable
+  UINT8 Rsvdbits            : 7;
+} PCH_USB20_CONTROLLER_SETTINGS;
+
+typedef struct {
+  UINT8 Enable              : 2;    /// 0: 0: Disabled; 1: PCI Mode 2: ACPI Mode
+  UINT8 Rsvdbits            : 6;
+} PCH_USBOTG_CONTROLLER_SETTINGS;
+
+#define PCH_XHCI_MODE_OFF         0
+#define PCH_XHCI_MODE_ON          1
+#define PCH_XHCI_MODE_AUTO        2
+#define PCH_XHCI_MODE_SMARTAUTO   3
+
+#define PCH_EHCI_DEBUG_OFF        0
+#define PCH_EHCI_DEBUG_ON         1
+
+#define PCH_USB_FRONT_PANEL       1
+#define PCH_USB_BACK_PANEL        0
+
+#define PCH_USB_MAX_PHYSICAL_PORTS          4
+#define PCH_EHCI_MAX_PORTS                  4
+#define PCH_PCIE_MAX_ROOT_PORTS                            4
+#define PCH_AHCI_MAX_PORTS                  2     // Max number of SATA ports in VLV
+typedef enum {
+  PchEhci1 = 0,
+  PchEhciControllerMax
+} PCH_USB20_CONTROLLER_TYPE;
+#define PCH_XHCI_MAX_USB3_PORTS             1
+typedef struct {
+  UINT8 Mode               : 2;    /// 0: Disable; 1: Enable, 2: Auto, 3: Smart Auto
+  UINT8 PreBootSupport     : 1;    /// 0: No xHCI driver available; 1: xHCI driver available
+  UINT8 XhciStreams        : 1;    /// 0: Disable; 1: Enable
+  UINT8 Rsvdbits           : 4;
+} PCH_USB30_CONTROLLER_SETTINGS;
+
+typedef struct {
+  UINT8 UsbPerPortCtl       : 1;    /// 0: Disable; 1: Enable Per-port enable control
+  UINT8 Ehci1Usbr           : 1;    /// 0: Disable; 1: Enable EHCI 1 USBR
+  UINT8 RsvdBits            : 6;
+  PCH_USB_PORT_SETTINGS          PortSettings[PCH_USB_MAX_PHYSICAL_PORTS];
+  PCH_USB20_CONTROLLER_SETTINGS  Usb20Settings[PchEhciControllerMax];
+  PCH_USB30_CONTROLLER_SETTINGS  Usb30Settings;
+  PCH_USBOTG_CONTROLLER_SETTINGS UsbOtgSettings;
+  PCH_USB_OVERCURRENT_PIN        Usb20OverCurrentPins[PCH_USB_MAX_PHYSICAL_PORTS];
+  PCH_USB_OVERCURRENT_PIN        Usb30OverCurrentPins[PCH_XHCI_MAX_USB3_PORTS];
+  ///
+  /// The length of Usb Port to configure the USB transmitter,
+  /// Bits [16:4] represents length of Usb Port in inches using octal format and [3:0] is for the decimal Point.
+  ///
+  UINT16                        Usb20PortLength[PCH_EHCI_MAX_PORTS];
+  UINT16                        EhciDebug;
+  UINT16                        UsbXhciLpmSupport;
+
+} PCH_USB_CONFIG;
+
+///
+/// ---------------------------- PCI Express Config ----------------------
+///
+/// The values before AutoConfig match the setting of PCI Express Base Specification 1.1, please be careful for adding new feature
+///
+typedef enum {
+  PchPcieAspmDisabled,
+  PchPcieAspmL0s,
+  PchPcieAspmL1,
+  PchPcieAspmL0sL1,
+  PchPcieAspmAutoConfig,
+  PchPcieAspmMax
+} PCH_PCI_EXPRESS_ASPM_CONTROL;
+
+///
+/// Refer to PCH EDS for the PCH implementation values corresponding
+/// to below PCI-E spec defined ranges
+///
+typedef enum {
+  PchPciECompletionTO_Default,
+  PchPciECompletionTO_50_100us,
+  PchPciECompletionTO_1_10ms,
+  PchPciECompletionTO_16_55ms,
+  PchPciECompletionTO_65_210ms,
+  PchPciECompletionTO_260_900ms,
+  PchPciECompletionTO_1_3P5s,
+  PchPciECompletionTO_4_13s,
+  PchPciECompletionTO_17_64s,
+  PchPciECompletionTO_Disabled
+} PCH_PCIE_COMPLETION_TIMEOUT;
+
+typedef struct {
+  UINT8 Enable                          : 1;    /// Root Port enabling, 0: Disable; 1: Enable.
+  UINT8 Hide                            : 1;    /// Whether or not to hide the configuration space of this port
+  UINT8 SlotImplemented                 : 1;
+  UINT8 HotPlug                         : 1;
+  UINT8 PmSci                           : 1;
+  UINT8 ExtSync                         : 1;    /// Extended Synch
+  UINT8 Rsvdbits                        : 2;
+  ///
+  /// Error handlings
+  ///
+  UINT8 UnsupportedRequestReport        : 1;
+  UINT8 FatalErrorReport                : 1;
+  UINT8 NoFatalErrorReport              : 1;
+  UINT8 CorrectableErrorReport          : 1;
+  UINT8 PmeInterrupt                    : 1;
+  UINT8 SystemErrorOnFatalError         : 1;
+  UINT8 SystemErrorOnNonFatalError      : 1;
+  UINT8 SystemErrorOnCorrectableError   : 1;
+
+  UINT8 AdvancedErrorReporting          : 1;
+  UINT8 TransmitterHalfSwing            : 1;
+  UINT8 Reserved                        : 6;    /// Reserved fields for future expansion w/o protocol change
+
+  UINT8 FunctionNumber;                         /// The function number this root port is mapped to.
+  UINT8 PhysicalSlotNumber;
+  PCH_PCIE_COMPLETION_TIMEOUT   CompletionTimeout;
+  PCH_PCI_EXPRESS_ASPM_CONTROL  Aspm;
+} PCH_PCI_EXPRESS_ROOT_PORT_CONFIG;
+
+typedef struct {
+  /**
+    VendorId
+
+      The vendor Id of Pci Express card ASPM setting override, 0xFFFF means any Vendor ID
+
+    DeviceId
+
+      The Device Id of Pci Express card ASPM setting override, 0xFFFF means any Device ID
+
+    RevId
+
+      The Rev Id of Pci Express card ASPM setting override, 0xFF means all steppings
+
+    BaseClassCode
+
+      The Base Class Code of Pci Express card ASPM setting override, 0xFF means all base class
+
+    SubClassCode
+
+      The Sub Class Code of Pci Express card ASPM setting override, 0xFF means all sub class
+
+
+    EndPointAspm
+
+      The override ASPM setting from End point
+  **/
+  UINT16                        VendorId;
+  UINT16                        DeviceId;
+  UINT8                         RevId;
+  UINT8                         BaseClassCode;
+  UINT8                         SubClassCode;
+  PCH_PCI_EXPRESS_ASPM_CONTROL  EndPointAspm;
+} PCH_PCIE_DEVICE_ASPM_OVERRIDE;
+
+typedef struct {
+  UINT16  VendorId; ///< PCI configuration space offset 0
+  UINT16  DeviceId; ///< PCI configuration space offset 2
+  UINT8   RevId;    ///< PCI configuration space offset 8; 0xFF means all steppings
+  /**
+    SnoopLatency bit definition
+    Note: All Reserved bits must be set to 0
+
+    BIT[15]     - When set to 1b, indicates that the values in bits 9:0 are valid
+                  When clear values in bits 9:0 will be ignored
+    BITS[14:13] - Reserved
+    BITS[12:10] - Value in bits 9:0 will be multiplied with the scale in these bits
+                  000b - 1 ns
+                  001b - 32 ns
+                  010b - 1024 ns
+                  011b - 32,768 ns
+                  100b - 1,048,576 ns
+                  101b - 33,554,432 ns
+                  110b - Reserved
+                  111b - Reserved
+    BITS[9:0]   - Snoop Latency Value. The value in these bits will be multiplied with
+                  the scale in bits 12:10
+  **/
+  UINT16  SnoopLatency;
+  /**
+    NonSnoopLatency bit definition
+    Note: All Reserved bits must be set to 0
+
+    BIT[15]     - When set to 1b, indicates that the values in bits 9:0 are valid
+                  When clear values in bits 9:0 will be ignored
+    BITS[14:13] - Reserved
+    BITS[12:10] - Value in bits 9:0 will be multiplied with the scale in these bits
+                  000b - 1 ns
+                  001b - 32 ns
+                  010b - 1024 ns
+                  011b - 32,768 ns
+                  100b - 1,048,576 ns
+                  101b - 33,554,432 ns
+                  110b - Reserved
+                  111b - Reserved
+    BITS[9:0]   - Non Snoop Latency Value. The value in these bits will be multiplied with
+                  the scale in bits 12:10
+  **/
+  UINT16  NonSnoopLatency;
+} PCH_PCIE_DEVICE_LTR_OVERRIDE;
+
+typedef struct {
+  ///
+  /// Temp Bus Number range available to be assigned to
+  /// each root port and its downstream devices for initialization
+  /// of these devices before PCI Bus enumeration
+  ///
+  UINT8                             TempRootPortBusNumMin;
+  UINT8                             TempRootPortBusNumMax;
+  PCH_PCI_EXPRESS_ROOT_PORT_CONFIG  RootPort[PCH_PCIE_MAX_ROOT_PORTS];
+  BOOLEAN                           RootPortClockGating;
+  UINT8                             NumOfDevAspmOverride;     /// Number of PCI Express card Aspm setting override
+  PCH_PCIE_DEVICE_ASPM_OVERRIDE     *DevAspmOverride;         /// The Pointer which is point to Pci Express card Aspm setting override
+  UINT8                             PcieDynamicGating;        /// Need PMC enable it first from PMC 0x3_12 MCU 318.
+} PCH_PCI_EXPRESS_CONFIG;
+
+
+///
+/// ---------------------------- SATA Config -----------------------------
+///
+typedef enum {
+  PchSataSpeedSupportGen1 = 1,
+  PchSataSpeedSupportGen2
+} PCH_SATA_SPEED_SUPPORT;
+
+typedef struct {
+  UINT8 Enable          : 1;    /// 0: Disable; 1: Enable
+  UINT8 HotPlug         : 1;    /// 0: Disable; 1: Enable
+  UINT8 MechSw          : 1;    /// 0: Disable; 1: Enable
+  UINT8 External        : 1;    /// 0: Disable; 1: Enable
+  UINT8 SpinUp          : 1;    /// 0: Disable; 1: Enable the COMRESET initialization Sequence to the device
+  UINT8 Rsvdbits        : 3;    /// Reserved fields for future expansion w/o protocol change
+} PCH_SATA_PORT_SETTINGS;
+
+typedef struct {
+  PCH_SATA_PORT_SETTINGS  PortSettings[PCH_AHCI_MAX_PORTS];
+  UINT8 RaidAlternateId : 1;    /// 0: Disable; 1: Enable
+  UINT8 Raid0           : 1;    /// 0: Disable; 1: Enable RAID0
+  UINT8 Raid1           : 1;    /// 0: Disable; 1: Enable RAID1
+  UINT8 Raid10          : 1;    /// 0: Disable; 1: Enable RAID10
+  UINT8 Raid5           : 1;    /// 0: Disable; 1: Enable RAID5
+  UINT8 Irrt            : 1;    /// 0: Disable; 1: Enable Intel Rapid Recovery Technology
+  UINT8 OromUiBanner    : 1;    /// 0: Disable; 1: Enable OROM UI and BANNER
+  UINT8 HddUnlock       : 1;    /// 0: Disable; 1: Indicates that the HDD password unlock in the OS is enabled
+
+  UINT8 LedLocate       : 1;    /// 0: Disable; 1: Indicates that the LED/SGPIO hardware is attached and ping to locate feature is enabled on the OS
+  UINT8 IrrtOnly        : 1;    /// 0: Disable; 1: Allow only IRRT drives to span internal and external ports
+  UINT8 TestMode        : 1;    /// 0: Disable; 1: Allow entrance to the PCH SATA test modes
+  UINT8 SalpSupport     : 1;    /// 0: Disable; 1: Enable Aggressive Link Power Management
+  UINT8 LegacyMode      : 1;    /// 0: Native PCI mode; 1: Legacy mode, when SATA controller is operating in IDE mode
+  UINT8 SpeedSupport    : 4;    /// Indicates the maximum speed the SATA controller can support
+  /// 1h: 1.5 Gb/s (Gen 1); 2h: 3 Gb/s(Gen 2)
+
+  UINT8 Rsvdbits        : 7;    // Reserved fields for future expansion w/o protocol change
+} PCH_SATA_CONFIG;
+///
+/// --------------------------- AZALIA Config ------------------------------
+///
+typedef struct {
+  UINT32  VendorDeviceId;
+  UINT16  SubSystemId;
+  UINT8   RevisionId;                       /// 0xFF applies to all steppings
+  UINT8   FrontPanelSupport;
+  UINT16  NumberOfRearJacks;
+  UINT16  NumberOfFrontJacks;
+} PCH_AZALIA_VERB_TABLE_HEADER;
+
+typedef struct {
+  PCH_AZALIA_VERB_TABLE_HEADER  VerbTableHeader;
+  UINT32                        *VerbTableData;
+} PCH_AZALIA_VERB_TABLE;
+
+typedef struct {
+  UINT8                 Pme       : 1;      /// 0: Disable; 1: Enable
+  UINT8                 DS        : 1;      /// 0: Docking is not supported; 1:Docking is supported
+  UINT8                 DA        : 1;      /// 0: Docking is not attached; 1:Docking is attached
+  UINT8                 HdmiCodec : 1;      /// 0: Disable; 1: Enable
+  UINT8                 AzaliaVCi : 1;      /// 0: Disable; 1: Enable
+  UINT8                 Rsvdbits  : 3;
+  UINT8                 AzaliaVerbTableNum; /// Number of verb tables provided by platform
+  PCH_AZALIA_VERB_TABLE *AzaliaVerbTable;   /// Pointer to the actual verb table(s)
+  UINT16                ResetWaitTimer;     /// The delay timer after Azalia reset, the value is number of microseconds
+} PCH_AZALIA_CONFIG;
+
+///
+/// --------------------------- Smbus Config ------------------------------
+///
+typedef struct {
+  UINT8 NumRsvdSmbusAddresses;
+  UINT8 *RsvdSmbusAddressTable;
+} PCH_SMBUS_CONFIG;
+
+///
+/// --------------------------- Miscellaneous PM Config ------------------------------
+///
+typedef struct {
+  UINT8 MeWakeSts           : 1;
+  UINT8 MeHrstColdSts       : 1;
+  UINT8 MeHrstWarmSts       : 1;
+  UINT8 MeHostPowerDn       : 1;
+  UINT8 WolOvrWkSts         : 1;
+  UINT8 Rsvdbits            : 3;
+} PCH_POWER_RESET_STATUS;
+
+typedef struct {
+  UINT8  PmeB0S5Dis         : 1;
+  UINT8  WolEnableOverride  : 1;
+  UINT8  Rsvdbits           : 6;
+} PCH_WAKE_CONFIG;
+
+typedef enum {
+  PchSlpS360us,
+  PchSlpS31ms,
+  PchSlpS350ms,
+  PchSlpS32s
+} PCH_SLP_S3_MIN_ASSERT;
+
+typedef enum {
+  PchSlpS4PchTime,   /// The time defined in EDS Power Sequencing and Reset Signal Timings table
+  PchSlpS41s,
+  PchSlpS42s,
+  PchSlpS43s,
+  PchSlpS44s
+} PCH_SLP_S4_MIN_ASSERT;
+
+typedef struct {
+  ///
+  /// Specify which Power/Reset bits need to be cleared by
+  /// the PCH Init Driver.
+  /// Usually platform drivers take care of these bits, but if
+  /// not, let PCH Init driver clear the bits.
+  ///
+  PCH_POWER_RESET_STATUS  PowerResetStatusClear;
+  ///
+  /// Specify Wake Policy
+  ///
+  PCH_WAKE_CONFIG         WakeConfig;
+  ///
+  /// SLP_XX Minimum Assertion Width Policy
+  ///
+  PCH_SLP_S3_MIN_ASSERT   PchSlpS3MinAssert;
+  PCH_SLP_S4_MIN_ASSERT   PchSlpS4MinAssert;
+  UINT8                   SlpStrchSusUp : 1;  /// Enable/Disable SLP_X Stretching After SUS Well Power Up
+  UINT8                   SlpLanLowDc   : 1;
+  UINT8                   Rsvdbits      : 6;
+} PCH_MISC_PM_CONFIG;
+
+///
+/// --------------------------- Subsystem Vendor ID / Subsystem ID Config -----
+///
+typedef struct {
+  UINT16  SubSystemVendorId;
+  UINT16  SubSystemId;
+} PCH_DEFAULT_SVID_SID;
+
+///
+/// --------------------------- Lock Down Config ------------------------------
+///
+typedef struct {
+  UINT8  GlobalSmi      : 1;
+  UINT8  BiosInterface  : 1;
+  UINT8  RtcLock        : 1;
+  UINT8  BiosLock       : 1;
+  UINT8  Rsvdbits       : 4;
+  UINT8  PchBiosLockSwSmiNumber;
+} PCH_LOCK_DOWN_CONFIG;
+//
+// --------------------------- Serial IRQ Config ------------------------------
+//
+typedef enum {
+  PchQuietMode,
+  PchContinuousMode
+} PCH_SIRQ_MODE;
+///
+/// Refer to SoC EDS for the details of Start Frame Pulse Width in Continuous and Quiet mode
+///
+
+typedef struct {
+  BOOLEAN                 SirqEnable;       /// Determines if enable Serial IRQ
+  PCH_SIRQ_MODE           SirqMode;         /// Serial IRQ Mode Select
+} PCH_LPC_SIRQ_CONFIG;
+
+///
+/// --------------------------- Power Optimizer Config ------------------------------
+///
+typedef struct {
+  UINT8  NumOfDevLtrOverride;                            /// Number of Pci Express card listed in LTR override table
+  PCH_PCIE_DEVICE_LTR_OVERRIDE *DevLtrOverride;          /// Pointer to Pci Express devices LTR override table
+} PCH_PWR_OPT_CONFIG;
+
+///
+/// --------------------- Low Power Input Output Config ------------------------
+///
+typedef struct {
+  UINT8                   LpssPciModeEnabled    : 1;    /// Determines if LPSS PCI Mode enabled
+  UINT8                   Dma0Enabled           : 1;     /// Determines if LPSS DMA1 enabled
+  UINT8                   Dma1Enabled           : 1;     /// Determines if LPSS DMA2 enabled
+  UINT8                   I2C0Enabled           : 1;     /// Determines if LPSS I2C #1 enabled
+  UINT8                   I2C1Enabled           : 1;     /// Determines if LPSS I2C #2 enabled
+  UINT8                   I2C2Enabled           : 1;     /// Determines if LPSS I2C #3 enabled
+  UINT8                   I2C3Enabled           : 1;     /// Determines if LPSS I2C #4 enabled
+  UINT8                   I2C4Enabled           : 1;     /// Determines if LPSS I2C #5 enabled
+  UINT8                   I2C5Enabled           : 1;     /// Determines if LPSS I2C #6 enabled
+  UINT8                   I2C6Enabled           : 1;     /// Determines if LPSS I2C #7 enabled
+  UINT8                   Pwm0Enabled           : 1;     /// Determines if LPSS PWM #1 enabled
+  UINT8                   Pwm1Enabled           : 1;     /// Determines if LPSS PWM #2 enabled
+  UINT8                   Hsuart0Enabled        : 1;     /// Determines if LPSS HSUART #1 enabled
+  UINT8                   Hsuart1Enabled        : 1;     /// Determines if LPSS HSUART #2 enabled
+  UINT8                   SpiEnabled            : 1;     /// Determines if LPSS SPI enabled
+  UINT8                   Rsvdbits              : 2;
+} PCH_LPSS_CONFIG;
+
+///
+/// ----------------------------- SCC Config --------------------------------
+///
+typedef struct {
+  UINT8                   eMMCEnabled           : 1;      /// Determines if SCC eMMC enabled
+  UINT8                   SdioEnabled           : 1;      /// Determines if SCC SDIO enabled
+  UINT8                   SdcardEnabled         : 1;      /// Determines if SCC SD Card enabled
+  UINT8                   HsiEnabled            : 1;      /// Determines if SCC HSI enabled
+  UINT8                   eMMC45Enabled         : 1;      /// Determines if SCC eMMC 4.5 enabled
+  UINT8                   eMMC45DDR50Enabled    : 1;  /// Determines if DDR50 enabled for eMMC 4.5
+  UINT8                   eMMC45HS200Enabled    : 1;  /// Determines if HS200nabled for eMMC 4.5
+  UINT8                   Rsvdbits              : 1;
+  UINT8                   SdCardSDR25Enabled    : 1;    /// Determines if SDR25 for SD Card
+  UINT8                   SdCardDDR50Enabled    : 1;    /// Determines if DDR50 for SD Card
+  UINT8                   Rsvdbits1             : 6;
+  UINT8                   eMMC45RetuneTimerValue;  /// Determines retune timer value.
+} PCH_SCC_CONFIG;
+typedef struct _DXE_PCH_PLATFORM_POLICY_PROTOCOL  DXE_PCH_PLATFORM_POLICY_PROTOCOL;
+///
+/// ------------ General PCH Platform Policy protocol definition ------------
+///
+struct _DXE_PCH_PLATFORM_POLICY_PROTOCOL {
+  UINT8                   Revision;
+  UINT8                   BusNumber;  /// PCI Bus Number of the PCH device
+  PCH_DEVICE_ENABLING     *DeviceEnabling;
+  PCH_USB_CONFIG          *UsbConfig;
+  PCH_PCI_EXPRESS_CONFIG  *PciExpressConfig;
+
+  PCH_SATA_CONFIG         *SataConfig;
+  PCH_AZALIA_CONFIG       *AzaliaConfig;
+  PCH_SMBUS_CONFIG        *SmbusConfig;
+  PCH_MISC_PM_CONFIG      *MiscPmConfig;
+  PCH_DEFAULT_SVID_SID    *DefaultSvidSid;
+  PCH_LOCK_DOWN_CONFIG    *LockDownConfig;
+  PCH_LPC_SIRQ_CONFIG     *SerialIrqConfig;
+  PCH_PWR_OPT_CONFIG      *PwrOptConfig;
+  PCH_LPSS_CONFIG         *LpssConfig;
+  PCH_SCC_CONFIG          *SccConfig;
+  UINT8                   IdleReserve;
+  UINT8                   EhciPllCfgEnable;
+  UINT8                   AcpiHWRed; //Hardware Reduced Mode
+};
+
+typedef struct _EFI_TREE_PROTOCOL EFI_TREE_PROTOCOL;
+
+typedef struct _TREE_VERSION {
+  UINT8 Major;
+  UINT8 Minor;
+} TREE_VERSION;
+
+typedef UINT32 TREE_EVENT_LOG_BITMAP;
+typedef UINT32 TREE_EVENT_LOG_FORMAT;
+
+#define TREE_EVENT_LOG_FORMAT_TCG_1_2       0x00000001
+
+typedef struct _TREE_BOOT_SERVICE_CAPABILITY {
+  //
+  // Allocated size of the structure passed in
+  //
+  UINT8                 Size;
+  //
+  // Version of the TREE_BOOT_SERVICE_CAPABILITY structure itself.
+  // For this version of the protocol, the Major version shall be set to 1
+  // and the Minor version shall be set to 0.
+  //
+  TREE_VERSION          StructureVersion;
+  //
+  // Version of the TrEE protocol.
+  // For this version of the protocol, the Major version shall be set to 1
+  // and the Minor version shall be set to 0.
+  //
+  TREE_VERSION          ProtocolVersion;
+  //
+  // Supported hash algorithms
+  //
+  UINT32                HashAlgorithmBitmap;
+  //
+  // Bitmap of supported event log formats
+  //
+  TREE_EVENT_LOG_BITMAP SupportedEventLogs;
+  //
+  // False = TrEE not present
+  //
+  BOOLEAN               TrEEPresentFlag;
+  //
+  // Max size (in bytes) of a command that can be sent to the TrEE
+  //
+  UINT16                MaxCommandSize;
+  //
+  // Max size (in bytes) of a response that can be provided by the TrEE
+  //
+  UINT16                MaxResponseSize;
+  //
+  // 4-byte Vendor ID (see Trusted Computing Group, "TCG Vendor ID Registry,"
+  // Version 1.0, Revision 0.1, August 31, 2007, "TPM Capabilities Vendor ID" section)
+  //
+  UINT32                ManufacturerID;
+} TREE_BOOT_SERVICE_CAPABILITY_1_0;
+
+typedef TREE_BOOT_SERVICE_CAPABILITY_1_0 TREE_BOOT_SERVICE_CAPABILITY;
+
+#define TREE_BOOT_HASH_ALG_SHA1   0x00000001
+#define TREE_BOOT_HASH_ALG_SHA256 0x00000002
+#define TREE_BOOT_HASH_ALG_SHA384 0x00000004
+#define TREE_BOOT_HASH_ALG_SHA512 0x00000008
+
+//
+// This bit is shall be set when an event shall be extended but not logged.
+//
+#define TREE_EXTEND_ONLY  0x0000000000000001
+//
+// This bit shall be set when the intent is to measure a PE/COFF image.
+//
+#define PE_COFF_IMAGE     0x0000000000000010
+
+typedef UINT32 TrEE_PCRINDEX;
+typedef UINT32 TrEE_EVENTTYPE;
+
+#define MAX_PCR_INDEX  23
+#define TREE_EVENT_HEADER_VERSION  1
+
+#pragma pack(1)
+
+typedef struct {
+  //
+  // Size of the event header itself (sizeof(TrEE_EVENT_HEADER)).
+  //
+  UINT32            HeaderSize;
+  //
+  // Header version. For this version of this specification, the value shall be 1.
+  //
+  UINT16            HeaderVersion;
+  //
+  // Index of the PCR that shall be extended (0 - 23).
+  //
+  TrEE_PCRINDEX     PCRIndex;
+  //
+  // Type of the event that shall be extended (and optionally logged).
+  //
+  TrEE_EVENTTYPE    EventType;
+} TrEE_EVENT_HEADER;
+
+typedef struct {
+  //
+  // Total size of the event including the Size component, the header and the Event data.
+  //
+  UINT32            Size;
+  TrEE_EVENT_HEADER Header;
+  UINT8             Event[1];
+} TrEE_EVENT;
+
+#pragma pack()
+
+/**
+  The EFI_TREE_PROTOCOL GetCapability function call provides protocol
+  capability information and state information about the TrEE.
+
+  @param[in]  This               Indicates the calling context
+  @param[out] ProtocolCapability The caller allocates memory for a TREE_BOOT_SERVICE_CAPABILITY
+                                 structure and sets the size field to the size of the structure allocated.
+                                 The callee fills in the fields with the EFI protocol capability information
+                                 and the current TrEE state information up to the number of fields which
+                                 fit within the size of the structure passed in.
+
+  @retval EFI_SUCCESS            Operation completed successfully.
+  @retval EFI_DEVICE_ERROR       The command was unsuccessful.
+                                 The ProtocolCapability variable will not be populated.
+  @retval EFI_INVALID_PARAMETER  One or more of the parameters are incorrect.
+                                 The ProtocolCapability variable will not be populated.
+  @retval EFI_BUFFER_TOO_SMALL   The ProtocolCapability variable is too small to hold the full response.
+                                 It will be partially populated (required Size field will be set).
+**/
+typedef
+EFI_STATUS
+(EFIAPI *EFI_TREE_GET_CAPABILITY) (
+  IN EFI_TREE_PROTOCOL                *This,
+  IN OUT TREE_BOOT_SERVICE_CAPABILITY *ProtocolCapability
+  );
+
+/**
+  The EFI_TREE_PROTOCOL Get Event Log function call allows a caller to
+  retrieve the address of a given event log and its last entry.
+
+  @param[in]  This               Indicates the calling context
+  @param[in]  EventLogFormat     The type of the event log for which the information is requested.
+  @param[out] EventLogLocation   A pointer to the memory address of the event log.
+  @param[out] EventLogLastEntry  If the Event Log contains more than one entry, this is a pointer to the
+                                 address of the start of the last entry in the event log in memory.
+  @param[out] EventLogTruncated  If the Event Log is missing at least one entry because an event would
+                                 have exceeded the area allocated for events, this value is set to TRUE.
+                                 Otherwise, the value will be FALSE and the Event Log will be complete.
+
+  @retval EFI_SUCCESS            Operation completed successfully.
+  @retval EFI_INVALID_PARAMETER  One or more of the parameters are incorrect
+                                 (e.g. asking for an event log whose format is not supported).
+**/
+typedef
+EFI_STATUS
+(EFIAPI *EFI_TREE_GET_EVENT_LOG) (
+  IN EFI_TREE_PROTOCOL     *This,
+  IN TREE_EVENT_LOG_FORMAT EventLogFormat,
+  OUT EFI_PHYSICAL_ADDRESS *EventLogLocation,
+  OUT EFI_PHYSICAL_ADDRESS *EventLogLastEntry,
+  OUT BOOLEAN              *EventLogTruncated
+  );
+
+/**
+  The EFI_TREE_PROTOCOL HashLogExtendEvent function call provides callers with
+  an opportunity to extend and optionally log events without requiring
+  knowledge of actual TPM commands.
+  The extend operation will occur even if this function cannot create an event
+  log entry (e.g. due to the event log being full).
+
+  @param[in]  This               Indicates the calling context
+  @param[in]  Flags              Bitmap providing additional information.
+  @param[in]  DataToHash         Physical address of the start of the data buffer to be hashed.
+  @param[in]  DataToHashLen      The length in bytes of the buffer referenced by DataToHash.
+  @param[in]  Event              Pointer to data buffer containing information about the event.
+
+  @retval EFI_SUCCESS            Operation completed successfully.
+  @retval EFI_DEVICE_ERROR       The command was unsuccessful.
+  @retval EFI_VOLUME_FULL        The extend operation occurred, but the event could not be written to one or more event logs.
+  @retval EFI_INVALID_PARAMETER  One or more of the parameters are incorrect.
+  @retval EFI_UNSUPPORTED        The PE/COFF image type is not supported.
+**/
+typedef
+EFI_STATUS
+(EFIAPI * EFI_TREE_HASH_LOG_EXTEND_EVENT) (
+  IN EFI_TREE_PROTOCOL    *This,
+  IN UINT64               Flags,
+  IN EFI_PHYSICAL_ADDRESS DataToHash,
+  IN UINT64               DataToHashLen,
+  IN TrEE_EVENT           *Event
+  );
+
+/**
+  This service enables the sending of commands to the TrEE.
+
+  @param[in]  This                     Indicates the calling context
+  @param[in]  InputParameterBlockSize  Size of the TrEE input parameter block.
+  @param[in]  InputParameterBlock      Pointer to the TrEE input parameter block.
+  @param[in]  OutputParameterBlockSize Size of the TrEE output parameter block.
+  @param[in]  OutputParameterBlock     Pointer to the TrEE output parameter block.
+
+  @retval EFI_SUCCESS            The command byte stream was successfully sent to the device and a response was successfully received.
+  @retval EFI_DEVICE_ERROR       The command was not successfully sent to the device or a response was not successfully received from the device.
+  @retval EFI_INVALID_PARAMETER  One or more of the parameters are incorrect.
+  @retval EFI_BUFFER_TOO_SMALL   The output parameter block is too small.
+**/
+typedef
+EFI_STATUS
+(EFIAPI *EFI_TREE_SUBMIT_COMMAND) (
+  IN EFI_TREE_PROTOCOL *This,
+  IN UINT32            InputParameterBlockSize,
+  IN UINT8             *InputParameterBlock,
+  IN UINT32            OutputParameterBlockSize,
+  IN UINT8             *OutputParameterBlock
+  );
+
+struct _EFI_TREE_PROTOCOL {
+  EFI_TREE_GET_CAPABILITY        GetCapability;
+  EFI_TREE_GET_EVENT_LOG         GetEventLog;
+  EFI_TREE_HASH_LOG_EXTEND_EVENT HashLogExtendEvent;
+  EFI_TREE_SUBMIT_COMMAND        SubmitCommand;
+};
+
 
 
 VOID InstallSmmFuzzProtocol();
@@ -4602,9 +8096,32 @@ extern GUID gPowerMgmtInitDoneProtocolGuid;
 extern GUID gPlatformNvsAreaProtocolGuid;
 extern GUID gCpuNvsAreaProtocolGuid;
 extern GUID gCpuGlobalNvsAreaProtocolGuid;
-extern GUID GAmiSmbiosFlashDataProtocolGuid;
+extern GUID gAmiSmbiosFlashDataProtocolGuid;
 extern GUID gAmiSmbiosProtocolGuid;
 extern GUID gUnknownHpProtocol1Guid;
 extern GUID gUnknownHpProtocol2Guid;
 extern GUID gUnknownHpProtocol4Guid;
+extern GUID gEfiGlobalNvsAreaProtocolGuid;
+extern GUID gEfiSecSmiFlashGuid;
+extern GUID gAmiPciSmmHandoffProtocolGuid;
+extern GUID gSaGlobalNvsAreaProtocolGuid;
+extern GUID gEfiPlatformInfoProtocolGuid;
+extern GUID gEfiBootScriptSaveProtocolGuid;
+extern GUID gAmiFlashProtocolGuid;
+extern GUID gEfiSmiFlashProtocolGuid;
+extern GUID gEfiHeciProtocolGuid;
+extern GUID gAmiExtPciBusProtocolGuid;
+extern GUID gEfiPchInfoProtocolGuid;
+extern GUID gEfiIioUdsProtocolGuid;
+extern GUID gEfiWheaSupportProtocolGuid;
+extern GUID gPpmPlatformPolicyProtocolGuid;
+extern GUID gEfiIioSystemProtocolGuid;
+extern GUID gEfiUsb2HcProtocolGuid;
+extern GUID gAmiTcgPlatformProtocolguid;
+extern GUID gNbErrorLogDispatchProtocolGuid;
+extern GUID gMemInfoProtocolGuid;
+extern GUID gDxeCpuPlatformPolicyProtocolGuid;
+extern GUID gEfiAlertStandardFormatProtocolGuid;
+extern GUID gDxePchPlatformPolicyProtocolGuid;
+extern GUID gEfiTrEEProtocolGuid;
 #endif

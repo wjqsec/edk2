@@ -182,13 +182,36 @@
   gPowerMgmtInitDoneProtocolGuid
   gPlatformNvsAreaProtocolGuid
   gCpuGlobalNvsAreaProtocolGuid
-  GAmiSmbiosFlashDataProtocolGuid
+  gAmiSmbiosFlashDataProtocolGuid
   gCpuNvsAreaProtocolGuid
   gUnknownHpProtocol1Guid
   gUnknownHpProtocol2Guid
   gAmiSmbiosProtocolGuid
   gUnknownHpProtocol4Guid
-
+  gEfiGlobalNvsAreaProtocolGuid
+  gEfiSecSmiFlashGuid
+  gAmiPciSmmHandoffProtocolGuid
+  gSaGlobalNvsAreaProtocolGuid
+  gEfiPlatformInfoProtocolGuid
+  gEfiBootScriptSaveProtocolGuid
+  gAmiFlashProtocolGuid
+  gEfiSmiFlashProtocolGuid
+  gEfiHeciProtocolGuid
+  gAmiExtPciBusProtocolGuid
+  gEfiPchInfoProtocolGuid
+  gEfiIioUdsProtocolGuid
+  gEfiWheaSupportProtocolGuid
+  gPpmPlatformPolicyProtocolGuid
+  gEfiIioSystemProtocolGuid
+  gEfiUsb2HcProtocolGuid
+  gAmiTcgPlatformProtocolguid
+  gNbErrorLogDispatchProtocolGuid
+  gMemInfoProtocolGuid
+  gDxeCpuPlatformPolicyProtocolGuid
+  gEfiAlertStandardFormatProtocolGuid
+  gDxePchPlatformPolicyProtocolGuid
+  gEfiTrEEProtocolGuid
+  
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressBootTimeCodePageNumber    ## SOMETIMES_CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressRuntimeCodePageNumber     ## SOMETIMES_CONSUMES

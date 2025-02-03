@@ -1791,7 +1791,125 @@ EFI_POWER_MGMT_INIT_DONE_PROTOCOL mEfiPowerMgmtInitDoneProtocol;
 PLATFORM_NVS_AREA_PROTOCOL mPlatformNvsAreaProtocol;
 CPU_NVS_AREA_PROTOCOL mCpuNvsAreProtocol;
 CPU_GLOBAL_NVS_AREA_PROTOCOL mCpuGlobalNvsAreaProtocol;
-AMI_SMBIOS_FLASH_DATA_PROTOCOL mAmiSmbiosFlashDataProtocol;
+EFI_SMBIOS_FLASH_DATA_PROTOCOL mAmiSmbiosFlashDataProtocol;
+EFI_GLOBAL_NVS_AREA_PROTOCOL mGlobalNvsAreaProtocol;
+EFI_BOOT_SCRIPT_SAVE_PROTOCOL mEfiBootScriptSaveProtocol;
+SYSTEM_AGENT_GLOBAL_NVS_AREA_PROTOCOL mSaGlobalNvsAreaProtocol;
+EFI_PLATFORMINFO_PROTOCOL mEfiPlatforminfoProtocol;
+AMI_FLASH_PROTOCOL mAmiFlashProtocol;
+EFI_SMI_FLASH_PROTOCOL mEfiSmiFlashProtocol;
+EFI_HECI_PROTOCOL mEfiHeciProtocol;
+AMI_PCI_EXT_PROTOCOL mAmiPciExtProtocol;
+EFI_PCH_INFO_PROTOCOL mEfiPchInfoProtocol;
+EFI_IIO_UDS_PROTOCOL mEfiIioUdsProtocol;
+EFI_WHEA_SUPPORT_PROTOCOL mEfiWheaSupportProtocol;
+PPM_PLATFORM_POLICY_PROTOCOL mPpmPlatformPolicyProtocol;
+EFI_IIO_SYSTEM_PROTOCOL mEfiIioSystemProtocol;
+EFI_USB2_HC_PROTOCOL mEfiUsb2HcProtocol;
+AMI_TCG_PLATFORM_PROTOCOL mAmiTcgPlatformProtocol;
+EFI_NB_ERROR_LOG_DISPATCH_PROTOCOL mEfiNbErrorLogDispatchProtocol;
+MEM_INFO_PROTOCOL mMemInfoProtocol;
+DXE_CPU_PLATFORM_POLICY_PROTOCOL mDxeCpuPlatformPolicyProtocol;
+EFI_ALERT_STANDARD_FORMAT_PROTOCOL mEfiAlertStandardFormatProtocol;
+DXE_PCH_PLATFORM_POLICY_PROTOCOL mDxePchPlatformPolicyProtocol;
+EFI_TREE_PROTOCOL mEfiTreeProtocol;
+AMI_SMBIOS_PROTOCOL mAmiSmbiosProtocol;
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_SENDWACK_FUNC (
+  IN OUT  UINT32           *Message,
+  IN OUT  UINT32           Length,
+  IN OUT  UINT32           *RecLength,
+  IN      UINT8            HostAddress,
+  IN      UINT8            MEAddress
+  )
+{
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI EFI_HECI_READ_MESSAGE_FUNC (
+  IN      UINT32           Blocking,
+  IN      UINT32           *MessageBody,
+  IN OUT  UINT32           *Length
+  )
+{
+  return EFI_SUCCESS;
+}
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_READ_FLUSH_MESSAGE_FUNC (
+  IN      UINT32           Blocking
+  )
+{
+  return EFI_SUCCESS;
+}
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_SEND_MESSAGE_FUNC (
+  IN      UINT32           *Message,
+  IN      UINT32           Length,
+  IN      UINT8            HostAddress,
+  IN      UINT8            MEAddress
+  )
+{
+  return EFI_SUCCESS;
+}
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_RESET_FUNC (VOID)
+{
+  return EFI_SUCCESS;
+}
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_INIT_FUNC (VOID)
+{
+  return EFI_SUCCESS;
+}
+
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_REINIT_FUNC (VOID)
+{
+  return EFI_SUCCESS;
+}
+
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_RESET_WAIT_FUNC (
+  IN        UINT32           Delay
+  )
+{
+  return EFI_SUCCESS;
+}
+
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_GET_ME_STATUS_FUNC (
+  IN UINT32                       *Status
+  )
+{
+  return EFI_SUCCESS;
+}
+
+
+
+EFI_STATUS
+EFIAPI EFI_HECI_GET_ME_MODE_FUNC (
+  IN UINT32                       *Mode
+  )
+{
+  return EFI_SUCCESS;
+}
 
 
 VOID* EFIAPI EFI_SMBIOS_GET_TABLE_ENTRY_FUNC () {
@@ -1881,6 +1999,713 @@ EFI_STATUS EFIAPI EFI_UNKNOWN1_FUNC (
   return EFI_SUCCESS;
 }
 
+EFI_STATUS EFIAPI EFI_BOOT_SCRIPT_WRITE_FUNC (
+  IN EFI_BOOT_SCRIPT_SAVE_PROTOCOL            * This,
+  IN UINT16                                   TableName,
+  IN UINT16                                   OpCode,
+  ...
+  )
+{
+  return EFI_SUCCESS; 
+}
+EFI_STATUS EFIAPI EFI_BOOT_SCRIPT_CLOSE_TABLE_FUNC (
+  IN EFI_BOOT_SCRIPT_SAVE_PROTOCOL            * This,
+  IN UINT16                                   TableName,
+  OUT EFI_PHYSICAL_ADDRESS                    * Address
+  )
+{
+  return EFI_SUCCESS; 
+}
+EFI_STATUS EFIAPI EFI_PLATFORMINFO_GET_PLATFORMINFO_FUNC (
+    IN EFI_PLATFORMINFO_PROTOCOL *This,
+    OUT EFI_PLATFORMINFO_PLATFORM_INFO_TYPE *PlatformInfo)
+{
+  return EFI_SUCCESS; 
+}
+EFI_STATUS EFIAPI EFI_PLATFORMINFO_GET_KEYVALUE_FUNC (
+    IN EFI_PLATFORMINFO_PROTOCOL *This,
+    IN EFI_PLATFORMINFO_KEY_TYPE Key,
+    OUT UINT32 *Value)
+{
+  return EFI_SUCCESS; 
+}
+
+
+EFI_STATUS EFIAPI AMI_FLASH_READ_FUNC(
+    IN     VOID     *FlashAddress, 
+    IN     UINTN    Size, 
+    IN OUT VOID     *DataBuffer
+)
+{
+  return EFI_SUCCESS; 
+}
+
+EFI_STATUS EFIAPI AMI_FLASH_ERASE_FUNC(
+    IN VOID *FlashAddress, 
+    IN UINTN Size
+)
+{
+  return EFI_SUCCESS; 
+}
+
+EFI_STATUS EFIAPI AMI_FLASH_WRITE_FUNC(
+    IN  VOID *FlashAddress, 
+    IN  UINTN Size, 
+    IN  VOID *DataBuffer
+)
+{
+  return EFI_SUCCESS;   
+}
+
+EFI_STATUS EFIAPI AMI_FLASH_UPDATE_FUNC(
+    IN  VOID *FlashAddress, 
+    IN  UINTN Size, 
+    IN  VOID *DataBuffer
+)
+{
+  return EFI_SUCCESS;    
+}
+
+EFI_STATUS EFIAPI AMI_FLASH_WRITE_ENABLE_FUNC(VOID)
+{
+  return EFI_SUCCESS;  
+}
+
+/**
+  Disable the ability to write to the flash part.
+**/
+EFI_STATUS EFIAPI AMI_FLASH_WRITE_DISABLE_FUNC(VOID)
+{
+  return EFI_SUCCESS;   
+}
+
+EFI_STATUS GET_FLASH_INFO_FUNC (
+    IN OUT INFO_BLOCK           *InfoBlock
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS ENABLE_FLASH_FUNC (
+    IN OUT FUNC_BLOCK           *FuncBlock
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS DISABLE_FLASH_FUNC (
+    IN OUT FUNC_BLOCK           *FuncBlock
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS READ_FLASH_FUNC(
+    IN OUT FUNC_BLOCK           *FuncBlock
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS WRITE_FLASH_FUNC (
+    IN OUT FUNC_BLOCK           *FuncBlock
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS ERASE_FLASH_FUNC (
+    IN OUT FUNC_BLOCK           *FuncBlock
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS EFIAPI  AMI_PCI_EXT_IS_PCI_EXPRESS_FUNC(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		    OPTIONAL,
+    OUT VOID                                       **PciExpData    OPTIONAL
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+//-------------------------------------------------
+EFI_STATUS EFIAPI  AMI_PCI_EXT_IS_PCI_X_FUNC(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		    OPTIONAL,
+    OUT VOID                                       **PciXData    OPTIONAL
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+//-------------------------------------------------
+EFI_STATUS EFIAPI  AMI_PCI_EXT_IS_P2P_BRG_FUNC(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		    OPTIONAL,
+    OUT VOID                                     **BrgData       OPTIONAL
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+//-------------------------------------------------
+EFI_STATUS EFIAPI  AMI_PCI_EXT_IS_CRD_BRG_FUNC(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		    OPTIONAL,
+    OUT VOID                                     **BrgData       OPTIONAL
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+//-------------------------------------------------
+EFI_STATUS EFIAPI  AMI_PCI_EXT_IS_REG_DEVICE_FUNC(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		OPTIONAL
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS EFIAPI  AMI_PCI_EXT_GET_CLASS_CODES_INFO_FUNC(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		OPTIONAL,
+	OUT VOID									*CassCodes
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS EFIAPI  AMI_PCI_EXT_GET_PCI_PIC_IRQ_FUNC(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		OPTIONAL,
+    OUT VOID                               **PicIrqTblEntry,
+    VOID                       **ParentDevices,
+    OUT UINTN                                           *EntryCount
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS EFIAPI  AMI_PCI_EXT_GET_PCI_APIC_IRQ_FUNC(
+	IN  AMI_PCI_EXT_PROTOCOL	              			*This,
+	IN  EFI_HANDLE                               		PciDeviceHandle,
+	IN  VOID								*PciIo 		OPTIONAL,
+    OUT VOID                              **ApicIrqTblEntry,
+    VOID                       **ParentDevices,
+    OUT UINTN                                           *EntryCount
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS
+EFIAPI IIH_ENABLE_VC_FUNC (
+  IN EFI_IIO_UDS_PROTOCOL     *This,
+  IN UINT32                    VcCtrlData
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+
+EFI_STATUS
+EFIAPI EFI_ADD_ERROR_SOURCE_FUNC (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  IN WHEA_ERROR_TYPE                    Type,
+  IN UINTN                              Flags,
+  IN BOOLEAN                            EnableError,
+  OUT UINT16                            *SourceID,
+  IN UINTN                              NoOfRecords,
+  IN UINTN                              MaxSections,
+  IN VOID                               *SourceData
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+//
+// Add an last boot error data log to WHEA for error that happend on last boot.
+//
+
+EFI_STATUS
+EFIAPI EFI_ADD_BOOT_ERROR_LOG_FUNC (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  IN UINT8                              ErrorCondtion,
+  IN UINT32                             ErrorSevirity,
+  OPTIONAL IN EFI_GUID                  *FruID, 
+  OPTIONAL IN CHAR8                     *FruDescription,
+  IN EFI_GUID                           *ErrorType, 
+  IN UINT32                             ErrorDataSize, 
+  OPTIONAL IN UINT8                     *ErrorData
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+//
+// This funtion will install serialization instruction for error injection method for an error type (e.g. memory UE).
+// If error injection method already exist for the error type, the old method will be replced with new one.
+//
+
+EFI_STATUS
+EFIAPI EFI_INSTALL_ERROR_INJECTION_METHOD_FUNC (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  IN UINTN                              ErrorType,
+  IN UINTN                              InstCount,
+  IN VOID                               *InstEntry
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+//
+// Tis function will get the current error injection capability installed in a bitmap.
+//
+
+EFI_STATUS
+EFIAPI EFI_GET_ERROR_INJECTION_CAPABILITY_FUNC (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  OUT UINTN                             *InjectCapability
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+//
+// Returns the Error log Address Range allocated for WHEA
+//
+
+EFI_STATUS
+EFIAPI EFI_GET_ELAR_FUNC (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  OUT UINTN                             *ElarSize,
+  OUT VOID                              **LogAddress
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+//
+// This installs the serialization actions for accessing Error Record persitant Storage.
+//
+
+EFI_STATUS
+EFIAPI EFI_INSTALL_ERROR_RECORD_METHOD_FUNC (
+  IN EFI_WHEA_SUPPORT_PROTOCOL          *This,
+  IN UINTN                            InstCount,
+  IN VOID                           *InstEntry
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI IIO_GET_CPU_UPLINK_PORT_FUNC (
+  IN  UINT8             IioIndex,
+  OUT PORT_DESCRIPTOR   *PortDescriptor,
+  OUT BOOLEAN           *PortStatus,
+  OUT PORT_ATTRIB       *PortAttrib
+)
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_GET_CAPABILITY_FUNC (
+  IN  EFI_USB2_HC_PROTOCOL  *This,
+  OUT UINT8                 *MaxSpeed,
+  OUT UINT8                 *PortNumber,
+  OUT UINT8                 *Is64BitCapable
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_RESET_FUNC (
+  IN EFI_USB2_HC_PROTOCOL   *This,
+  IN UINT16                 Attributes
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_GET_STATE_FUNC (
+  IN  EFI_USB2_HC_PROTOCOL    *This,
+  OUT EFI_USB_HC_STATE        *State
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_SET_STATE_FUNC (
+  IN EFI_USB2_HC_PROTOCOL    *This,
+  IN EFI_USB_HC_STATE        State
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_CONTROL_TRANSFER_FUNC (
+  IN     EFI_USB2_HC_PROTOCOL               *This,
+  IN     UINT8                              DeviceAddress,
+  IN     UINT8                              DeviceSpeed,
+  IN     UINTN                              MaximumPacketLength,
+  IN     EFI_USB_DEVICE_REQUEST             *Request,
+  IN     EFI_USB_DATA_DIRECTION             TransferDirection,
+  IN OUT VOID                               *Data       OPTIONAL,
+  IN OUT UINTN                              *DataLength OPTIONAL,
+  IN     UINTN                              TimeOut,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  OUT    UINT32                             *TransferResult
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_BULK_TRANSFER_FUNC (
+  IN     EFI_USB2_HC_PROTOCOL               *This,
+  IN     UINT8                              DeviceAddress,
+  IN     UINT8                              EndPointAddress,
+  IN     UINT8                              DeviceSpeed,
+  IN     UINTN                              MaximumPacketLength,
+  IN     UINT8                              DataBuffersNumber,
+  IN OUT VOID                               *Data[EFI_USB_MAX_BULK_BUFFER_NUM],
+  IN OUT UINTN                              *DataLength,
+  IN OUT UINT8                              *DataToggle,
+  IN     UINTN                              TimeOut,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  OUT    UINT32                             *TransferResult
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_ASYNC_INTERRUPT_TRANSFER_FUNC (
+  IN     EFI_USB2_HC_PROTOCOL                                *This,
+  IN     UINT8                                               DeviceAddress,
+  IN     UINT8                                               EndPointAddress,
+  IN     UINT8                                               DeviceSpeed,
+  IN     UINTN                                               MaxiumPacketLength,
+  IN     BOOLEAN                                             IsNewTransfer,
+  IN OUT UINT8                                               *DataToggle,
+  IN     UINTN                                               PollingInterval  OPTIONAL,
+  IN     UINTN                                               DataLength       OPTIONAL,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  IN     EFI_ASYNC_USB_TRANSFER_CALLBACK                     CallBackFunction OPTIONAL,
+  IN     VOID                                                *Context         OPTIONAL
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_SYNC_INTERRUPT_TRANSFER_FUNC (
+  IN     EFI_USB2_HC_PROTOCOL   *This,
+  IN     UINT8                  DeviceAddress,
+  IN     UINT8                  EndPointAddress,
+  IN     UINT8                  DeviceSpeed,
+  IN     UINTN                  MaximumPacketLength,
+  IN OUT VOID                   *Data,
+  IN OUT UINTN                  *DataLength,
+  IN OUT UINT8                  *DataToggle,
+  IN     UINTN                  TimeOut,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  OUT    UINT32                 *TransferResult
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_ISOCHRONOUS_TRANSFER_FUNC (
+  IN     EFI_USB2_HC_PROTOCOL               *This,
+  IN     UINT8                              DeviceAddress,
+  IN     UINT8                              EndPointAddress,
+  IN     UINT8                              DeviceSpeed,
+  IN     UINTN                              MaximumPacketLength,
+  IN     UINT8                              DataBuffersNumber,
+  IN OUT VOID                               *Data[EFI_USB_MAX_ISO_BUFFER_NUM],
+  IN     UINTN                              DataLength,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  OUT    UINT32                             *TransferResult
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_ASYNC_ISOCHRONOUS_TRANSFER_FUNC (
+  IN     EFI_USB2_HC_PROTOCOL               *This,
+  IN     UINT8                              DeviceAddress,
+  IN     UINT8                              EndPointAddress,
+  IN     UINT8                              DeviceSpeed,
+  IN     UINTN                              MaximumPacketLength,
+  IN     UINT8                              DataBuffersNumber,
+  IN OUT VOID                               *Data[EFI_USB_MAX_ISO_BUFFER_NUM],
+  IN     UINTN                              DataLength,
+  IN     EFI_USB2_HC_TRANSACTION_TRANSLATOR *Translator,
+  IN     EFI_ASYNC_USB_TRANSFER_CALLBACK    IsochronousCallBack,
+  IN     VOID                               *Context OPTIONAL
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_GET_ROOTHUB_PORT_STATUS_FUNC (
+  IN EFI_USB2_HC_PROTOCOL    *This,
+  IN  UINT8                  PortNumber,
+  OUT EFI_USB_PORT_STATUS    *PortStatus
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_SET_ROOTHUB_PORT_FEATURE_FUNC (
+  IN EFI_USB2_HC_PROTOCOL    *This,
+  IN UINT8                   PortNumber,
+  IN EFI_USB_PORT_FEATURE    PortFeature
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_USB2_HC_PROTOCOL_CLEAR_ROOTHUB_PORT_FEATURE_FUNC (
+  IN EFI_USB2_HC_PROTOCOL    *This,
+  IN UINT8                   PortNumber,
+  IN EFI_USB_PORT_FEATURE    PortFeature
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS
+EFIAPI MEASURE_CPU_MICROCODE_FUNC (
+
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS
+EFIAPI MEASURE_PCI_OPROMS_FUNC (
+
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS
+EFIAPI PROCESS_TCG_SETUP_FUNC (
+
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS
+EFIAPI PROCESS_TCG_PPI_REQUEST_FUNC (
+
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS
+EFIAPI TCG_READY_TO_BOOT_FUNC (
+
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS
+EFIAPI GET_PROTOCOL_VERSION_FUNC (
+    AMI_TCG_PROTOCOL_VERSION *a
+)
+{
+  return EFI_SUCCESS;  
+}
+
+VOID
+EFIAPI RESETOSTCGVAR_FUNC (
+)
+{
+  return;
+}
+EFI_STATUS EFIAPI EFI_NB_ERROR_LOG_REGISTER_FUNC (
+    IN EFI_NB_ERROR_LOG_DISPATCH_PROTOCOL   *This,
+    IN EFI_NB_ERROR_LOG_DISPATCH            DispatchFunction,
+    OUT EFI_HANDLE                          *DispatchHandle
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS EFIAPI EFI_NB_ERROR_LOG_UNREGISTER_FUNC (
+    IN EFI_NB_ERROR_LOG_DISPATCH_PROTOCOL   *This,
+    IN EFI_HANDLE                           DispatchHandle
+)
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI PLATFORM_CPU_RETRIEVE_MICROCODE_FUNC (
+  IN DXE_CPU_PLATFORM_POLICY_PROTOCOL *This,
+  OUT UINT8                           **MicrocodeData
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS
+EFIAPI PLATFORM_CPU_GET_MAX_COUNT_FUNC (
+  IN DXE_CPU_PLATFORM_POLICY_PROTOCOL *This,
+  OUT UINT32                          *MaxThreadsPerCore,
+  OUT UINT32                          *MaxCoresPerDie,
+  OUT UINT32                          *MaxDiesPerPackage,
+  OUT UINT32                          *MaxPackages
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI PLATFORM_CPU_GET_CPU_INFO_FUNC (
+  IN DXE_CPU_PLATFORM_POLICY_PROTOCOL *This,
+  IN CPU_PHYSICAL_LOCATION            *Location,
+  IN OUT PLATFORM_CPU_INFORMATION     *PlatformCpuInfo
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS
+EFIAPI EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_SMBUSADDR_FUNC (
+  IN  EFI_ALERT_STANDARD_FORMAT_PROTOCOL   * This,
+  OUT UINTN                                *SmbusDeviceAddress
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS
+EFIAPI EFI_ALERT_STANDARD_FORMAT_PROTOCOL_SET_SMBUSADDR_FUNC (
+  IN  EFI_ALERT_STANDARD_FORMAT_PROTOCOL   * This,
+  IN  UINTN                                SmbusDeviceAddress
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS
+EFIAPI EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_BOOT_OPTIONS_FUNC (
+  IN      EFI_ALERT_STANDARD_FORMAT_PROTOCOL   * This,
+  IN  OUT EFI_ASF_BOOT_OPTIONS                 **AsfBootOptions
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+
+EFI_STATUS
+EFIAPI EFI_ALERT_STANDARD_FORMAT_PROTOCOL_SEND_ASF_MESSAGE_FUNC (
+  IN  EFI_ALERT_STANDARD_FORMAT_PROTOCOL   * This,
+  IN  EFI_ASF_MESSAGE                      * AsfMessage
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS
+EFIAPI EFI_TREE_GET_CAPABILITY_FUNC (
+  IN EFI_TREE_PROTOCOL                *This,
+  IN OUT TREE_BOOT_SERVICE_CAPABILITY *ProtocolCapability
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS
+EFIAPI EFI_TREE_GET_EVENT_LOG_FUNC (
+  IN EFI_TREE_PROTOCOL     *This,
+  IN TREE_EVENT_LOG_FORMAT EventLogFormat,
+  OUT EFI_PHYSICAL_ADDRESS *EventLogLocation,
+  OUT EFI_PHYSICAL_ADDRESS *EventLogLastEntry,
+  OUT BOOLEAN              *EventLogTruncated
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS
+EFIAPI EFI_TREE_HASH_LOG_EXTEND_EVENT_FUNC (
+  IN EFI_TREE_PROTOCOL    *This,
+  IN UINT64               Flags,
+  IN EFI_PHYSICAL_ADDRESS DataToHash,
+  IN UINT64               DataToHashLen,
+  IN TrEE_EVENT           *Event
+  )
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS
+EFIAPI EFI_TREE_SUBMIT_COMMAND_FUNC (
+  IN EFI_TREE_PROTOCOL *This,
+  IN UINT32            InputParameterBlockSize,
+  IN UINT8             *InputParameterBlock,
+  IN UINT32            OutputParameterBlockSize,
+  IN UINT8             *OutputParameterBlock
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS GET_FLASH_TABLE_INFO_FUNC (
+    IN  EFI_SMBIOS_FLASH_DATA_PROTOCOL  *This,
+    OUT VOID                            **Location,
+    OUT UINT32                          *Size
+)
+{
+  return EFI_SUCCESS;  
+}
+
+EFI_STATUS GET_FIELD_FUNC (
+    IN  EFI_SMBIOS_FLASH_DATA_PROTOCOL  *This,
+    IN  UINT8                           Table,
+    IN  UINT8                           Offset,
+    OUT VOID                            **String
+)
+{
+  return EFI_SUCCESS;  
+}
+
+
+
 VOID InstallSmmFuzzProtocol();
 VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
@@ -1936,10 +2761,11 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  mAmiSmbiosFlashDataProtocol.UNKNOWN_FUNC1 = EFI_UNKNOWN1_FUNC;
+  mAmiSmbiosFlashDataProtocol.GetField = GET_FIELD_FUNC;
+  mAmiSmbiosFlashDataProtocol.GetFlashTableInfo = GET_FLASH_TABLE_INFO_FUNC;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
-                  &GAmiSmbiosFlashDataProtocolGuid,
+                  &gAmiSmbiosFlashDataProtocolGuid,
                   &mAmiSmbiosFlashDataProtocol,
                   NULL
                   );
@@ -1985,51 +2811,457 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  Status = gBS->InstallMultipleProtocolInterfaces (
-                  &Handle,
-                  &gUnknownHpProtocol1Guid,
-                  UnknownProtocol,
-                  NULL
-                  );
-  ASSERT_EFI_ERROR (Status);
-
-  Status = gBS->InstallMultipleProtocolInterfaces (
-                  &Handle,
-                  &gUnknownHpProtocol2Guid,
-                  UnknownProtocol,
-                  NULL
-                  );
-  ASSERT_EFI_ERROR (Status);
-
-  AMI_SMBIOS_PROTOCOL *SmbiosProtocol = AllocatePool(sizeof(AMI_SMBIOS_PROTOCOL));
-  SmbiosProtocol->SmbiosGetTableEntryPoint = EFI_SMBIOS_GET_TABLE_ENTRY_FUNC;
-  SmbiosProtocol->SmbiosGetScratchBufferPtr = EFI_SMBIOS_GET_SCRATCH_BUFFER_FUNC;
-  SmbiosProtocol->SmbiosGetBufferMaxSize = EFI_SMBIOS_GET_BUFFER_MAX_SIZE_FUNC;
-  SmbiosProtocol->SmbiosGetFreeHandle = EFI_SMBIOS_GET_FREE_HANDLE_FUNC;
-  SmbiosProtocol->SmbiosAddStructure = EFI_SMBIOS_ADD_STRUCTURE_FUNC;
-  SmbiosProtocol->SmbiosAddStrucByHandle = EFI_SMBIOS_ADD_STRUC_HANDLE_FUNC;
-  SmbiosProtocol->SmbiosDeleteStructure = EFI_SMBIOS_DELETE_STRUCTURE_FUNC;
-  SmbiosProtocol->SmbiosReadStructure = EFI_SMBIOS_READ_STRUCTURE_FUNC;
-  SmbiosProtocol->SmbiosReadStrucByType = EFI_SMBIOS_READ_STRUC_TYPE_FUNC;
-  SmbiosProtocol->SmbiosWriteStructure = EFI_SMBIOS_WRITE_STRUCTURE_FUNC;
-  SmbiosProtocol->SmbiosAddStrucByIndex = EFI_SMBIOS_ADD_STRUC_INDEX_FUNC;
-  SmbiosProtocol->SmbiosUpdateHeader = EFI_SMBIOS_UPDATE_HEADER_FUNC;
-  SmbiosProtocol->SmbiosGetVerTableEntryPoint = EFI_SMBIOS_GET_VER_TABLE_ENTRY_FUNC;
-
+  mAmiSmbiosProtocol.SmbiosGetTableEntryPoint = EFI_SMBIOS_GET_TABLE_ENTRY_FUNC;
+  mAmiSmbiosProtocol.SmbiosGetScratchBufferPtr = EFI_SMBIOS_GET_SCRATCH_BUFFER_FUNC;
+  mAmiSmbiosProtocol.SmbiosGetBufferMaxSize = EFI_SMBIOS_GET_BUFFER_MAX_SIZE_FUNC;
+  mAmiSmbiosProtocol.SmbiosGetFreeHandle = EFI_SMBIOS_GET_FREE_HANDLE_FUNC;
+  mAmiSmbiosProtocol.SmbiosAddStructure = EFI_SMBIOS_ADD_STRUCTURE_FUNC;
+  mAmiSmbiosProtocol.SmbiosAddStrucByHandle = EFI_SMBIOS_ADD_STRUC_HANDLE_FUNC;
+  mAmiSmbiosProtocol.SmbiosDeleteStructure = EFI_SMBIOS_DELETE_STRUCTURE_FUNC;
+  mAmiSmbiosProtocol.SmbiosReadStructure = EFI_SMBIOS_READ_STRUCTURE_FUNC;
+  mAmiSmbiosProtocol.SmbiosReadStrucByType = EFI_SMBIOS_READ_STRUC_TYPE_FUNC;
+  mAmiSmbiosProtocol.SmbiosWriteStructure = EFI_SMBIOS_WRITE_STRUCTURE_FUNC;
+  mAmiSmbiosProtocol.SmbiosAddStrucByIndex = EFI_SMBIOS_ADD_STRUC_INDEX_FUNC;
+  mAmiSmbiosProtocol.SmbiosUpdateHeader = EFI_SMBIOS_UPDATE_HEADER_FUNC;
+  mAmiSmbiosProtocol.SmbiosGetVerTableEntryPoint = EFI_SMBIOS_GET_VER_TABLE_ENTRY_FUNC;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gAmiSmbiosProtocolGuid,
-                  SmbiosProtocol,
+                  &mAmiSmbiosProtocol,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
 
+
+
+  mGlobalNvsAreaProtocol.Area = AllocatePool(sizeof(EFI_GLOBAL_NVS_AREA));
+  ZeroMem(mGlobalNvsAreaProtocol.Area,sizeof(EFI_GLOBAL_NVS_AREA));
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
-                  &gUnknownHpProtocol4Guid,
-                  UnknownProtocol,
+                  &gEfiGlobalNvsAreaProtocolGuid,
+                  &mGlobalNvsAreaProtocol,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
+  
+  mSaGlobalNvsAreaProtocol.Area = AllocatePool(sizeof(SYSTEM_AGENT_GLOBAL_NVS_AREA));
+  ZeroMem(mSaGlobalNvsAreaProtocol.Area,sizeof(SYSTEM_AGENT_GLOBAL_NVS_AREA));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gSaGlobalNvsAreaProtocolGuid,
+                  &mSaGlobalNvsAreaProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiPlatforminfoProtocol.GetKeyValue = EFI_PLATFORMINFO_GET_KEYVALUE_FUNC;
+  mEfiPlatforminfoProtocol.GetPlatformInfo = EFI_PLATFORMINFO_GET_PLATFORMINFO_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiPlatformInfoProtocolGuid,
+                  &mEfiPlatforminfoProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiBootScriptSaveProtocol.Write = EFI_BOOT_SCRIPT_WRITE_FUNC;
+  mEfiBootScriptSaveProtocol.CloseTable = EFI_BOOT_SCRIPT_CLOSE_TABLE_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiBootScriptSaveProtocolGuid,
+                  &mEfiBootScriptSaveProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mAmiFlashProtocol.Read =  AMI_FLASH_READ_FUNC;
+  mAmiFlashProtocol.Erase =  AMI_FLASH_ERASE_FUNC;
+  mAmiFlashProtocol.Write =  AMI_FLASH_WRITE_FUNC;
+  mAmiFlashProtocol.Update =  AMI_FLASH_UPDATE_FUNC;
+  mAmiFlashProtocol.DeviceWriteEnable =  AMI_FLASH_WRITE_ENABLE_FUNC;
+  mAmiFlashProtocol.DeviceWriteDisable =  AMI_FLASH_WRITE_DISABLE_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gAmiFlashProtocolGuid,
+                  &mAmiFlashProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiSmiFlashProtocol.GetFlashInfo = GET_FLASH_INFO_FUNC;
+  mEfiSmiFlashProtocol.EnableFlashWrite = ENABLE_FLASH_FUNC;
+  mEfiSmiFlashProtocol.DisableFlashWrite = DISABLE_FLASH_FUNC;
+  mEfiSmiFlashProtocol.ReadFlash = READ_FLASH_FUNC;
+  mEfiSmiFlashProtocol.WriteFlash = WRITE_FLASH_FUNC;
+  mEfiSmiFlashProtocol.EraseFlash = ERASE_FLASH_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiSmiFlashProtocolGuid,
+                  &mEfiSmiFlashProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiHeciProtocol.SendwACK = EFI_HECI_SENDWACK_FUNC;
+  mEfiHeciProtocol.ReadMsg = EFI_HECI_READ_MESSAGE_FUNC;
+  mEfiHeciProtocol.SendMsg = EFI_HECI_SEND_MESSAGE_FUNC;
+  mEfiHeciProtocol.ResetHeci = EFI_HECI_RESET_FUNC;
+  mEfiHeciProtocol.InitHeci = EFI_HECI_INIT_FUNC;
+  mEfiHeciProtocol.MeResetWait = EFI_HECI_RESET_WAIT_FUNC;
+  mEfiHeciProtocol.ReInitHeci = EFI_HECI_REINIT_FUNC;
+  mEfiHeciProtocol.GetMeStatus = EFI_HECI_GET_ME_STATUS_FUNC;
+  mEfiHeciProtocol.GetMeMode = EFI_HECI_GET_ME_MODE_FUNC;
+  mEfiHeciProtocol.ReadAndFlush = EFI_HECI_READ_FLUSH_MESSAGE_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiHeciProtocolGuid,
+                  &mEfiHeciProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mAmiPciExtProtocol.IsPciExpress = AMI_PCI_EXT_IS_PCI_EXPRESS_FUNC;
+  mAmiPciExtProtocol.IsPciX = AMI_PCI_EXT_IS_PCI_X_FUNC;
+  mAmiPciExtProtocol.IsPci2PciBridge = AMI_PCI_EXT_IS_P2P_BRG_FUNC;
+  mAmiPciExtProtocol.IsPci2CrdBridge = AMI_PCI_EXT_IS_CRD_BRG_FUNC;
+  mAmiPciExtProtocol.IsPciDevice = AMI_PCI_EXT_IS_REG_DEVICE_FUNC;
+  mAmiPciExtProtocol.GetClassCodesInfo = AMI_PCI_EXT_GET_CLASS_CODES_INFO_FUNC;
+  mAmiPciExtProtocol.GetPciPicIrq = AMI_PCI_EXT_GET_PCI_PIC_IRQ_FUNC;
+  mAmiPciExtProtocol.GetPciApicIrq = AMI_PCI_EXT_GET_PCI_APIC_IRQ_FUNC;
+  mAmiPciExtProtocol.PciExtHanle = NULL;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gAmiExtPciBusProtocolGuid,
+                  &mAmiPciExtProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  ZeroMem(&mEfiPchInfoProtocol, sizeof(EFI_PCH_INFO_PROTOCOL));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiPchInfoProtocolGuid,
+                  &mEfiPchInfoProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiIioUdsProtocol.EnableVc = IIH_ENABLE_VC_FUNC;
+  mEfiIioUdsProtocol.IioUdsPtr = AllocatePool(sizeof(IIO_UDS));
+  ZeroMem(mEfiIioUdsProtocol.IioUdsPtr, sizeof(IIO_UDS));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiIioUdsProtocolGuid,
+                  &mEfiIioUdsProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  
+  mEfiWheaSupportProtocol.AddErrorSource = EFI_ADD_ERROR_SOURCE_FUNC;
+  mEfiWheaSupportProtocol.AddBootErrorLog = EFI_ADD_BOOT_ERROR_LOG_FUNC;
+  mEfiWheaSupportProtocol.InstallErrorInjectionMethod = EFI_INSTALL_ERROR_INJECTION_METHOD_FUNC;
+  mEfiWheaSupportProtocol.GetErrorInjectionCapability = EFI_GET_ERROR_INJECTION_CAPABILITY_FUNC;
+  mEfiWheaSupportProtocol.GetElar = EFI_GET_ELAR_FUNC;
+  mEfiWheaSupportProtocol.InstallErrorRecordMethod = EFI_INSTALL_ERROR_RECORD_METHOD_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiWheaSupportProtocolGuid,
+                  &mEfiWheaSupportProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  ZeroMem(&mPpmPlatformPolicyProtocol,sizeof(PPM_PLATFORM_POLICY_PROTOCOL));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gPpmPlatformPolicyProtocolGuid,
+                  &mPpmPlatformPolicyProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiIioSystemProtocol.IioGlobalData = AllocatePool(sizeof(IIO_GLOBALS));
+  ZeroMem(mEfiIioSystemProtocol.IioGlobalData, sizeof(IIO_GLOBALS));
+  mEfiIioSystemProtocol.IioGetCpuUplinkPort = IIO_GET_CPU_UPLINK_PORT_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiIioSystemProtocolGuid,
+                  &mEfiIioSystemProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiUsb2HcProtocol.GetCapability = EFI_USB2_HC_PROTOCOL_GET_CAPABILITY_FUNC;
+  mEfiUsb2HcProtocol.Reset = EFI_USB2_HC_PROTOCOL_RESET_FUNC;
+  mEfiUsb2HcProtocol.GetState = EFI_USB2_HC_PROTOCOL_GET_STATE_FUNC;
+  mEfiUsb2HcProtocol.SetState = EFI_USB2_HC_PROTOCOL_SET_STATE_FUNC;
+  mEfiUsb2HcProtocol.ControlTransfer =  EFI_USB2_HC_PROTOCOL_CONTROL_TRANSFER_FUNC;
+  mEfiUsb2HcProtocol.BulkTransfer =  EFI_USB2_HC_PROTOCOL_BULK_TRANSFER_FUNC;
+  mEfiUsb2HcProtocol.AsyncInterruptTransfer =  EFI_USB2_HC_PROTOCOL_ASYNC_INTERRUPT_TRANSFER_FUNC;
+  mEfiUsb2HcProtocol.SyncInterruptTransfer = EFI_USB2_HC_PROTOCOL_SYNC_INTERRUPT_TRANSFER_FUNC;
+  mEfiUsb2HcProtocol.IsochronousTransfer = EFI_USB2_HC_PROTOCOL_ISOCHRONOUS_TRANSFER_FUNC;
+  mEfiUsb2HcProtocol.AsyncIsochronousTransfer = EFI_USB2_HC_PROTOCOL_ASYNC_ISOCHRONOUS_TRANSFER_FUNC;
+  mEfiUsb2HcProtocol.GetRootHubPortStatus =  EFI_USB2_HC_PROTOCOL_GET_ROOTHUB_PORT_STATUS_FUNC;
+  mEfiUsb2HcProtocol.ClearRootHubPortFeature =  EFI_USB2_HC_PROTOCOL_CLEAR_ROOTHUB_PORT_FEATURE_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiUsb2HcProtocolGuid,
+                  &mEfiUsb2HcProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mAmiTcgPlatformProtocol.MeasureCpuMicroCode = MEASURE_CPU_MICROCODE_FUNC;
+  mAmiTcgPlatformProtocol.MeasurePCIOproms = MEASURE_PCI_OPROMS_FUNC;
+  mAmiTcgPlatformProtocol.ProcessTcgSetup = PROCESS_TCG_SETUP_FUNC;
+  mAmiTcgPlatformProtocol.ProcessTcgPpiRequest = PROCESS_TCG_PPI_REQUEST_FUNC;
+  mAmiTcgPlatformProtocol.SetTcgReadyToBoot = TCG_READY_TO_BOOT_FUNC;
+  mAmiTcgPlatformProtocol.GetProtocolVersion = GET_PROTOCOL_VERSION_FUNC;
+  mAmiTcgPlatformProtocol.ResetOSTcgVar = RESETOSTCGVAR_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gAmiTcgPlatformProtocolguid,
+                  &mAmiTcgPlatformProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiNbErrorLogDispatchProtocol.Register = EFI_NB_ERROR_LOG_REGISTER_FUNC;
+  mEfiNbErrorLogDispatchProtocol.UnRegister = EFI_NB_ERROR_LOG_UNREGISTER_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gNbErrorLogDispatchProtocolGuid,
+                  &mEfiNbErrorLogDispatchProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  ZeroMem(&mMemInfoProtocol,sizeof(MEM_INFO_PROTOCOL));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gMemInfoProtocolGuid,
+                  &mMemInfoProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  ZeroMem(&mDxeCpuPlatformPolicyProtocol,sizeof(DXE_CPU_PLATFORM_POLICY_PROTOCOL));
+  mDxeCpuPlatformPolicyProtocol.CpuConfig = AllocatePool(sizeof(CPU_CONFIG));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.CpuConfig, sizeof(CPU_CONFIG));
+  mDxeCpuPlatformPolicyProtocol.CpuConfig->RetrieveMicrocode = PLATFORM_CPU_RETRIEVE_MICROCODE_FUNC;
+  mDxeCpuPlatformPolicyProtocol.CpuConfig->GetMaxCount = PLATFORM_CPU_GET_MAX_COUNT_FUNC;
+  mDxeCpuPlatformPolicyProtocol.CpuConfig->GetCpuInfo = PLATFORM_CPU_GET_CPU_INFO_FUNC;
+  mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig = AllocatePool(sizeof(POWER_MGMT_CONFIG));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig, sizeof(POWER_MGMT_CONFIG));
+  mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pFunctionEnables = AllocatePool(sizeof(PPM_FUNCTION_ENABLES));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pFunctionEnables, sizeof(PPM_FUNCTION_ENABLES));
+  mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pCustomRatioTable = AllocatePool(sizeof(PPM_CUSTOM_RATIO_TABLE));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pCustomRatioTable, sizeof(PPM_CUSTOM_RATIO_TABLE));
+  mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pTurboSettings = AllocatePool(sizeof(PPM_TURBO_SETTINGS));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pTurboSettings, sizeof(PPM_TURBO_SETTINGS));
+  mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pRatioLimit = AllocatePool(sizeof(UINT8));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pRatioLimit, sizeof(UINT8));
+  mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pPpmLockEnables = AllocatePool(sizeof(PPM_LOCK_ENABLES));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pPpmLockEnables, sizeof(PPM_LOCK_ENABLES));
+  mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pCustomCtdpSettings = AllocatePool(sizeof(PPM_CUSTOM_CTDP));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->pCustomCtdpSettings, sizeof(PPM_CUSTOM_CTDP));
+  mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->ThermalFuncEnables = AllocatePool(sizeof(THERM_FUNCTION_ENABLES));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.PowerMgmtConfig->ThermalFuncEnables, sizeof(THERM_FUNCTION_ENABLES));
+  mDxeCpuPlatformPolicyProtocol.SecurityConfig = AllocatePool(sizeof(SECURITY_CONFIG));
+  mDxeCpuPlatformPolicyProtocol.SecurityConfig->TxtFunctionConfig = AllocatePool(sizeof(TXT_FUNCTION_CONFIG));
+  ZeroMem(mDxeCpuPlatformPolicyProtocol.SecurityConfig->TxtFunctionConfig, sizeof(TXT_FUNCTION_CONFIG));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gDxeCpuPlatformPolicyProtocolGuid,
+                  &mDxeCpuPlatformPolicyProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiAlertStandardFormatProtocol.GetSmbusAddr = EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_SMBUSADDR_FUNC;
+  mEfiAlertStandardFormatProtocol.SetSmbusAddr = EFI_ALERT_STANDARD_FORMAT_PROTOCOL_SET_SMBUSADDR_FUNC;
+  mEfiAlertStandardFormatProtocol.GetBootOptions = EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_BOOT_OPTIONS_FUNC;
+  mEfiAlertStandardFormatProtocol.SendAsfMessage = EFI_ALERT_STANDARD_FORMAT_PROTOCOL_SEND_ASF_MESSAGE_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiAlertStandardFormatProtocolGuid,
+                  &mEfiAlertStandardFormatProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  ZeroMem(&mDxePchPlatformPolicyProtocol, sizeof(DXE_PCH_PLATFORM_POLICY_PROTOCOL));
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gDxePchPlatformPolicyProtocolGuid,
+                  &mDxePchPlatformPolicyProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+
+  static GUID UnknownSmmFuzzProtocols[] = {
+    { 0x5B4CB5FD, 0x42F4, 0x27A0, { 0xCC, 0xEB, 0xD9, 0xA2, 0x8E, 0x6B, 0x91, 0xFC } },
+    { 0x443CDE79, 0xA599, 0x4CB7, { 0xB0, 0x4B, 0x73, 0x7F, 0x9E, 0x63, 0x06, 0xFB } },
+    { 0xA073A3A6, 0x96EC, 0x4173, { 0xA9, 0xBC, 0x39, 0x95, 0x06, 0xCD, 0xEA, 0xC6 } },
+    { 0x4D6A54D1, 0xCD56, 0x47F3, { 0x93, 0x6E, 0x7E, 0x51, 0xD9, 0x31, 0x15, 0x4F } },
+    { 0x7AA096A6, 0xC4AF, 0x49AF, { 0xAD, 0xDD, 0x98, 0x9F, 0x1C, 0x55, 0x76, 0x4A } },
+    { 0xE4EB9F35, 0xE1DF, 0x45D1, { 0x97, 0x2B, 0xEB, 0xA4, 0xE6, 0x5E, 0xD5, 0x44 } },
+    { 0x5E5A2DAD, 0x6EF7, 0x4210, { 0xB7, 0x61, 0x95, 0x8E, 0x83, 0xDC, 0xDF, 0x79 } },
+    { 0x71FD0C86, 0xE19B, 0x4F9C, { 0x81, 0x5D, 0xCC, 0x98, 0x31, 0xDC, 0xBA, 0xFA } },
+    { 0xACE5A4FB, 0x874B, 0x42CB, { 0x9B, 0xCA, 0xC2, 0x2E, 0xEB, 0x12, 0x2E, 0x01 } },
+    { 0x8A51C4CC, 0xF3BA, 0x4895, { 0xB0, 0xE2, 0x90, 0xE4, 0xA6, 0x1A, 0x91, 0xC7 } },
+    { 0x579CB2CB, 0x3403, 0x4B26, { 0x84, 0xCD, 0x72, 0x89, 0xFC, 0x91, 0x4D, 0x35 } },
+    { 0x9A19EF65, 0x0E00, 0x44CA, { 0xB6, 0xF2, 0x04, 0xA2, 0xCB, 0x59, 0xF7, 0xE1 } },
+    { 0xD3132591, 0xB110, 0x41C4, { 0x9A, 0x2D, 0x89, 0x33, 0xA0, 0xC2, 0x5C, 0x9F } },
+    { 0x0DE50221, 0xFAAA, 0x45BA, { 0x90, 0xB9, 0x7B, 0xCC, 0x26, 0xEC, 0x60, 0xCF } },
+    { 0xB0E7F06E, 0x867A, 0x4FBF, { 0xBD, 0xD0, 0x91, 0xA7, 0x6E, 0xD9, 0x2F, 0x91 } },
+    { 0x736102F1, 0x9584, 0x44E7, { 0x82, 0x8A, 0x43, 0x4B, 0x1E, 0x67, 0x5C, 0xC4 } },
+    { 0xB34B83D9, 0x41FA, 0x84D4, { 0x7B, 0xE9, 0xD2, 0x88, 0x5B, 0x49, 0xDF, 0x95 } },
+    { 0x154774EC, 0x4350, 0x40D4, { 0xAF, 0x66, 0x7D, 0x18, 0x37, 0xBC, 0xD5, 0x59 } },
+    { 0xC5C077D6, 0xFF65, 0x4FD5, { 0xA6, 0xF1, 0x30, 0x8E, 0xE3, 0x80, 0x74, 0xD3 } },
+    { 0xAB63700F, 0x7DEE, 0x49E0, { 0x8C, 0xDB, 0xF4, 0xA0, 0xAA, 0x99, 0x53, 0x23 } },
+    { 0x3328028A, 0x9D48, 0x489C, { 0xB7, 0x3F, 0xF2, 0xB3, 0x20, 0x42, 0x30, 0xC1 } },
+    { 0xBD5C43F3, 0x7BEB, 0x4764, { 0x85, 0x5C, 0x22, 0xA1, 0xD7, 0x93, 0xAD, 0xEC } },
+    { 0xA7D8002B, 0x923B, 0x41C0, { 0x88, 0x4C, 0x3F, 0xC3, 0x79, 0x52, 0x03, 0xFA } },
+    { 0x343010C7, 0x4608, 0x44C8, { 0x80, 0x97, 0x04, 0xC4, 0x00, 0xF4, 0x0A, 0x93 } },
+    { 0x90D4ECA9, 0x8E31, 0x4604, { 0xA0, 0x4D, 0x19, 0xF8, 0xB1, 0x2D, 0x12, 0xCC } },
+    { 0x3C7BFA67, 0x4F7D, 0x6E3D, { 0x5B, 0x34, 0x52, 0x93, 0xEB, 0x51, 0xAE, 0xB0 } },
+    { 0xF932C266, 0x75CA, 0x4D1F, { 0x90, 0x16, 0x42, 0x3F, 0x10, 0x3D, 0x82, 0x53 } },
+    { 0x0DE8BACF, 0xE00A, 0x4538, { 0xBE, 0x0D, 0x81, 0xAF, 0x93, 0x74, 0xFC, 0xC9 } },
+    { 0x784F0BDA, 0xF028, 0x4B89, { 0x9C, 0x04, 0x1D, 0x17, 0x84, 0x82, 0x4D, 0xAE } },
+    { 0x4010D299, 0xDFA3, 0x42CA, { 0xAE, 0x1D, 0x7A, 0x59, 0xD3, 0x4D, 0x94, 0x70 } },
+    { 0x2E78BFC4, 0x4C4A, 0x8350, { 0x50, 0xB1, 0x8D, 0x84, 0x6F, 0x70, 0x0E, 0xA3 } },
+    { 0xE6F014AB, 0xCB0E, 0x456E, { 0x8A, 0xF7, 0x72, 0x21, 0xED, 0xB7, 0x02, 0xF7 } },
+    { 0xF447D1DD, 0x1205, 0x4AC2, { 0xBA, 0x53, 0xB7, 0xD6, 0x5A, 0x31, 0xD3, 0x12 } },
+    { 0xF49EFBE0, 0x4682, 0x4471, { 0xAE, 0x65, 0x00, 0xEF, 0xFB, 0x47, 0x70, 0xBA } },
+    { 0x0E5870E4, 0x0525, 0x40AD, { 0x95, 0xA8, 0x0F, 0xFF, 0x15, 0x5B, 0x8F, 0xC0 } },
+    { 0x2251CA8F, 0x02B4, 0x49F3, { 0xAD, 0x67, 0x52, 0x4E, 0xDC, 0xB3, 0xD5, 0xBB } },
+    { 0x55EC2F53, 0x5ABC, 0x4D9F, { 0xBB, 0x02, 0xE1, 0xE7, 0x12, 0x61, 0x38, 0x96 } },
+    { 0x881B4AB6, 0x17B0, 0x4BDF, { 0x88, 0xE2, 0xD4, 0x29, 0xDA, 0x42, 0x5F, 0xFD } },
+    { 0xD7BF10F3, 0xF98C, 0x4C81, { 0xA4, 0xAD, 0x08, 0xAD, 0xEA, 0xC4, 0xD9, 0x71 } },
+    { 0x2F08BAC6, 0x8D86, 0x483A, { 0xB5, 0x28, 0x7E, 0x4B, 0x47, 0x00, 0x24, 0x8C } },
+    { 0x3C6ED57C, 0x4F6A, 0x8A58, { 0x85, 0xDF, 0xDC, 0xA5, 0xAD, 0xF0, 0xF1, 0x6B } },
+    { 0xC63C0C73, 0xF612, 0x4C02, { 0x84, 0xA3, 0xC6, 0x40, 0xAD, 0x0B, 0x12, 0x34 } },
+    { 0xCBD6965C, 0xA0AE, 0x44E2, { 0xBE, 0x60, 0x3B, 0x72, 0x1E, 0x26, 0xCE, 0xCC } },
+    { 0xD8C0BEB0, 0xC23B, 0x4624, { 0xAA, 0xF3, 0xCA, 0xF3, 0x0B, 0x5D, 0xB3, 0x56 } },
+    { 0x92299EAF, 0x6692, 0x485D, { 0xAE, 0x2C, 0xCD, 0x07, 0x78, 0x97, 0x40, 0x8B } },
+    { 0xA6E0C601, 0x46EB, 0x4A83, { 0xAC, 0xE3, 0x14, 0xDA, 0x30, 0x1F, 0x5A, 0x85 } },
+    { 0x4E703E0C, 0xD4B5, 0x4923, { 0xA9, 0x96, 0xD1, 0x35, 0x9D, 0x1D, 0x4C, 0x68 } },
+    { 0xE025746C, 0xD483, 0x498C, { 0xB7, 0x17, 0xE2, 0xFF, 0x99, 0x98, 0x4F, 0x9B } },
+    { 0x45DE9920, 0xCD54, 0x446A, { 0xA0, 0x3C, 0x22, 0xE6, 0xFB, 0xB4, 0x51, 0xE4 } },
+    { 0x4113C18F, 0xD650, 0x488C, { 0x92, 0x93, 0xA0, 0x56, 0xA5, 0x0C, 0xD3, 0xF6 } },
+    { 0x3EF7500E, 0xCF55, 0x474F, { 0x8E, 0x7E, 0x00, 0x9E, 0x0E, 0xAC, 0xEC, 0xD2 } },
+    { 0x1224B1B9, 0xCBA1, 0x41CA, { 0x82, 0xA7, 0xDC, 0xF5, 0xEE, 0x6A, 0xEB, 0xED } },
+    { 0xE541B773, 0xDD11, 0x420C, { 0xB0, 0x26, 0xDF, 0x99, 0x36, 0x53, 0xF8, 0xBF } },
+    { 0x25358F8B, 0xC684, 0x4F7C, { 0x80, 0x4B, 0xA8, 0x13, 0xEE, 0xB8, 0xC5, 0xEE } },
+    { 0xDB4A79AC, 0x5BBB, 0x4625, { 0xA6, 0x9E, 0xFE, 0xBF, 0x9D, 0x6D, 0x12, 0x34 } },
+    { 0xF5DD1F71, 0xC3E2, 0x473D, { 0x84, 0xD5, 0x34, 0x1A, 0x37, 0x40, 0x54, 0xAF } },
+    { 0x53986F2E, 0x4F54, 0x4D40, { 0x81, 0x66, 0x0E, 0x02, 0x0F, 0xBA, 0xBF, 0xBC } },
+    { 0xD4B64FCA, 0x7C4C, 0x48C1, { 0x97, 0x6F, 0x52, 0x87, 0x42, 0x37, 0x53, 0xE4 } },
+    { 0x1390954D, 0xDA95, 0x4227, { 0x93, 0x28, 0x72, 0x82, 0xC2, 0x17, 0xDA, 0xA8 } },
+    { 0xE3FA08C8, 0x4474, 0x4FFF, { 0x8A, 0xB9, 0xE9, 0xA7, 0x0D, 0x98, 0x06, 0xC0 } },
+    { 0x58D75B48, 0x5D7F, 0x4A21, { 0xA8, 0x53, 0xE0, 0x1A, 0xD7, 0xA5, 0x18, 0xA7 } },
+    { 0x1C4C501A, 0x8CDC, 0x4D1F, { 0x86, 0x39, 0x27, 0xE9, 0x04, 0x94, 0x94, 0xC1 } },
+    { 0xB50A6A58, 0x5359, 0x4E79, { 0xB5, 0x9D, 0x20, 0x42, 0x1C, 0xF6, 0x37, 0x47 } },
+    { 0xF8B1B592, 0x4D8A, 0xDE8F, { 0x61, 0x62, 0xC8, 0x86, 0xE9, 0x98, 0x6C, 0x27 } },
+    { 0xCABF469A, 0x4E65, 0x34FC, { 0x5B, 0x48, 0xFB, 0xBD, 0x99, 0x3C, 0x68, 0x1E } },
+    { 0xB8167809, 0xE73A, 0x4387, { 0x83, 0x23, 0x0A, 0xFE, 0x83, 0xD3, 0x07, 0x4F } },
+    { 0x544FA3A0, 0x47E0, 0x48F9, { 0x8B, 0x70, 0xCC, 0x52, 0x73, 0x88, 0xDC, 0x17 } },
+    { 0x0FE9A1F0, 0x1472, 0x44E4, { 0xAD, 0x65, 0x9B, 0x27, 0xC3, 0x7B, 0x17, 0xBF } },
+    { 0x543D5C93, 0x6A28, 0x4513, { 0x85, 0x9A, 0x82, 0xA7, 0xB9, 0x12, 0xCB, 0xBE } },
+    { 0x4FB18DED, 0xD0F9, 0x4B9E, { 0xBF, 0x2B, 0x32, 0x35, 0xCF, 0xBD, 0x80, 0xBA } },
+    { 0xD5B81429, 0xB0BF, 0x42D9, { 0x90, 0x93, 0x35, 0x79, 0x87, 0xFD, 0x5B, 0xD7 } },
+    { 0xEB8F7C39, 0x15BC, 0x454A, { 0x8E, 0x83, 0x77, 0x5D, 0x33, 0xCB, 0x69, 0xC4 } },
+    { 0xF1B3A996, 0x612E, 0x443D, { 0xA9, 0x85, 0xB4, 0x70, 0x0E, 0x57, 0xE4, 0xF2 } },
+    { 0x01B95206, 0xCD66, 0x4C0D, { 0xA8, 0x67, 0xED, 0x42, 0x96, 0x0E, 0x07, 0xDC } },
+    { 0x5CB5C776, 0x60D5, 0x45EE, { 0x88, 0x3C, 0x45, 0x27, 0x08, 0xCD, 0x74, 0x3F } },
+    { 0x7DCCA335, 0x10F2, 0x46DA, { 0xA3, 0x64, 0xF3, 0xD2, 0x85, 0x58, 0x7F, 0xCE } },
+    { 0xA365240E, 0x56B0, 0x426D, { 0x83, 0x0A, 0x30, 0x66, 0xC6, 0x81, 0xBE, 0x9A } },
+    { 0xCBEB63D0, 0x76E3, 0x11E0, { 0xA1, 0xF0, 0x08, 0x00, 0x20, 0x0C, 0x9A, 0x66 } },
+    { 0xB356A1DE, 0x4FCB, 0x4EC1, { 0x91, 0x7C, 0x10, 0xA3, 0xCF, 0x05, 0xC0, 0x91 } },
+    { 0x3724CF01, 0x00C2, 0x9762, { 0x11, 0xB3, 0x0E, 0xA8, 0xAA, 0x89, 0x72, 0x00 } },
+    { 0x6FDD7947, 0x6945, 0x4349, { 0xA4, 0x09, 0xCB, 0x79, 0xD3, 0xFD, 0xDE, 0x00 } },
+    { 0x41821FFF, 0x8B93, 0x4E4E, { 0xA7, 0x5B, 0x85, 0x0D, 0x49, 0x46, 0x1A, 0x33 } },
+    { 0x13BD659B, 0xB4C6, 0x47DA, { 0x9B, 0x22, 0x11, 0x50, 0xD4, 0xF3, 0x0B, 0xDA } },
+    { 0xD3D7C640, 0x1782, 0x475E, { 0x8E, 0x7B, 0x52, 0xDF, 0x4A, 0xE9, 0x03, 0xFA } },
+    { 0x7576CC89, 0x8FA3, 0x4CAD, { 0xBA, 0x02, 0x61, 0x19, 0xB4, 0x6E, 0xD4, 0x4A } },
+    { 0x348A2594, 0x43E1, 0x418A, { 0xA5, 0x14, 0xCC, 0xB6, 0xE8, 0x46, 0x5A, 0x5C } },
+    { 0xDCEF1B52, 0x2605, 0x4735, { 0x8F, 0x91, 0x04, 0x9D, 0x6D, 0xE7, 0x59, 0xDF } },
+    { 0xE8FE82E8, 0x7D00, 0x41FF, { 0x91, 0x1E, 0x0B, 0x99, 0x6F, 0x85, 0xC9, 0x57 } },
+    { 0x6C5AE0F9, 0xAAD3, 0x47F8, { 0x8F, 0x59, 0xA5, 0x3A, 0x54, 0xCE, 0x5A, 0xE2 } },
+    { 0x2DF1E051, 0x906D, 0x4EFF, { 0x86, 0x9D, 0x24, 0xE6, 0x53, 0x78, 0xFB, 0x9E } },
+    { 0x4FC43BBE, 0x1433, 0x4951, { 0xAC, 0x2D, 0x0D, 0x01, 0xFE, 0xC0, 0x0E, 0xB1 } },
+    { 0xA8AD1743, 0xC841, 0x4DBF, { 0xB6, 0x51, 0xAE, 0x75, 0xC6, 0xB1, 0x19, 0x23 } },
+    { 0xDB4A79AC, 0x5BBB, 0x4625, { 0xA6, 0x9E, 0xFE, 0xBF, 0x9D, 0x6D, 0x95, 0xEB } },
+    { 0x4B844201, 0x6FE9, 0x41D1, { 0xB4, 0x6F, 0xDF, 0xFC, 0x34, 0xE4, 0x92, 0xA2 } },
+    { 0xA0B5DC52, 0x4F34, 0x3990, { 0xD4, 0x91, 0x10, 0x8B, 0xE8, 0xBA, 0x75, 0x42 } },
+    { 0xAF6EFACF, 0x7A13, 0x45A3, { 0xB1, 0xA5, 0xAA, 0xFC, 0x06, 0x1C, 0x4B, 0x79 } },
+    { 0x2AD8E2D2, 0x2E91, 0x4CD1, { 0x95, 0xF5, 0xE7, 0x8F, 0xE5, 0xEB, 0xE3, 0x16 } },
+    { 0x2C74511B, 0x4D15, 0x4190, { 0x89, 0xFE, 0x7D, 0x45, 0xBB, 0x31, 0x6D, 0x6C } },
+    { 0x96C5A344, 0x966A, 0x469A, { 0x99, 0xB8, 0xC8, 0x64, 0x44, 0xA9, 0x95, 0x51 } },
+    { 0xCEA5FC27, 0x5183, 0x4899, { 0xA6, 0x4E, 0x7B, 0x87, 0x49, 0xC9, 0x62, 0xE2 } },
+    { 0x6FCE3BB9, 0x9742, 0x4CFD, { 0x8E, 0x9E, 0x39, 0xF9, 0x8D, 0xCA, 0x32, 0x71 } },
+    { 0x33381F15, 0x15ED, 0x467A, { 0xA6, 0xC9, 0xCC, 0x1B, 0x86, 0xCA, 0xD8, 0xD8 } },
+    { 0xA6588F10, 0xD165, 0x4EBF, { 0xB7, 0x72, 0x20, 0x6D, 0x36, 0x37, 0xF6, 0x5C } },
+    { 0x5FD84329, 0x87C0, 0x4FED, { 0x95, 0xC2, 0x23, 0x24, 0xAF, 0x71, 0x97, 0x7F } },
+    { 0x53AF9368, 0xB844, 0x455B, { 0xAE, 0x8A, 0x15, 0xDB, 0x11, 0xE1, 0x8F, 0x20 } },
+    { 0x380D7A5E, 0x1BCA, 0x11E1, { 0xA1, 0x10, 0xE8, 0xEB, 0x47, 0x24, 0x01, 0x9B } },
+    { 0x49240652, 0x0D81, 0x445D, { 0xAE, 0x1B, 0x51, 0xEC, 0x24, 0xF8, 0xD0, 0x07 } },
+    { 0x3BF4AF16, 0xAB7C, 0x4B43, { 0x89, 0x8D, 0xAB, 0x26, 0xAC, 0x5D, 0xDC, 0x6C } },
+    { 0x65FB555D, 0x5CCA, 0x40C3, { 0x99, 0x67, 0x22, 0x79, 0x88, 0x28, 0x8D, 0xD8 } },
+    { 0x52FC9EA1, 0xB67F, 0x4A8A, { 0x93, 0x87, 0xF2, 0x48, 0xA9, 0xA7, 0x01, 0xA1 } },
+    { 0xCA3B07C1, 0x4FEE, 0x49F4, { 0xA2, 0xC1, 0xE8, 0xC0, 0x89, 0xB9, 0x4A, 0xEE } },
+    { 0xEE63CE96, 0xB809, 0x41D5, { 0xAB, 0x97, 0xFC, 0x97, 0x8D, 0xA5, 0x26, 0xF0 } },
+    { 0x604C1E61, 0xD51F, 0x4898, { 0xAD, 0x6D, 0xD4, 0x4C, 0xC8, 0x93, 0xBF, 0x73 } },
+    { 0x196BF9E3, 0x20D7, 0x4B7B, { 0x89, 0xF9, 0x31, 0xC2, 0x72, 0x08, 0xC9, 0xB9 } },
+    { 0x4B5C6807, 0xB65B, 0x4E0A, { 0x82, 0x9A, 0xE2, 0xAB, 0x9B, 0x84, 0x98, 0xF0 } },
+    { 0x3C73D7B0, 0x3FA3, 0x42A3, { 0xB0, 0xCB, 0xC1, 0xB0, 0x93, 0x3C, 0x64, 0x75 } },
+    { 0x84310C9D, 0x82BF, 0x44C1, { 0x8B, 0xC5, 0x29, 0x9B, 0x74, 0x01, 0xEA, 0xAC } },
+    { 0x8151730C, 0xE1D3, 0x4C8C, { 0x91, 0x7B, 0xA3, 0x9B, 0x7E, 0xD4, 0x82, 0x65 } },
+    { 0xF281FC6E, 0xF4C4, 0x431C, { 0x96, 0x2B, 0x2F, 0x13, 0xAE, 0x79, 0x84, 0xEC } },
+    { 0xD4D2F201, 0x50E8, 0x4D45, { 0x8E, 0x05, 0xFD, 0x49, 0xA8, 0x2A, 0x15, 0x69 } },
+    { 0x4E853A1E, 0xCAD3, 0x437C, { 0x9F, 0xE1, 0x5A, 0x05, 0x88, 0x88, 0xFF, 0xB1 } },
+    { 0xDAE670DB, 0x2C65, 0x41E9, { 0xBD, 0xF8, 0x06, 0x3C, 0x80, 0x02, 0xDE, 0x0A } },
+    { 0x9B48BE80, 0x57BE, 0x47D3, { 0xB2, 0x51, 0x00, 0xDF, 0x2C, 0xAC, 0xBB, 0xB1 } },
+    { 0xE458FC74, 0x9F13, 0x4E0E, { 0xA8, 0x1E, 0xE3, 0x26, 0x05, 0xFA, 0x72, 0x47 } },
+    { 0x4B5C6808, 0xB65B, 0x4E0A, { 0x82, 0x9A, 0xE2, 0xAB, 0x9B, 0x84, 0x98, 0xF0 } },
+    { 0x19DBF79A, 0x3A95, 0x4758, { 0x81, 0x69, 0x86, 0x9A, 0xE2, 0x7F, 0x38, 0x17 } },
+    { 0xABBF33F9, 0x3581, 0x44A2, { 0x8D, 0x66, 0x8C, 0x9E, 0x14, 0xC7, 0xA6, 0x56 } },
+    { 0xC35F9520, 0x5791, 0x4667, { 0xAD, 0xE4, 0x1C, 0xFD, 0xA8, 0x37, 0x72, 0x2D } },
+    { 0x91288FC4, 0xE64B, 0x4EF9, { 0xA4, 0x63, 0x66, 0x88, 0x00, 0x71, 0x7F, 0xCA } },
+    { 0x7051AB6D, 0x9EC2, 0x42EB, { 0xA2, 0x13, 0xDE, 0x48, 0x81, 0xF1, 0xF7, 0x87 } },
+    { 0xDB4A79AC, 0x5BBB, 0x4625, { 0x6A, 0x9E, 0xFE, 0xBF, 0x9D, 0x6D, 0x95, 0xEB } },
+    { 0x222E7E3A, 0x7D6B, 0x4D70, { 0xB6, 0xB7, 0x3F, 0x05, 0x81, 0xED, 0x95, 0x35 } },
+    { 0xC7E8CF4D, 0xFE0C, 0x4EBD, { 0xBE, 0xD5, 0x41, 0x96, 0x49, 0x24, 0xC2, 0xC9 } },
+    { 0xE8E07CCF, 0x6CD6, 0x4238, { 0x89, 0x2D, 0xFB, 0x20, 0xF2, 0x7F, 0xBB, 0xA3 } },
+    { 0xD3672680, 0xBBCA, 0x4EF6, { 0xBC, 0x8E, 0x70, 0x4A, 0xBC, 0x0C, 0xA8, 0xB5 } },
+    { 0x87E2A6CF, 0x91FB, 0x4581, { 0x90, 0xA9, 0x6F, 0x50, 0x5D, 0xDC, 0x1C, 0xB2 } },
+    { 0xAB776607, 0x6169, 0x44E8, { 0xB8, 0xF1, 0x50, 0x12, 0x9D, 0x4A, 0x25, 0xDB } },
+    { 0x2694A56F, 0xEF32, 0x4EAE, { 0x8B, 0x3F, 0xD3, 0x9B, 0xCA, 0x54, 0x60, 0x21 } },
+    { 0x40DAC788, 0xA638, 0x428B, { 0x8D, 0x33, 0x6F, 0x1B, 0xB6, 0xE6, 0xA6, 0x9E } },
+    { 0x16D11030, 0x71BA, 0x4E5E, { 0xA9, 0xF9, 0xB4, 0x75, 0xA5, 0x49, 0x04, 0x8A } },
+    { 0x956A4D54, 0xFAAB, 0x4916, { 0xAC, 0x99, 0x3D, 0x5D, 0x9A, 0xD0, 0xD7, 0xC0 } },
+    { 0x3D6A1546, 0x80E9, 0x46FD, { 0xA7, 0xCA, 0xCC, 0xDF, 0x1F, 0xA6, 0x32, 0xC0 } },
+    { 0xF38D7873, 0x987B, 0x4A50, { 0x8E, 0xA2, 0x39, 0xBC, 0x08, 0x03, 0x8C, 0xCA } },
+    { 0xD7F78DFE, 0x17A5, 0x4653, { 0xA7, 0x9D, 0x04, 0x98, 0x1F, 0xDA, 0x92, 0x2A } },
+    { 0xD0E53AB5, 0x34BB, 0x4BC5, { 0xB3, 0xBC, 0x17, 0x68, 0x15, 0x13, 0xC1, 0x47 } },
+    { 0x45066A3B, 0xB760, 0x4411, { 0xA4, 0x20, 0x51, 0x19, 0x21, 0xEF, 0x59, 0x56 } },
+  };
+  // UINT8 *TmpBuf = AllocatePool(0x10000);
+  // ZeroMem(TmpBuf, 0x10000);
+  for (UINTN i = 0; i < ( sizeof(UnknownSmmFuzzProtocols) / sizeof(UnknownSmmFuzzProtocols[0])) ; i++)
+  {
+      Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &UnknownSmmFuzzProtocols[i],
+                  0xb000000000000000,
+                  NULL
+                  );
+      ASSERT_EFI_ERROR (Status);
+  }
+
+
   (VOID)Status;
 }

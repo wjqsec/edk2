@@ -1251,6 +1251,13 @@ SmmFuzzRootHandler (
 
 VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
 {
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
+  {
+    if (CompareGuid(Guid, &SmmModulesHandlerProtocolInfo.info[i].Guid))
+    {
+      return;
+    }
+  }
   if (SmmModulesHandlerProtocolInfo.NumModules >= MAX_NUM_MODULES)
     return;
   CopyGuid(&SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].Guid, Guid);
@@ -1269,6 +1276,13 @@ VOID InsertSmiHandler(CONST GUID *Handler)
     if (!CompareGuid(&CurrentModule, &SmmModulesHandlerProtocolInfo.info[i].Guid))
     {
       continue;
+    }
+    for (UINTN j = 0; j < SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers; j++)
+    {
+      if (CompareGuid(Handler, &SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[j]))
+      {
+        return;
+      }
     }
     if (SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers >= MAX_NUM_HANDLERS)
       return;
@@ -1369,8 +1383,6 @@ VOID SetCurrentModuleBySmi(CONST GUID *guid)
 }
 VOID InsertUnloadModule(GUID *guid)
 {
-  if (SmmModulesHandlerProtocolInfo.NumUnloadModules >= MAX_NUM_NONLOADED_MODULES)
-    return;
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumUnloadModules; i++)
   {
     if (CompareGuid(&SmmModulesHandlerProtocolInfo.UnloadModules[i], guid))
@@ -1378,12 +1390,12 @@ VOID InsertUnloadModule(GUID *guid)
         return;
       }
   }
+  if (SmmModulesHandlerProtocolInfo.NumUnloadModules >= MAX_NUM_NONLOADED_MODULES)
+    return;
   CopyGuid(&SmmModulesHandlerProtocolInfo.UnloadModules[SmmModulesHandlerProtocolInfo.NumUnloadModules++], guid);
 }
 VOID InsertSkipModule(GUID *guid)
 {
-  if (SmmModulesHandlerProtocolInfo.NumSkipModules >= MAX_NUM_SKIP_MODULES)
-    return;
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumSkipModules; i++)
   {
     if (CompareGuid(&SmmModulesHandlerProtocolInfo.SkipModules[i], guid))
@@ -1391,5 +1403,23 @@ VOID InsertSkipModule(GUID *guid)
         return;
       }
   }
+  if (SmmModulesHandlerProtocolInfo.NumSkipModules >= MAX_NUM_SKIP_MODULES)
+    return;
   CopyGuid(&SmmModulesHandlerProtocolInfo.SkipModules[SmmModulesHandlerProtocolInfo.NumSkipModules++], guid);
+}
+VOID RemoveSkipModule(GUID *guid)
+{
+  UINTN Index = -1;
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumSkipModules; i++)
+  {
+    if (CompareGuid(&SmmModulesHandlerProtocolInfo.SkipModules[i], guid))
+      {
+        Index = i;
+        break;
+      }
+  }
+  if (Index == -1)
+    return;
+  CopyMem(&SmmModulesHandlerProtocolInfo.SkipModules[Index], &SmmModulesHandlerProtocolInfo.SkipModules[Index + 1], sizeof(GUID) * (SmmModulesHandlerProtocolInfo.NumSkipModules - Index -1));
+  SmmModulesHandlerProtocolInfo.NumSkipModules--;
 }

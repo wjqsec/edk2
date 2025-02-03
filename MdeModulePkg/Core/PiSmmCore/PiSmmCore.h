@@ -140,6 +140,9 @@ typedef struct {
   UINTN                            NumberOfPage;
   EFI_HANDLE                       SmmImageHandle;
   EFI_LOADED_IMAGE_PROTOCOL        SmmLoadedImage;
+
+  BOOLEAN                          SuccessfullyInited;
+  LIST_ENTRY                       RetryLink; 
 } EFI_SMM_DRIVER_ENTRY;
 
 #define EFI_HANDLE_SIGNATURE  SIGNATURE_32('s','h','d','l')
@@ -1513,6 +1516,7 @@ VOID ClearCurrentModule(VOID);
 VOID InstallSmmFuzzProtocol(VOID);
 VOID InsertUnloadModule(GUID *guid);
 VOID InsertSkipModule(GUID *guid);
+VOID RemoveSkipModule(GUID *guid);
 EFI_STATUS InstallSmmFuzzSmiHandler(VOID);
 EFI_STATUS
 EFIAPI

@@ -846,6 +846,112 @@ BOOLEAN IsOVMFSmmModule(GUID *guid) {
   }
   return FALSE;
 }
+LIST_ENTRY  mRetryQueue = INITIALIZE_LIST_HEAD_VARIABLE (mRetryQueue);
+EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
+{
+  EFI_STATUS Status;
+  VOID *OldHob = NULL;
+  for (UINTN i = 0 ; i < gST->NumberOfTableEntries; i++) {
+    if (CompareGuid(&gEfiHobListGuid, &gST->ConfigurationTable[i].VendorGuid)) {
+      OldHob = gST->ConfigurationTable[i].VendorTable;
+      break;
+    }
+  }
+  ASSERT(OldHob != NULL);
+  DriverEntry->SuccessfullyInited = FALSE;
+  EFI_PEI_HOB_POINTERS FuzzHob;
+  EFI_PEI_HOB_POINTERS FuzzHobBackup;
+  if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
+    Status = gBS->AllocatePool(EfiBootServicesData, 0x1200, (VOID**)&FuzzHob.Raw);
+    ASSERT_EFI_ERROR (Status);
+    FuzzHobBackup.Raw = FuzzHob.Raw;
+    Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, (VOID*)FuzzHobBackup.Raw);
+    ASSERT_EFI_ERROR (Status);
+    FuzzHob.Guid->Header.HobLength = 0x1000;
+    LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)FuzzHobBackup.Raw, (UINT64)GET_HOB_LENGTH(FuzzHobBackup));
+    FuzzHob.Raw = GET_NEXT_HOB (FuzzHob);
+    FuzzHob.Header->HobType = EFI_HOB_TYPE_END_OF_HOB_LIST;
+  }
+  InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
+  SetCurrentModule(&DriverEntry->FileName);
+  
+  LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINT64)&DriverEntry->FileName, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
+  SmmFuzzGlobalData->in_fuzz = 1;  
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
+  DEBUG((DEBUG_INFO,"start fuzzing entry point %g numcpu:%d current cpu:%d\n",&DriverEntry->FileName,gSmmCorePrivate->Smst->NumberOfCpus, gSmmCorePrivate->Smst->CurrentlyExecutingCpu));
+  UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
+  Status = EFI_SUCCESS;
+  if (skip == 0)
+    Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
+  DEBUG((DEBUG_INFO,"end entry point %g %lx %r\n",&DriverEntry->FileName,Status, Status));   
+  if (EFI_ERROR (Status)) {
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT,0,0);
+  }
+  else {
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
+  }
+  SmmFuzzGlobalData->in_fuzz = 0;
+  ClearCurrentModule();
+  if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
+    Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, OldHob);
+    ASSERT_EFI_ERROR (Status);
+    Status = gBS->FreePool(FuzzHobBackup.Raw);
+    ASSERT_EFI_ERROR (Status);
+    LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)0, (UINT64)0);
+  }
+  if (!skip) {
+    DEBUG((DEBUG_INFO,"pass module %g\n",&DriverEntry->FileName));
+    DriverEntry->SuccessfullyInited = TRUE;
+    RemoveSkipModule(&DriverEntry->FileName);
+    Status = EFI_SUCCESS;
+  } else {
+    DEBUG((DEBUG_INFO,"skip module %g\n",&DriverEntry->FileName));
+    InsertSkipModule(&DriverEntry->FileName);
+    Status = EFI_UNSUPPORTED;
+  }
+
+  return Status;
+}
+EFI_STATUS RetryFuzz()
+{
+  EFI_STATUS Status = EFI_UNSUPPORTED;
+  LIST_ENTRY            *Link;
+  EFI_SMM_DRIVER_ENTRY  *DriverEntry;
+  for (Link = mRetryQueue.ForwardLink; Link != &mRetryQueue; Link = Link->ForwardLink) {
+      DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, RetryLink, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
+      if (DriverEntry->SuccessfullyInited)
+        continue;
+      if (FuzzOneModule(DriverEntry) == EFI_SUCCESS) {
+        Status = EFI_SUCCESS;
+      }
+    }
+  return Status;
+}
+BOOLEAN EvaluteReadyToRun() {
+  EFI_STATUS            Status;
+  EFI_SMM_DRIVER_ENTRY  *DriverEntry;
+  LIST_ENTRY            *Link;
+  BOOLEAN ReadyToRun = FALSE;
+  for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
+        DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
+
+        if (DriverEntry->DepexProtocolError) {
+          //
+          // If Section Extraction Protocol did not let the Depex be read before retry the read
+          //
+          Status = SmmGetDepexSectionAndPreProccess (DriverEntry);
+        }
+
+        if (DriverEntry->Dependent) {
+          if (SmmIsSchedulable (DriverEntry)) {
+            SmmInsertOnScheduledQueueWhileProcessingBeforeAndAfter (DriverEntry);
+            ReadyToRun = TRUE;
+          }
+        }
+  }
+  (VOID)Status;
+  return ReadyToRun;
+}
 /**
   This is the main Dispatcher for SMM and it exits when there are no more
   drivers to run. Drain the mScheduledQueue and load and start a PE
@@ -873,14 +979,6 @@ SmmDispatcher (
   BOOLEAN               ReadyToRun;
   BOOLEAN               PreviousSmmEntryPointRegistered;
 
-  VOID *OldHob = NULL;
-  for (UINTN i = 0 ; i < gST->NumberOfTableEntries; i++) {
-    if (CompareGuid(&gEfiHobListGuid, &gST->ConfigurationTable[i].VendorGuid)) {
-      OldHob = gST->ConfigurationTable[i].VendorTable;
-      break;
-    }
-  }
-  ASSERT(OldHob != NULL);
   if (!gRequestDispatch) {
     return EFI_NOT_FOUND;
   }
@@ -893,7 +991,6 @@ SmmDispatcher (
   }
 
   gDispatcherRunning = TRUE;
-
   do {
     //
     // Drain the Scheduled Queue
@@ -932,7 +1029,6 @@ SmmDispatcher (
           continue;
         }
       }
-
       DriverEntry->Scheduled   = FALSE;
       DriverEntry->Initialized = TRUE;
       RemoveEntryList (&DriverEntry->ScheduledLink);
@@ -953,55 +1049,11 @@ SmmDispatcher (
       //
       PERF_START_IMAGE_BEGIN (DriverEntry->ImageHandle);
       RegisterSmramProfileImage (DriverEntry, TRUE);
-
-      EFI_PEI_HOB_POINTERS FuzzHob;
-      EFI_PEI_HOB_POINTERS FuzzHobBackup;
-      if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
-        Status = gBS->AllocatePool(EfiBootServicesData, 0x1200, (VOID**)&FuzzHob.Raw);
-        ASSERT_EFI_ERROR (Status);
-        FuzzHobBackup.Raw = FuzzHob.Raw;
-        Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, (VOID*)FuzzHobBackup.Raw);
-        ASSERT_EFI_ERROR (Status);
-        FuzzHob.Guid->Header.HobLength = 0x1000;
-        LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)FuzzHobBackup.Raw, (UINT64)GET_HOB_LENGTH(FuzzHobBackup));
-        FuzzHob.Raw = GET_NEXT_HOB (FuzzHob);
-        FuzzHob.Header->HobType = EFI_HOB_TYPE_END_OF_HOB_LIST;
+      Status = FuzzOneModule(DriverEntry);
+      if (Status == EFI_UNSUPPORTED) {
+        InsertTailList (&mRetryQueue, &DriverEntry->RetryLink);
       }
-      InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
-      SetCurrentModule(&DriverEntry->FileName);
-      SmmFuzzGlobalData->in_fuzz = 1;  
-      LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINT64)&DriverEntry->FileName, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
-      DEBUG((DEBUG_INFO,"start fuzzing entry point %g numcpu:%d current cpu:%d\n",&DriverEntry->FileName,gSmmCorePrivate->Smst->NumberOfCpus, gSmmCorePrivate->Smst->CurrentlyExecutingCpu));
-      UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
-      if (skip == 0)
-        Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
-      else {
-        DEBUG((DEBUG_INFO,"skip module %g\n",&DriverEntry->FileName));
-        InsertSkipModule(&DriverEntry->FileName);
-        Status = EFI_SUCCESS;
-      }
-        
-      DEBUG((DEBUG_INFO,"end entry point %g %lx %r\n",&DriverEntry->FileName,Status, Status));   
-      SmmFuzzGlobalData->in_fuzz = 0;
-      if (EFI_ERROR (Status)) {
-        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT,0,0);
-      }
-      else {
-        LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
-      }
-      ClearCurrentModule();
-      
-
-      if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
-        Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, OldHob);
-        ASSERT_EFI_ERROR (Status);
-        Status = gBS->FreePool(FuzzHobBackup.Raw);
-        ASSERT_EFI_ERROR (Status);
-        LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)0, (UINT64)0);
-      }
-      DEBUG((DEBUG_INFO,"pass module %g\n",&DriverEntry->FileName));
-      
+      Status = EFI_SUCCESS;
       PERF_START_IMAGE_END (DriverEntry->ImageHandle);
       if (EFI_ERROR (Status)) {
         DEBUG ((
@@ -1065,24 +1117,18 @@ SmmDispatcher (
     //
     // Search DriverList for items to place on Scheduled Queue
     //
-    ReadyToRun = FALSE;
-    for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
-      DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
-
-      if (DriverEntry->DepexProtocolError) {
-        //
-        // If Section Extraction Protocol did not let the Depex be read before retry the read
-        //
-        Status = SmmGetDepexSectionAndPreProccess (DriverEntry);
-      }
-
-      if (DriverEntry->Dependent) {
-        if (SmmIsSchedulable (DriverEntry)) {
-          SmmInsertOnScheduledQueueWhileProcessingBeforeAndAfter (DriverEntry);
-          ReadyToRun = TRUE;
-        }
+    ReadyToRun = EvaluteReadyToRun();
+    if (!ReadyToRun) {
+      for(UINTN i = 0; i < 3 ; i++) {
+        if (RetryFuzz() == EFI_SUCCESS) {
+            ReadyToRun = EvaluteReadyToRun();
+            if (ReadyToRun) {
+              break;
+            }
+          }
       }
     }
+
   } while (ReadyToRun);
 
   //
@@ -1100,7 +1146,6 @@ SmmDispatcher (
       break;
     }
   }
-
   gDispatcherRunning = FALSE;
   return EFI_SUCCESS;
 }
