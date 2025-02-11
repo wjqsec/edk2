@@ -177,6 +177,9 @@ SmmInstallConfigurationTableFuzz (
   IN  UINTN                        TableSize
   )
 {
+  GUID RuntimeSMMGuid = { 0x395c33fe, 0x287f, 0x413e, { 0xa0, 0x55, 0x80, 0x88, 0xc0, 0xe1, 0xd4, 0x3e } };
+  if (CompareGuid(Guid, &RuntimeSMMGuid))
+    return EFI_SUCCESS;
   DEBUG((DEBUG_INFO,"SmmInstallConfigurationTable %g\n",Guid));
   EFI_STATUS Status = SmmInstallConfigurationTable(SystemTable, Guid, Table, TableSize);
   return Status;

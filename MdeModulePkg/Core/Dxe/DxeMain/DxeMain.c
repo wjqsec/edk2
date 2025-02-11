@@ -1014,6 +1014,7 @@ EFI_STATUS EFIAPI EFI_ALLOCATE_PAGES_FUZZ(
   SmmFuzzGlobalData.in_fuzz = 0; 
   Status = EFI_ALLOCATE_PAGES_Old(Type, MemoryType, Pages, Memory);
   SmmFuzzGlobalData.in_fuzz = OldInFuzz;
+  DEBUG((DEBUG_INFO,"AllocatePages: %d %r\n",Pages, Status));
   return Status;
 }
 

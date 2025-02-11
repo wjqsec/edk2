@@ -1119,7 +1119,7 @@ SmmDispatcher (
     //
     ReadyToRun = EvaluteReadyToRun();
     if (!ReadyToRun) {
-      for(UINTN i = 0; i < 3 ; i++) {
+      for(UINTN i = 0; i < 1 ; i++) {
         if (RetryFuzz() == EFI_SUCCESS) {
             ReadyToRun = EvaluteReadyToRun();
             if (ReadyToRun) {

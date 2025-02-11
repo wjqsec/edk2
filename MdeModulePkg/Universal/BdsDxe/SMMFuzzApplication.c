@@ -289,14 +289,26 @@ SmmFuzzMain(
     UINTN index = SmiFuzzSeq[i];
     DEBUG((DEBUG_INFO,"Select %d\n",index));
 
+    // LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(index, SmiFuzzTimes[index]);
+    // if (*(UINT64*)CommData == 0x1234567887654321)
+    // {
+    //   DEBUG((DEBUG_INFO,"CommData is 0x1234567887654321\n"));
+    //   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
+    // } else if (*(UINT64*)CommData == 0xdeadbeefdeadbeef) {
+    //   DEBUG((DEBUG_INFO,"CommData is not deadbeef\n"));
+    //   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
+    // } else {
+    //   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
+    // }
+
     if (index == 0) {
       SmmCall(&SmiHandlers.Handlers[index], 0);
     } else {
       UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(index, SmiFuzzTimes[index]);
-      SmmCall(&SmiHandlers.Handlers[index], Sz);
-      // if (Sz < (MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER))) {
-      //   SmmCall(&SmiHandlers.Handlers[index], Sz);
-      // } 
+      // SmmCall(&SmiHandlers.Handlers[index], Sz);
+      if (Sz < (MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER))) {
+        SmmCall(&SmiHandlers.Handlers[index], Sz);
+      } 
     }
     SmiFuzzTimes[index]++;
   } 

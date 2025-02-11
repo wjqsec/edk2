@@ -804,7 +804,6 @@ RuntimeServiceGetVariable (
   ASSERT(!EFI_ERROR(Status2));
   (VOID)Status2;
   if (SmmFuzzGlobalData->in_fuzz == 1) {
-
     DEBUG((DEBUG_INFO,"get RuntimeServiceGetVariable Fuzz data\n"));
     UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)0);
     if (UseFuzzValue != 0) {
@@ -1186,7 +1185,7 @@ Done:
   Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
   ASSERT(!EFI_ERROR(Status));
   if (SmmFuzzGlobalData->in_fuzz == 1) {
-    DEBUG((DEBUG_INFO,"RuntimeServiceGetVariable\n"));
+    DEBUG((DEBUG_INFO,"RuntimeServiceSetVariable\n"));
     Status = EFI_SUCCESS;
   }
     
