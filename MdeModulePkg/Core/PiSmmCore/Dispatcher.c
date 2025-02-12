@@ -884,8 +884,10 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
   if (skip == 0)
     Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
   DEBUG((DEBUG_INFO,"end entry point %g %lx %r\n",&DriverEntry->FileName,Status, Status));   
-  if (EFI_ERROR (Status)) {
+  if (Status == EFI_NOT_FOUND) {
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT,0,0);
+  } else if (EFI_ERROR(Status)) {
+    LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_ERROR,0,0);
   }
   else {
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
@@ -952,6 +954,11 @@ BOOLEAN EvaluteReadyToRun() {
   (VOID)Status;
   return ReadyToRun;
 }
+VOID RetryDispatcher()
+{
+  
+}
+
 /**
   This is the main Dispatcher for SMM and it exits when there are no more
   drivers to run. Drain the mScheduledQueue and load and start a PE

@@ -102,6 +102,7 @@ typedef enum LibaflQemuEndStatus {
   LIBAFL_QEMU_END_SMM_FUZZ_END = 7, 
   LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT = 8,
   LIBAFL_QEMU_END_SMM_ASSERT = 9,
+  LIBAFL_QEMU_END_SMM_INIT_ERROR = 10,
 } LibaflExitEndParams;
 
 #ifdef _WIN32

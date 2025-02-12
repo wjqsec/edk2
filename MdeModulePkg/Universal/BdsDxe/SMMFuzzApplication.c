@@ -267,7 +267,7 @@ SmmFuzzMain(
   
 
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_MODULE_START,0,0);
-  
+  PrintSmmReport(ReportDataBackup);
   ReportSmmModuleInfo();
   ReportSmmGroupInfo();
   ReportSmiInfo();
