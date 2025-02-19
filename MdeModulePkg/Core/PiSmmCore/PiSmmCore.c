@@ -977,15 +977,18 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           CopyMem(TmpSmramRange, gSmmCorePrivate->SmramRanges, gSmmCorePrivate->SmramRangeCount * sizeof(EFI_SMRAM_DESCRIPTOR));
           OldSmramRange = gSmmCorePrivate->SmramRanges;
           gSmmCorePrivate->SmramRanges = TmpSmramRange;
+          UINTN i = 0;
+          for (; i < gSmmCorePrivate->SmramRangeCount; i++)
+          {
+            if ((gSmmCorePrivate->SmramRanges[i].RegionState == 0x1A) && (gSmmCorePrivate->SmramRanges[i].PhysicalSize == VENDOR_CORE_HEAP_SIZE)) {
+              break;
+            }
+          }
+          gSmmCorePrivate->SmramRanges[i].RegionState = 0xA;
+          gSmmCorePrivate->SmramRanges[i + 1].RegionState = 0x1A;
           for (UINTN i = 0 ; i < gSmmCorePrivate->SmramRangeCount; i++)
           {
-            // DEBUG((DEBUG_INFO,"smram  %p %p %x %x\n",gSmmCorePrivate->SmramRanges[i].CpuStart, gSmmCorePrivate->SmramRanges[i].PhysicalStart, gSmmCorePrivate->SmramRanges[i].PhysicalSize, gSmmCorePrivate->SmramRanges[i].RegionState));
-            if ((gSmmCorePrivate->SmramRanges[i].RegionState & (EFI_ALLOCATED | EFI_NEEDS_TESTING | EFI_NEEDS_ECC_INITIALIZATION)) != 0) {
-              continue;
-            }
-            gSmmCorePrivate->SmramRanges[i].CpuStart += gSmmCorePrivate->SmramRanges[i].PhysicalSize;
-            gSmmCorePrivate->SmramRanges[i].PhysicalStart += gSmmCorePrivate->SmramRanges[i].PhysicalSize;
-            gSmmCorePrivate->SmramRanges[i].PhysicalSize = 0x100000;
+            DEBUG((DEBUG_INFO,"smram record  %p %p %x %x\n",gSmmCorePrivate->SmramRanges[i].CpuStart, gSmmCorePrivate->SmramRanges[i].PhysicalStart, gSmmCorePrivate->SmramRanges[i].PhysicalSize, gSmmCorePrivate->SmramRanges[i].RegionState));
           }
           LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&DriverEntry->FileName, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
           LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,(UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
@@ -1413,10 +1416,10 @@ VOID RemoveSkipModule(GUID *guid)
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumSkipModules; i++)
   {
     if (CompareGuid(&SmmModulesHandlerProtocolInfo.SkipModules[i], guid))
-      {
-        Index = i;
-        break;
-      }
+    {
+      Index = i;
+      break;
+    }
   }
   if (Index == -1)
     return;

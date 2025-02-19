@@ -143,6 +143,10 @@ typedef struct {
 
   BOOLEAN                          SuccessfullyInited;
   LIST_ENTRY                       RetryLink; 
+
+  UINTN                            NumMissingSmmProtocols;
+  GUID                             MissingSmmProtocols[10];
+
 } EFI_SMM_DRIVER_ENTRY;
 
 #define EFI_HANDLE_SIGNATURE  SIGNATURE_32('s','h','d','l')

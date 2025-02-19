@@ -279,6 +279,8 @@ SmmLocateProtocolFuzz (
   SmmFuzzGlobalData->in_fuzz = 0;
   Status = SmmLocateProtocol(Protocol, Registration, Interface);
   DEBUG((DEBUG_INFO,"SmmLocateProtocol: %g %r\n",Protocol,Status));
+  if (EFI_ERROR(Status))
+    LIBAFL_QEMU_SMM_REPORT_MISSING_PROTOCOL(REPORT_TO_FUZZER, (UINTN)Protocol);
   SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }

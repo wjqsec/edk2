@@ -7,7 +7,7 @@
 **/
 
 #include "PiSmmCore.h"
-
+#include <Uefi/UefiSpec.h>
 #define CONFIG_TABLE_SIZE_INCREASED  0x10
 
 UINTN  mSmmSystemTableAllocateSize = 0;
@@ -170,6 +170,14 @@ SmmInstallConfigurationTable (
 }
 EFI_STATUS
 EFIAPI
+DummyRuntimeSmm(VOID)
+{
+  return EFI_SUCCESS;
+}
+
+
+EFI_STATUS
+EFIAPI
 SmmInstallConfigurationTableFuzz (
   IN  CONST EFI_SMM_SYSTEM_TABLE2  *SystemTable,
   IN  CONST EFI_GUID               *Guid,
@@ -179,7 +187,23 @@ SmmInstallConfigurationTableFuzz (
 {
   GUID RuntimeSMMGuid = { 0x395c33fe, 0x287f, 0x413e, { 0xa0, 0x55, 0x80, 0x88, 0xc0, 0xe1, 0xd4, 0x3e } };
   if (CompareGuid(Guid, &RuntimeSMMGuid))
-    return EFI_SUCCESS;
+  {
+    EFI_RUNTIME_SERVICES *RuntimeServicePtr = (EFI_RUNTIME_SERVICES *)Table;
+    RuntimeServicePtr->GetTime = (EFI_GET_TIME)DummyRuntimeSmm;
+    RuntimeServicePtr->SetTime = (EFI_SET_TIME)DummyRuntimeSmm;
+    RuntimeServicePtr->GetWakeupTime = (EFI_GET_WAKEUP_TIME)DummyRuntimeSmm;
+    RuntimeServicePtr->SetWakeupTime = (EFI_SET_WAKEUP_TIME)DummyRuntimeSmm;
+    RuntimeServicePtr->SetVirtualAddressMap = (EFI_SET_VIRTUAL_ADDRESS_MAP)DummyRuntimeSmm;
+    RuntimeServicePtr->ConvertPointer = (EFI_CONVERT_POINTER)DummyRuntimeSmm;
+    RuntimeServicePtr->GetVariable = (EFI_GET_VARIABLE)DummyRuntimeSmm;
+    RuntimeServicePtr->GetNextVariableName = (EFI_GET_NEXT_VARIABLE_NAME)DummyRuntimeSmm;
+    RuntimeServicePtr->SetVariable = (EFI_SET_VARIABLE)DummyRuntimeSmm;
+    RuntimeServicePtr->GetNextHighMonotonicCount = (EFI_GET_NEXT_HIGH_MONO_COUNT)DummyRuntimeSmm;
+    RuntimeServicePtr->ResetSystem = (EFI_RESET_SYSTEM)DummyRuntimeSmm;
+    RuntimeServicePtr->UpdateCapsule = (EFI_UPDATE_CAPSULE)DummyRuntimeSmm;
+    RuntimeServicePtr->QueryCapsuleCapabilities = (EFI_QUERY_CAPSULE_CAPABILITIES)DummyRuntimeSmm;
+    RuntimeServicePtr->QueryVariableInfo = (EFI_QUERY_VARIABLE_INFO)DummyRuntimeSmm;
+  }
   DEBUG((DEBUG_INFO,"SmmInstallConfigurationTable %g\n",Guid));
   EFI_STATUS Status = SmmInstallConfigurationTable(SystemTable, Guid, Table, TableSize);
   return Status;

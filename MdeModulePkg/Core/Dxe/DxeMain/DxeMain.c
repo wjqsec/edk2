@@ -1508,7 +1508,7 @@ EFI_STATUS EFIAPI EFI_LOCATE_PROTOCOL_FUZZ(
   SmmFuzzGlobalData.in_fuzz = 0; 
   Status = EFI_LOCATE_PROTOCOL_Old(Protocol, SearchKey, Interface);
   SmmFuzzGlobalData.in_fuzz = OldInFuzz;
-  DEBUG((DEBUG_INFO, "EFI_LOCATE_PROTOCOL_FUZZ %g %r\n",Protocol,Status));
+  DEBUG((DEBUG_INFO, "EFI_LOCATE_PROTOCOL_FUZZ %g %r %p\n",Protocol,Status,*Interface));
   return Status;
 }
 
@@ -1813,10 +1813,9 @@ MEM_INFO_PROTOCOL mMemInfoProtocol;
 DXE_CPU_PLATFORM_POLICY_PROTOCOL mDxeCpuPlatformPolicyProtocol;
 EFI_ALERT_STANDARD_FORMAT_PROTOCOL mEfiAlertStandardFormatProtocol;
 DXE_PCH_PLATFORM_POLICY_PROTOCOL mDxePchPlatformPolicyProtocol;
-EFI_TREE_PROTOCOL mEfiTreeProtocol;
 AMI_SMBIOS_PROTOCOL mAmiSmbiosProtocol;
-
-
+EFI_TCG_PROTOCOL mEfiTcgProtocol;
+EFI_TREE_PROTOCOL mEfiTreeProtocol;
 EFI_STATUS
 EFIAPI EFI_HECI_SENDWACK_FUNC (
   IN OUT  UINT32           *Message,
@@ -2629,6 +2628,7 @@ EFIAPI EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_BOOT_OPTIONS_FUNC (
   IN  OUT EFI_ASF_BOOT_OPTIONS                 **AsfBootOptions
   )
 {
+  *AsfBootOptions = AllocatePool(sizeof(EFI_ASF_BOOT_OPTIONS));
   return EFI_SUCCESS;  
 }
 
@@ -2704,9 +2704,70 @@ EFI_STATUS GET_FIELD_FUNC (
 {
   return EFI_SUCCESS;  
 }
+EFI_STATUS
+EFIAPI EFI_TCG_STATUS_CHECK_FUNC(
+  IN      EFI_TCG_PROTOCOL          *This,
+  OUT     TCG_EFI_BOOT_SERVICE_CAPABILITY
+  *ProtocolCapability,
+  OUT     UINT32                    *TCGFeatureFlags,
+  OUT     EFI_PHYSICAL_ADDRESS      *EventLogLocation,
+  OUT     EFI_PHYSICAL_ADDRESS      *EventLogLastEntry
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_TCG_HASH_ALL_FUNC(
+  IN      EFI_TCG_PROTOCOL          *This,
+  IN      UINT8                     *HashData,
+  IN      UINT64                    HashDataLen,
+  IN      TCG_ALGORITHM_ID          AlgorithmId,
+  IN OUT  UINT64                    *HashedDataLen,
+  IN OUT  UINT8                     **HashedDataResult
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_TCG_LOG_EVENT_FUNC(
+  IN      EFI_TCG_PROTOCOL          *This,
+  IN      TCG_PCR_EVENT             *TCGLogData,
+  IN OUT  UINT32                    *EventNumber,
+  IN      UINT32                    Flags
+)
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_TCG_PASS_THROUGH_TO_TPM_FUNC(
+  IN      EFI_TCG_PROTOCOL          *This,
+  IN      UINT32                    TpmInputParameterBlockSize,
+  IN      UINT8                     *TpmInputParameterBlock,
+  IN      UINT32                    TpmOutputParameterBlockSize,
+  IN      UINT8                     *TpmOutputParameterBlock
+  )
+{
+  return EFI_SUCCESS;  
+}
+EFI_STATUS
+EFIAPI EFI_TCG_HASH_LOG_EXTEND_EVENT_FUNC(
+  IN      EFI_TCG_PROTOCOL          *This,
+  IN      EFI_PHYSICAL_ADDRESS      HashData,
+  IN      UINT64                    HashDataLen,
+  IN      TCG_ALGORITHM_ID          AlgorithmId,
+  IN OUT  TCG_PCR_EVENT             *TCGLogData,
+  IN OUT  UINT32                    *EventNumber,
+  OUT  EFI_PHYSICAL_ADDRESS      *EventLogLastEntry
+  )
+{
+  return EFI_SUCCESS;  
+}
 
 
-
+EFI_STATUS EFIAPI UNKNOWN_FUNC_DUMMY()
+{
+  return EFI_SUCCESS;
+}
 VOID InstallSmmFuzzProtocol();
 VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
@@ -2898,6 +2959,13 @@ VOID InstallSmmFuzzProtocol() {
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gEfiSmiFlashProtocolGuid,
+                  &mEfiSmiFlashProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gAmiSmmFlashProtocolGuid,
                   &mEfiSmiFlashProtocol,
                   NULL
                   );
@@ -3101,16 +3169,40 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
+  mEfiTcgProtocol.HashAll = EFI_TCG_HASH_ALL_FUNC;
+  mEfiTcgProtocol.HashLogExtendEvent = EFI_TCG_HASH_LOG_EXTEND_EVENT_FUNC;
+  mEfiTcgProtocol.LogEvent = EFI_TCG_LOG_EVENT_FUNC;
+  mEfiTcgProtocol.PassThroughToTpm = EFI_TCG_PASS_THROUGH_TO_TPM_FUNC;
+  mEfiTcgProtocol.StatusCheck = EFI_TCG_STATUS_CHECK_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiTcgProtocolGuid,
+                  &mEfiTcgProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
+
+  mEfiTreeProtocol.GetCapability = EFI_TREE_GET_CAPABILITY_FUNC;
+  mEfiTreeProtocol.GetEventLog = EFI_TREE_GET_EVENT_LOG_FUNC;
+  mEfiTreeProtocol.HashLogExtendEvent = EFI_TREE_HASH_LOG_EXTEND_EVENT_FUNC;
+  mEfiTreeProtocol.SubmitCommand = EFI_TREE_SUBMIT_COMMAND_FUNC;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &Handle,
+                  &gEfiTrEEProtocolGuid,
+                  &mEfiTreeProtocol,
+                  NULL
+                  );
+  ASSERT_EFI_ERROR (Status);
 
   static GUID UnknownSmmFuzzProtocols[] = {
     { 0x5B4CB5FD, 0x42F4, 0x27A0, { 0xCC, 0xEB, 0xD9, 0xA2, 0x8E, 0x6B, 0x91, 0xFC } },
+    { 0x01A55897, 0xF83D, 0x43AA, { 0xA4, 0x38, 0x81, 0x62, 0x18, 0xB8, 0xAF, 0xB5 } },
     { 0x443CDE79, 0xA599, 0x4CB7, { 0xB0, 0x4B, 0x73, 0x7F, 0x9E, 0x63, 0x06, 0xFB } },
     { 0xA073A3A6, 0x96EC, 0x4173, { 0xA9, 0xBC, 0x39, 0x95, 0x06, 0xCD, 0xEA, 0xC6 } },
     { 0x4D6A54D1, 0xCD56, 0x47F3, { 0x93, 0x6E, 0x7E, 0x51, 0xD9, 0x31, 0x15, 0x4F } },
     { 0x7AA096A6, 0xC4AF, 0x49AF, { 0xAD, 0xDD, 0x98, 0x9F, 0x1C, 0x55, 0x76, 0x4A } },
     { 0xE4EB9F35, 0xE1DF, 0x45D1, { 0x97, 0x2B, 0xEB, 0xA4, 0xE6, 0x5E, 0xD5, 0x44 } },
     { 0x5E5A2DAD, 0x6EF7, 0x4210, { 0xB7, 0x61, 0x95, 0x8E, 0x83, 0xDC, 0xDF, 0x79 } },
-    { 0x71FD0C86, 0xE19B, 0x4F9C, { 0x81, 0x5D, 0xCC, 0x98, 0x31, 0xDC, 0xBA, 0xFA } },
     { 0xACE5A4FB, 0x874B, 0x42CB, { 0x9B, 0xCA, 0xC2, 0x2E, 0xEB, 0x12, 0x2E, 0x01 } },
     { 0x8A51C4CC, 0xF3BA, 0x4895, { 0xB0, 0xE2, 0x90, 0xE4, 0xA6, 0x1A, 0x91, 0xC7 } },
     { 0x579CB2CB, 0x3403, 0x4B26, { 0x84, 0xCD, 0x72, 0x89, 0xFC, 0x91, 0x4D, 0x35 } },
@@ -3138,7 +3230,6 @@ VOID InstallSmmFuzzProtocol() {
     { 0xF447D1DD, 0x1205, 0x4AC2, { 0xBA, 0x53, 0xB7, 0xD6, 0x5A, 0x31, 0xD3, 0x12 } },
     { 0xF49EFBE0, 0x4682, 0x4471, { 0xAE, 0x65, 0x00, 0xEF, 0xFB, 0x47, 0x70, 0xBA } },
     { 0x0E5870E4, 0x0525, 0x40AD, { 0x95, 0xA8, 0x0F, 0xFF, 0x15, 0x5B, 0x8F, 0xC0 } },
-    { 0x2251CA8F, 0x02B4, 0x49F3, { 0xAD, 0x67, 0x52, 0x4E, 0xDC, 0xB3, 0xD5, 0xBB } },
     { 0x55EC2F53, 0x5ABC, 0x4D9F, { 0xBB, 0x02, 0xE1, 0xE7, 0x12, 0x61, 0x38, 0x96 } },
     { 0x881B4AB6, 0x17B0, 0x4BDF, { 0x88, 0xE2, 0xD4, 0x29, 0xDA, 0x42, 0x5F, 0xFD } },
     { 0xD7BF10F3, 0xF98C, 0x4C81, { 0xA4, 0xAD, 0x08, 0xAD, 0xEA, 0xC4, 0xD9, 0x71 } },
@@ -3249,20 +3340,53 @@ VOID InstallSmmFuzzProtocol() {
     { 0xD7F78DFE, 0x17A5, 0x4653, { 0xA7, 0x9D, 0x04, 0x98, 0x1F, 0xDA, 0x92, 0x2A } },
     { 0xD0E53AB5, 0x34BB, 0x4BC5, { 0xB3, 0xBC, 0x17, 0x68, 0x15, 0x13, 0xC1, 0x47 } },
     { 0x45066A3B, 0xB760, 0x4411, { 0xA4, 0x20, 0x51, 0x19, 0x21, 0xEF, 0x59, 0x56 } },
+    { 0x71FD0C86, 0xE19B, 0x4F9C, { 0x81, 0x5D, 0xCC, 0x98, 0x31, 0xDC, 0xBA, 0xFA } },
   };
-  // UINT8 *TmpBuf = AllocatePool(0x10000);
-  // ZeroMem(TmpBuf, 0x10000);
+  VOID *gUnknownProtocolBuf = AllocatePool(0x8000);
+  SetMem(gUnknownProtocolBuf,0x8000,1);
   for (UINTN i = 0; i < ( sizeof(UnknownSmmFuzzProtocols) / sizeof(UnknownSmmFuzzProtocols[0])) ; i++)
   {
       Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &UnknownSmmFuzzProtocols[i],
-                  0xb000000000000000,
+                  gUnknownProtocolBuf,
                   NULL
                   );
       ASSERT_EFI_ERROR (Status);
   }
+  
+  GUID UnknownProtocolGuids[] = {
+  { 0x2251CA8F, 0x02B4, 0x49F3, { 0xAD, 0x67, 0x52, 0x4E, 0xDC, 0xB3, 0xD5, 0xBB } },
+  { 0xF8B84AE6, 0x8465, 0x4F95, { 0x9F, 0x0B, 0xEA, 0xAA, 0x37, 0xC6, 0x15, 0x5A } }, 
+  };
+  static UNKNOWN_PROTOCOL gUnknownProtocol;
+  gUnknownProtocol.Func1 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func2 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func3 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func4 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func5 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func6 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func7 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func8 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func9 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func10 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func11 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func12 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func13 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func14 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func15 = UNKNOWN_FUNC_DUMMY;
+  gUnknownProtocol.Func16 = UNKNOWN_FUNC_DUMMY;
+  for (UINTN i = 0; i < ( sizeof(UnknownProtocolGuids) / sizeof(UnknownProtocolGuids[0])) ; i++)
+  {
+    Status = gBS->InstallMultipleProtocolInterfaces (
+      &Handle,
+      &UnknownProtocolGuids[i],
+      &gUnknownProtocol,
+      NULL
+      );
+    ASSERT_EFI_ERROR (Status);
+  }
 
-
+  (VOID)UnknownSmmFuzzProtocols;
   (VOID)Status;
 }

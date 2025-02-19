@@ -82,8 +82,13 @@ typedef enum LibaflQemuCommand {
   LIBAFL_QEMU_COMMAND_SMM_REPORT_SKIP_MODULE_INFO = 30,
   LIBAFL_QEMU_COMMAND_SMM_REPORT_UNLOAD_MODULE_INFO = 31,
   LIBAFL_QEMU_COMMAND_SMM_HELP_COPY = 32,
+  LIBAFL_QEMU_COMMAND_SMM_REPORT_MISSING_PROTOCOL = 33,
 } LibaflExit;
 
+typedef enum ReportDirection {
+  REPORT_TO_FUZZER = 0,
+  REPORT_TO_QEMU = 1,
+}ReportDirection;
 typedef enum SmmFuzzerCmd {
   SMM_FUZZ_RUN = 0,
   SMM_FUZZ_REPORT = 1,
@@ -341,6 +346,10 @@ LIBAFL_DEFINE_FUNCTIONS(backdoor, LIBAFL_BACKDOOR_OPCODE)
 #define LIBAFL_QEMU_SMM_REPORT_SKIP_MODULE_INFO(addr) _libafl_backdoor_call1(LIBAFL_QEMU_COMMAND_SMM_REPORT_SKIP_MODULE_INFO,addr)
 #define LIBAFL_QEMU_SMM_REPORT_UNLOAD_MODULE_INFO(addr) _libafl_backdoor_call1(LIBAFL_QEMU_COMMAND_SMM_REPORT_UNLOAD_MODULE_INFO,addr)
 #define LIBAFL_QEMU_SMM_HELP_COPY(dst,src,size) _libafl_backdoor_call3(LIBAFL_QEMU_COMMAND_SMM_HELP_COPY,dst,src,size)
+#define LIBAFL_QEMU_SMM_REPORT_MISSING_PROTOCOL(direction,addr) _libafl_backdoor_call2(LIBAFL_QEMU_COMMAND_SMM_REPORT_MISSING_PROTOCOL,direction,addr)
+
+
+#define VENDOR_CORE_HEAP_SIZE 0x100000
 /* === The public part ends here === */
 
 typedef struct _SMM_FUZZ_GLOBAL_DATA {

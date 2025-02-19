@@ -211,6 +211,8 @@
   gEfiAlertStandardFormatProtocolGuid
   gDxePchPlatformPolicyProtocolGuid
   gEfiTrEEProtocolGuid
+  gAmiSmmFlashProtocolGuid
+  gEfiTcgProtocolGuid
   
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressBootTimeCodePageNumber    ## SOMETIMES_CONSUMES

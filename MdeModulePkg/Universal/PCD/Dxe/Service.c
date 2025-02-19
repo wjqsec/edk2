@@ -391,6 +391,7 @@ GetWorker (
   if (!EFI_ERROR(Status))
   {
     if (SmmFuzzGlobalData->in_fuzz) {
+      DummyPCD = 0;
       UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(GetSize, (UINTN)&DummyPCD);
       if (UseFuzzValue) {
         DEBUG((DEBUG_INFO,"get fuzz pcd %x\n",DummyPCD));

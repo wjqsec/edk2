@@ -305,7 +305,7 @@ SmmFuzzMain(
     } else {
       UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(index, SmiFuzzTimes[index]);
       // SmmCall(&SmiHandlers.Handlers[index], Sz);
-      if (Sz < (MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER))) {
+      if (Sz <= (MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER))) {
         SmmCall(&SmiHandlers.Handlers[index], Sz);
       } 
     }

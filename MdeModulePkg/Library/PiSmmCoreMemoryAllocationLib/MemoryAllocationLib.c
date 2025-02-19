@@ -25,7 +25,7 @@
 #include "PiSmmCoreMemoryAllocationServices.h"
 
 #include <Library/MemoryProfileLib.h>
-
+#include "libafl_qemu.h"
 EFI_SMRAM_DESCRIPTOR  *mSmmCoreMemoryAllocLibSmramRanges    = NULL;
 UINTN                 mSmmCoreMemoryAllocLibSmramRangeCount = 0;
 
@@ -1094,12 +1094,40 @@ PiSmmCoreMemoryAllocationLibConstructor (
   VOID                   *BootServicesData;
 
   SmmCorePrivate = (SMM_CORE_PRIVATE_DATA *)ImageHandle;
-  for (UINTN i = 0 ; i < SmmCorePrivate->SmramRangeCount; i++)
+  for (UINTN j = 0 ; j < SmmCorePrivate->SmramRangeCount; j++)
   {
-    if ((SmmCorePrivate->SmramRanges[i].RegionState & (EFI_ALLOCATED | EFI_NEEDS_TESTING | EFI_NEEDS_ECC_INITIALIZATION)) != 0) {
-      continue;
+    DEBUG((DEBUG_INFO,"originial smram00 %p %lx %x\n",SmmCorePrivate->SmramRanges[j].PhysicalStart,SmmCorePrivate->SmramRanges[j].PhysicalSize,SmmCorePrivate->SmramRanges[j].RegionState));
+  }
+  EFI_SMRAM_DESCRIPTOR * TmpSmramRange;
+  Status = gBS->AllocatePool (EfiBootServicesData, (SmmCorePrivate->SmramRangeCount + 1) * sizeof(EFI_SMRAM_DESCRIPTOR), (VOID **)&TmpSmramRange);
+  ASSERT_EFI_ERROR (Status);
+  UINTN i = 0;
+  for (; i < SmmCorePrivate->SmramRangeCount; i++)
+  {
+    if ((SmmCorePrivate->SmramRanges[i].RegionState & (EFI_ALLOCATED | EFI_NEEDS_TESTING | EFI_NEEDS_ECC_INITIALIZATION)) == 0) {
+      break;
     }
-    SmmCorePrivate->SmramRanges[i].PhysicalSize = SmmCorePrivate->SmramRanges[i].PhysicalSize - 0x100000;
+  }
+  CopyMem(TmpSmramRange, SmmCorePrivate->SmramRanges, i * sizeof(EFI_SMRAM_DESCRIPTOR));
+  CopyMem(TmpSmramRange + i, SmmCorePrivate->SmramRanges + i, sizeof(EFI_SMRAM_DESCRIPTOR));
+  CopyMem(TmpSmramRange + i + 1, SmmCorePrivate->SmramRanges + i, sizeof(EFI_SMRAM_DESCRIPTOR));
+  if (i < (SmmCorePrivate->SmramRangeCount - 1))
+  {
+    CopyMem(TmpSmramRange + i + 2, SmmCorePrivate->SmramRanges + i + 1, (SmmCorePrivate->SmramRangeCount - 1 - i) * sizeof(EFI_SMRAM_DESCRIPTOR));
+  }
+  TmpSmramRange[i].PhysicalSize = VENDOR_CORE_HEAP_SIZE;
+  TmpSmramRange[i].RegionState |= EFI_ALLOCATED;
+  
+  TmpSmramRange[i+1].CpuStart += VENDOR_CORE_HEAP_SIZE;
+  TmpSmramRange[i+1].PhysicalStart += VENDOR_CORE_HEAP_SIZE;
+  TmpSmramRange[i+1].PhysicalSize -= VENDOR_CORE_HEAP_SIZE;
+
+  SmmCorePrivate->SmramRanges = TmpSmramRange;
+  SmmCorePrivate->SmramRangeCount++;
+
+  for (UINTN j = 0 ; j < SmmCorePrivate->SmramRangeCount; j++)
+  {
+    DEBUG((DEBUG_INFO,"originial smram11 %p %lx %x\n",SmmCorePrivate->SmramRanges[j].PhysicalStart,SmmCorePrivate->SmramRanges[j].PhysicalSize, SmmCorePrivate->SmramRanges[j].RegionState ));
   }
   //
   // The FreePool()/FreePages() will need use SmramRanges data to know whether

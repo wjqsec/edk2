@@ -874,7 +874,6 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
   }
   InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
   SetCurrentModule(&DriverEntry->FileName);
-  
   LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINT64)&DriverEntry->FileName, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
   SmmFuzzGlobalData->in_fuzz = 1;  
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
@@ -907,26 +906,54 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
     RemoveSkipModule(&DriverEntry->FileName);
     Status = EFI_SUCCESS;
   } else {
-    DEBUG((DEBUG_INFO,"skip module %g\n",&DriverEntry->FileName));
+    DriverEntry->NumMissingSmmProtocols = LIBAFL_QEMU_SMM_REPORT_MISSING_PROTOCOL(REPORT_TO_QEMU, (UINTN)DriverEntry->MissingSmmProtocols);
+    DEBUG((DEBUG_INFO,"skip module %g, %d smm protocols not found\n",&DriverEntry->FileName, DriverEntry->NumMissingSmmProtocols));
     InsertSkipModule(&DriverEntry->FileName);
     Status = EFI_UNSUPPORTED;
   }
 
   return Status;
 }
+BOOLEAN MissingSmmProtocolSatisfy(EFI_SMM_DRIVER_ENTRY *entry)
+{
+  EFI_STATUS Status;
+  VOID        *Interface;
+  for (UINTN i = 0 ; i < entry->NumMissingSmmProtocols; i++)
+  {
+    Status = SmmLocateProtocol(&entry->MissingSmmProtocols[i], NULL, &Interface);
+    if (EFI_ERROR(Status)) {
+      DEBUG((DEBUG_INFO,"%g not for retry, protocol %g not found\n",&entry->FileName, &entry->MissingSmmProtocols[i]));
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
 EFI_STATUS RetryFuzz()
 {
-  EFI_STATUS Status = EFI_UNSUPPORTED;
   LIST_ENTRY            *Link;
   EFI_SMM_DRIVER_ENTRY  *DriverEntry;
-  for (Link = mRetryQueue.ForwardLink; Link != &mRetryQueue; Link = Link->ForwardLink) {
+  EFI_STATUS Status = EFI_UNSUPPORTED;
+  while (TRUE) {
+    BOOLEAN ShouldExit = TRUE;
+    for (Link = mRetryQueue.ForwardLink; Link != &mRetryQueue; Link = Link->ForwardLink) {
       DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, RetryLink, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
-      if (DriverEntry->SuccessfullyInited)
+      if (DriverEntry->SuccessfullyInited) {
+        DEBUG((DEBUG_INFO,"module %g already inited\n", &DriverEntry->FileName));
         continue;
+      }
+      if (!MissingSmmProtocolSatisfy(DriverEntry)) {
+        DEBUG((DEBUG_INFO,"module %g not satisfy\n", &DriverEntry->FileName));
+        continue;
+      }
       if (FuzzOneModule(DriverEntry) == EFI_SUCCESS) {
-        Status = EFI_SUCCESS;
+        Status =  EFI_SUCCESS;
+        ShouldExit = FALSE;
       }
     }
+    if (ShouldExit)
+      break;
+  }
+
   return Status;
 }
 BOOLEAN EvaluteReadyToRun() {
@@ -953,10 +980,6 @@ BOOLEAN EvaluteReadyToRun() {
   }
   (VOID)Status;
   return ReadyToRun;
-}
-VOID RetryDispatcher()
-{
-  
 }
 
 /**
@@ -1017,7 +1040,6 @@ SmmDispatcher (
       //
       if (DriverEntry->ImageHandle == NULL) {
         Status = SmmLoadImage (DriverEntry);
-
         //
         // Update the driver state to reflect that it's been loaded
         //
