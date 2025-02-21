@@ -304,10 +304,10 @@ SmmFuzzMain(
       SmmCall(&SmiHandlers.Handlers[index], 0);
     } else {
       UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(index, SmiFuzzTimes[index]);
-      // SmmCall(&SmiHandlers.Handlers[index], Sz);
-      if (Sz <= (MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER))) {
-        SmmCall(&SmiHandlers.Handlers[index], Sz);
-      } 
+      SmmCall(&SmiHandlers.Handlers[index], Sz);
+      // if (Sz <= (MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER))) {
+      //   SmmCall(&SmiHandlers.Handlers[index], Sz);
+      // } 
     }
     SmiFuzzTimes[index]++;
   } 

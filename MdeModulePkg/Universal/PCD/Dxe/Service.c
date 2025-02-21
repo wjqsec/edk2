@@ -392,10 +392,14 @@ GetWorker (
   {
     if (SmmFuzzGlobalData->in_fuzz) {
       DummyPCD = 0;
+      DEBUG((DEBUG_INFO,"get pcd in fuzz\n"));
       UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(GetSize, (UINTN)&DummyPCD);
       if (UseFuzzValue) {
-        DEBUG((DEBUG_INFO,"get fuzz pcd %x\n",DummyPCD));
-        return (VOID*)&DummyPCD;
+        DEBUG((DEBUG_INFO,"get fuzz pcd size:%x value %lx\n",GetSize,DummyPCD));
+        if (GetSize == 0)
+          return (VOID*)DummyPCD;
+        else
+          return (VOID*)&DummyPCD;
       }
     }
   }
@@ -1150,7 +1154,7 @@ SetWorker (
   if (!EFI_ERROR(Status))
   {
     if (SmmFuzzGlobalData->in_fuzz) {
-      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0, (UINTN)&DummyPCD);
+      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0xff, (UINTN)&DummyPCD);
       if (UseFuzzValue) {
         DEBUG((DEBUG_INFO,"set fuzz pcd\n"));
         return EFI_SUCCESS;
@@ -1631,10 +1635,10 @@ GetExPcdTokenNumber (
   if (!EFI_ERROR(Status))
   {
     if (SmmFuzzGlobalData->in_fuzz) {
-      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0, (UINTN)&DummyPCD);
+      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0xff, (UINTN)&DummyPCD);
       if (UseFuzzValue) {
         DEBUG((DEBUG_INFO,"GetExPcdTokenNumber fuzz pcd\n"));
-        return 0;
+        return 0xff;
       }
     }
   }

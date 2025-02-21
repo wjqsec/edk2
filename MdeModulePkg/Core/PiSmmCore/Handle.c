@@ -224,6 +224,9 @@ SmmInstallProtocolInterfaceFuzz (
   if(!gST) {
     return SmmInstallProtocolInterface(UserHandle, Protocol, InterfaceType, Interface);
   }
+  VOID *TmpInterface;
+  if (SmmLocateProtocol(Protocol, NULL, &TmpInterface) == EFI_SUCCESS)
+    return EFI_SUCCESS;
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmInstallProtocolInterface(UserHandle, Protocol, InterfaceType, Interface);

@@ -213,6 +213,7 @@
   gEfiTrEEProtocolGuid
   gAmiSmmFlashProtocolGuid
   gEfiTcgProtocolGuid
+  gEfiUsbProtocolGuid
   
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressBootTimeCodePageNumber    ## SOMETIMES_CONSUMES

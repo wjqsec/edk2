@@ -1783,6 +1783,7 @@ EFIAPI EFI_ACPI_PUBLISH_TABLES_FUNC(
 {
   return EFI_SUCCESS;
 }
+VOID *DxeBuffer;
 UINT8 UnknownProtocol[1000];
 PCH_NVS_AREA_PROTOCOL mPchNvsAreaProtocol;
 SA_POLICY_PROTOCOL mSaPolicyProtocol;
@@ -1816,6 +1817,8 @@ DXE_PCH_PLATFORM_POLICY_PROTOCOL mDxePchPlatformPolicyProtocol;
 AMI_SMBIOS_PROTOCOL mAmiSmbiosProtocol;
 EFI_TCG_PROTOCOL mEfiTcgProtocol;
 EFI_TREE_PROTOCOL mEfiTreeProtocol;
+EFI_SYSTEM_USB_SUPPORT_POLICY_PROTOCOL mEfiSystemUsbSupportPolicyProtocol;
+EFI_USB_PROTOCOL nEfiUsbProtocol;
 EFI_STATUS
 EFIAPI EFI_HECI_SENDWACK_FUNC (
   IN OUT  UINT32           *Message,
@@ -2628,7 +2631,7 @@ EFIAPI EFI_ALERT_STANDARD_FORMAT_PROTOCOL_GET_BOOT_OPTIONS_FUNC (
   IN  OUT EFI_ASF_BOOT_OPTIONS                 **AsfBootOptions
   )
 {
-  *AsfBootOptions = AllocatePool(sizeof(EFI_ASF_BOOT_OPTIONS));
+  *AsfBootOptions = DxeBuffer;
   return EFI_SUCCESS;  
 }
 
@@ -2762,7 +2765,16 @@ EFIAPI EFI_TCG_HASH_LOG_EXTEND_EVENT_FUNC(
 {
   return EFI_SUCCESS;  
 }
-
+EFI_STATUS
+EFIAPI EFI_USB_SUPPORT_FUNC (
+  IN  EFI_SYSTEM_USB_SUPPORT_POLICY_PROTOCOL   * This,
+  IN  UINTN                      * Arg1,
+  OUT UINTN                      * Arg2
+)
+{
+  *Arg2 = 1;
+  return EFI_SUCCESS;  
+}
 
 EFI_STATUS EFIAPI UNKNOWN_FUNC_DUMMY()
 {
@@ -2770,10 +2782,12 @@ EFI_STATUS EFIAPI UNKNOWN_FUNC_DUMMY()
 }
 VOID InstallSmmFuzzProtocol();
 VOID InstallSmmFuzzProtocol() {
+
+  DxeBuffer = AllocatePool(0x50000);
+  LIBAFL_QEMU_SMM_REPORT_DXE_BUFFER((UINTN)DxeBuffer,0x50000);
+
   EFI_HANDLE Handle = NULL;
   EFI_STATUS Status;
-
-
   SmmFuzzGlobalData.in_fuzz = 0;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
@@ -2784,8 +2798,8 @@ VOID InstallSmmFuzzProtocol() {
   ASSERT_EFI_ERROR (Status);
 
   
-  mPchNvsAreaProtocol.Area = AllocatePool(sizeof(PCH_NVS_AREA));
-  ZeroMem(mPchNvsAreaProtocol.Area,sizeof(PCH_NVS_AREA));
+  mPchNvsAreaProtocol.Area = DxeBuffer;
+  ASSERT(sizeof(PCH_NVS_AREA) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gPchNvsAreaProtocolGuid,
@@ -2794,8 +2808,8 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  mCpuGlobalNvsAreaProtocol.Area = AllocatePool(sizeof(CPU_GLOBAL_NVS_AREA));
-  ZeroMem(mCpuGlobalNvsAreaProtocol.Area,sizeof(CPU_GLOBAL_NVS_AREA));
+  mCpuGlobalNvsAreaProtocol.Area = DxeBuffer;
+  ASSERT(sizeof(CPU_GLOBAL_NVS_AREA) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gCpuGlobalNvsAreaProtocolGuid,
@@ -2804,21 +2818,21 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  ZeroMem(&mSaPolicyProtocol,sizeof(SA_POLICY_PROTOCOL));
+  ASSERT(sizeof(SA_POLICY_PROTOCOL) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gSaPolicyProtocolGuid,
-                  &mSaPolicyProtocol,
+                  DxeBuffer,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
 
-  ZeroMem(&mDxeCpuPolicyProcotol,sizeof(DXE_CPU_POLICY_PROTOCOL));
-  mDxeCpuPolicyProcotol.EnableDts = 3;
+  ASSERT(sizeof(DXE_CPU_POLICY_PROTOCOL) < 0x50000);
+  // mDxeCpuPolicyProcotol.EnableDts = 3;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gDxeCpuPolicyProtocolGuid,
-                  &mDxeCpuPolicyProcotol,
+                  DxeBuffer,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
@@ -2845,16 +2859,17 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
+  ASSERT(sizeof(EFI_POWER_MGMT_INIT_DONE_PROTOCOL) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gPowerMgmtInitDoneProtocolGuid,
-                  &mEfiPowerMgmtInitDoneProtocol,
+                  DxeBuffer,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
 
-  mPlatformNvsAreaProtocol.Area = AllocatePool(sizeof(PLATFORM_NVS_AREA));
-  ZeroMem(mPlatformNvsAreaProtocol.Area,sizeof(PLATFORM_NVS_AREA));
+  mPlatformNvsAreaProtocol.Area = DxeBuffer;
+  ASSERT(sizeof(PLATFORM_NVS_AREA) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gPlatformNvsAreaProtocolGuid,
@@ -2863,8 +2878,8 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  mCpuNvsAreProtocol.Area = AllocatePool(sizeof(CPU_NVS_AREA));
-  ZeroMem(mCpuNvsAreProtocol.Area,sizeof(CPU_NVS_AREA));
+  mCpuNvsAreProtocol.Area = DxeBuffer;
+  ASSERT(sizeof(CPU_NVS_AREA) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gCpuNvsAreaProtocolGuid,
@@ -2896,8 +2911,8 @@ VOID InstallSmmFuzzProtocol() {
 
 
 
-  mGlobalNvsAreaProtocol.Area = AllocatePool(sizeof(EFI_GLOBAL_NVS_AREA));
-  ZeroMem(mGlobalNvsAreaProtocol.Area,sizeof(EFI_GLOBAL_NVS_AREA));
+  mGlobalNvsAreaProtocol.Area = DxeBuffer;
+  ASSERT(sizeof(EFI_GLOBAL_NVS_AREA) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gEfiGlobalNvsAreaProtocolGuid,
@@ -2906,8 +2921,8 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
   
-  mSaGlobalNvsAreaProtocol.Area = AllocatePool(sizeof(SYSTEM_AGENT_GLOBAL_NVS_AREA));
-  ZeroMem(mSaGlobalNvsAreaProtocol.Area,sizeof(SYSTEM_AGENT_GLOBAL_NVS_AREA));
+  mSaGlobalNvsAreaProtocol.Area = DxeBuffer;
+  ASSERT(sizeof(SYSTEM_AGENT_GLOBAL_NVS_AREA) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gSaGlobalNvsAreaProtocolGuid,
@@ -3006,11 +3021,11 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  ZeroMem(&mEfiPchInfoProtocol, sizeof(EFI_PCH_INFO_PROTOCOL));
+  ASSERT(sizeof(EFI_PCH_INFO_PROTOCOL) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gEfiPchInfoProtocolGuid,
-                  &mEfiPchInfoProtocol,
+                  DxeBuffer,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
@@ -3041,17 +3056,17 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  ZeroMem(&mPpmPlatformPolicyProtocol,sizeof(PPM_PLATFORM_POLICY_PROTOCOL));
+  ASSERT(sizeof(PPM_PLATFORM_POLICY_PROTOCOL) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gPpmPlatformPolicyProtocolGuid,
-                  &mPpmPlatformPolicyProtocol,
+                  DxeBuffer,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
 
-  mEfiIioSystemProtocol.IioGlobalData = AllocatePool(sizeof(IIO_GLOBALS));
-  ZeroMem(mEfiIioSystemProtocol.IioGlobalData, sizeof(IIO_GLOBALS));
+  mEfiIioSystemProtocol.IioGlobalData = DxeBuffer;
+  ASSERT(sizeof(IIO_GLOBALS) < 0x50000);
   mEfiIioSystemProtocol.IioGetCpuUplinkPort = IIO_GET_CPU_UPLINK_PORT_FUNC;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
@@ -3106,11 +3121,11 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  ZeroMem(&mMemInfoProtocol,sizeof(MEM_INFO_PROTOCOL));
+  ASSERT(sizeof(MEM_INFO_PROTOCOL) < 0x50000);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gMemInfoProtocolGuid,
-                  &mMemInfoProtocol,
+                  DxeBuffer,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
@@ -3160,11 +3175,12 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
+  ASSERT(sizeof(DXE_PCH_PLATFORM_POLICY_PROTOCOL) < 0x50000);
   ZeroMem(&mDxePchPlatformPolicyProtocol, sizeof(DXE_PCH_PLATFORM_POLICY_PROTOCOL));
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gDxePchPlatformPolicyProtocolGuid,
-                  &mDxePchPlatformPolicyProtocol,
+                  DxeBuffer,
                   NULL
                   );
   ASSERT_EFI_ERROR (Status);
@@ -3192,6 +3208,16 @@ VOID InstallSmmFuzzProtocol() {
                   &mEfiTreeProtocol,
                   NULL
                   );
+  ASSERT_EFI_ERROR (Status);
+
+
+  nEfiUsbProtocol.USBDataPtr = AllocatePool(0x50000);
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                &Handle,
+                &gEfiUsbProtocolGuid,
+                &nEfiUsbProtocol,
+                NULL
+                );
   ASSERT_EFI_ERROR (Status);
 
   static GUID UnknownSmmFuzzProtocols[] = {
@@ -3236,13 +3262,11 @@ VOID InstallSmmFuzzProtocol() {
     { 0x2F08BAC6, 0x8D86, 0x483A, { 0xB5, 0x28, 0x7E, 0x4B, 0x47, 0x00, 0x24, 0x8C } },
     { 0x3C6ED57C, 0x4F6A, 0x8A58, { 0x85, 0xDF, 0xDC, 0xA5, 0xAD, 0xF0, 0xF1, 0x6B } },
     { 0xC63C0C73, 0xF612, 0x4C02, { 0x84, 0xA3, 0xC6, 0x40, 0xAD, 0x0B, 0x12, 0x34 } },
-    { 0xCBD6965C, 0xA0AE, 0x44E2, { 0xBE, 0x60, 0x3B, 0x72, 0x1E, 0x26, 0xCE, 0xCC } },
     { 0xD8C0BEB0, 0xC23B, 0x4624, { 0xAA, 0xF3, 0xCA, 0xF3, 0x0B, 0x5D, 0xB3, 0x56 } },
     { 0x92299EAF, 0x6692, 0x485D, { 0xAE, 0x2C, 0xCD, 0x07, 0x78, 0x97, 0x40, 0x8B } },
     { 0xA6E0C601, 0x46EB, 0x4A83, { 0xAC, 0xE3, 0x14, 0xDA, 0x30, 0x1F, 0x5A, 0x85 } },
     { 0x4E703E0C, 0xD4B5, 0x4923, { 0xA9, 0x96, 0xD1, 0x35, 0x9D, 0x1D, 0x4C, 0x68 } },
     { 0xE025746C, 0xD483, 0x498C, { 0xB7, 0x17, 0xE2, 0xFF, 0x99, 0x98, 0x4F, 0x9B } },
-    { 0x45DE9920, 0xCD54, 0x446A, { 0xA0, 0x3C, 0x22, 0xE6, 0xFB, 0xB4, 0x51, 0xE4 } },
     { 0x4113C18F, 0xD650, 0x488C, { 0x92, 0x93, 0xA0, 0x56, 0xA5, 0x0C, 0xD3, 0xF6 } },
     { 0x3EF7500E, 0xCF55, 0x474F, { 0x8E, 0x7E, 0x00, 0x9E, 0x0E, 0xAC, 0xEC, 0xD2 } },
     { 0x1224B1B9, 0xCBA1, 0x41CA, { 0x82, 0xA7, 0xDC, 0xF5, 0xEE, 0x6A, 0xEB, 0xED } },
@@ -3290,14 +3314,12 @@ VOID InstallSmmFuzzProtocol() {
     { 0x4B844201, 0x6FE9, 0x41D1, { 0xB4, 0x6F, 0xDF, 0xFC, 0x34, 0xE4, 0x92, 0xA2 } },
     { 0xA0B5DC52, 0x4F34, 0x3990, { 0xD4, 0x91, 0x10, 0x8B, 0xE8, 0xBA, 0x75, 0x42 } },
     { 0xAF6EFACF, 0x7A13, 0x45A3, { 0xB1, 0xA5, 0xAA, 0xFC, 0x06, 0x1C, 0x4B, 0x79 } },
-    { 0x2AD8E2D2, 0x2E91, 0x4CD1, { 0x95, 0xF5, 0xE7, 0x8F, 0xE5, 0xEB, 0xE3, 0x16 } },
     { 0x2C74511B, 0x4D15, 0x4190, { 0x89, 0xFE, 0x7D, 0x45, 0xBB, 0x31, 0x6D, 0x6C } },
     { 0x96C5A344, 0x966A, 0x469A, { 0x99, 0xB8, 0xC8, 0x64, 0x44, 0xA9, 0x95, 0x51 } },
     { 0xCEA5FC27, 0x5183, 0x4899, { 0xA6, 0x4E, 0x7B, 0x87, 0x49, 0xC9, 0x62, 0xE2 } },
     { 0x6FCE3BB9, 0x9742, 0x4CFD, { 0x8E, 0x9E, 0x39, 0xF9, 0x8D, 0xCA, 0x32, 0x71 } },
     { 0x33381F15, 0x15ED, 0x467A, { 0xA6, 0xC9, 0xCC, 0x1B, 0x86, 0xCA, 0xD8, 0xD8 } },
     { 0xA6588F10, 0xD165, 0x4EBF, { 0xB7, 0x72, 0x20, 0x6D, 0x36, 0x37, 0xF6, 0x5C } },
-    { 0x5FD84329, 0x87C0, 0x4FED, { 0x95, 0xC2, 0x23, 0x24, 0xAF, 0x71, 0x97, 0x7F } },
     { 0x53AF9368, 0xB844, 0x455B, { 0xAE, 0x8A, 0x15, 0xDB, 0x11, 0xE1, 0x8F, 0x20 } },
     { 0x380D7A5E, 0x1BCA, 0x11E1, { 0xA1, 0x10, 0xE8, 0xEB, 0x47, 0x24, 0x01, 0x9B } },
     { 0x49240652, 0x0D81, 0x445D, { 0xAE, 0x1B, 0x51, 0xEC, 0x24, 0xF8, 0xD0, 0x07 } },
@@ -3341,15 +3363,15 @@ VOID InstallSmmFuzzProtocol() {
     { 0xD0E53AB5, 0x34BB, 0x4BC5, { 0xB3, 0xBC, 0x17, 0x68, 0x15, 0x13, 0xC1, 0x47 } },
     { 0x45066A3B, 0xB760, 0x4411, { 0xA4, 0x20, 0x51, 0x19, 0x21, 0xEF, 0x59, 0x56 } },
     { 0x71FD0C86, 0xE19B, 0x4F9C, { 0x81, 0x5D, 0xCC, 0x98, 0x31, 0xDC, 0xBA, 0xFA } },
+
   };
-  VOID *gUnknownProtocolBuf = AllocatePool(0x8000);
-  SetMem(gUnknownProtocolBuf,0x8000,1);
+
   for (UINTN i = 0; i < ( sizeof(UnknownSmmFuzzProtocols) / sizeof(UnknownSmmFuzzProtocols[0])) ; i++)
   {
       Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &UnknownSmmFuzzProtocols[i],
-                  gUnknownProtocolBuf,
+                  DxeBuffer,
                   NULL
                   );
       ASSERT_EFI_ERROR (Status);
@@ -3358,6 +3380,9 @@ VOID InstallSmmFuzzProtocol() {
   GUID UnknownProtocolGuids[] = {
   { 0x2251CA8F, 0x02B4, 0x49F3, { 0xAD, 0x67, 0x52, 0x4E, 0xDC, 0xB3, 0xD5, 0xBB } },
   { 0xF8B84AE6, 0x8465, 0x4F95, { 0x9F, 0x0B, 0xEA, 0xAA, 0x37, 0xC6, 0x15, 0x5A } }, 
+  { 0x36A2CA34, 0x82FE, 0x4D2C, { 0xAD, 0x55, 0xE4, 0xF3, 0x8B, 0x3D, 0xD9, 0xD9 } },
+  { 0x8D432C0F, 0xA1EE, 0x492F, { 0x85, 0x05, 0x30, 0x3B, 0x44, 0x89, 0xE9, 0xDD } },
+  { 0xCBD6965C, 0xA0AE, 0x44E2, { 0xBE, 0x60, 0x3B, 0x72, 0x1E, 0x26, 0xCE, 0xCC } },
   };
   static UNKNOWN_PROTOCOL gUnknownProtocol;
   gUnknownProtocol.Func1 = UNKNOWN_FUNC_DUMMY;
