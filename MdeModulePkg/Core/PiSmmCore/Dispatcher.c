@@ -847,6 +847,7 @@ BOOLEAN IsOVMFSmmModule(GUID *guid) {
   return FALSE;
 }
 LIST_ENTRY  mRetryQueue = INITIALIZE_LIST_HEAD_VARIABLE (mRetryQueue);
+VOID *FuzzHobAddr;
 EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
 {
   EFI_STATUS Status;
@@ -862,8 +863,7 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
   EFI_PEI_HOB_POINTERS FuzzHob;
   EFI_PEI_HOB_POINTERS FuzzHobBackup;
   if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
-    Status = gBS->AllocatePool(EfiBootServicesData, 0x1200, (VOID**)&FuzzHob.Raw);
-    ASSERT_EFI_ERROR (Status);
+    FuzzHob.Raw = FuzzHobAddr;
     FuzzHobBackup.Raw = FuzzHob.Raw;
     Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, (VOID*)FuzzHobBackup.Raw);
     ASSERT_EFI_ERROR (Status);
@@ -895,8 +895,6 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
   ClearCurrentModule();
   if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
     Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, OldHob);
-    ASSERT_EFI_ERROR (Status);
-    Status = gBS->FreePool(FuzzHobBackup.Raw);
     ASSERT_EFI_ERROR (Status);
     LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)0, (UINT64)0);
   }

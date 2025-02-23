@@ -1023,6 +1023,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
 
 }
 UINT64 SmmFuzzDummyMemory = 10;
+extern VOID *FuzzHobAddr;
 /**
   The Entry Point for SMM Core
 
@@ -1050,6 +1051,8 @@ SmmMain (
   UINTN       Index;
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)&SmmFuzzDummyMemory);
   Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  ASSERT(!EFI_ERROR(Status));
+  Status = gBS->AllocatePool(EfiBootServicesData, 0x1200, (VOID**)&FuzzHobAddr);
   ASSERT(!EFI_ERROR(Status));
   //
   // Get SMM Core Private context passed in from SMM IPL in ImageHandle.

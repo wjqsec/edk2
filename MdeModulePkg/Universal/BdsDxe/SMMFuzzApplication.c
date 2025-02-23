@@ -284,6 +284,7 @@ SmmFuzzMain(
   ZeroMem (SmiFuzzTimes, sizeof (SmiFuzzTimes));
   ZeroMem (CommData, MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER));
   UINTN SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
+  DEBUG((DEBUG_INFO,"Select len %d\n",SmiFuzzSeqSz));
   for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
     UINTN index = SmiFuzzSeq[i];
     DEBUG((DEBUG_INFO,"Select %d\n",index));
