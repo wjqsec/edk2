@@ -172,6 +172,7 @@ EFI_STATUS
 EFIAPI
 DummyRuntimeSmm(VOID)
 {
+  DEBUG((DEBUG_INFO,"DummyRuntimeSmm Ok\n"));
   return EFI_SUCCESS;
 }
 

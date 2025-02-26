@@ -7921,6 +7921,100 @@ typedef struct _EFI_USB_PROTOCOL {
 } EFI_USB_PROTOCOL;
 
 
+typedef struct _EFI_SMBUS_HC_PROTOCOL EFI_SMBUS_HC_PROTOCOL;
+typedef struct {
+  UINTN SmbusDeviceAddress : 7;
+} EFI_SMBUS_DEVICE_ADDRESS;
+typedef UINTN   EFI_SMBUS_DEVICE_COMMAND;
+typedef enum _EFI_SMBUS_OPERATION {
+  EfiSmbusQuickRead,
+  EfiSmbusQuickWrite,
+  EfiSmbusReceiveByte,
+  EfiSmbusSendByte,
+  EfiSmbusReadByte,
+  EfiSmbusWriteByte,
+  EfiSmbusReadWord,
+  EfiSmbusWriteWord,
+  EfiSmbusReadBlock,
+  EfiSmbusWriteBlock,
+  EfiSmbusProcessCall,
+  EfiSmbusBWBRProcessCall
+} EFI_SMBUS_OPERATION;
+typedef struct {
+  UINT32  VendorSpecificId;
+  UINT16  SubsystemDeviceId;
+  UINT16  SubsystemVendorId;
+  UINT16  Interface;
+  UINT16  DeviceId;
+  UINT16  VendorId;
+  UINT8   VendorRevision;
+  UINT8   DeviceCapabilities;
+} EFI_SMBUS_UDID;
+typedef struct {
+  ///
+  /// The SMBUS hardware address to which the SMBUS device is preassigned or
+  /// allocated. Type EFI_SMBUS_DEVICE_ADDRESS is defined in EFI_PEI_SMBUS2_PPI.Execute().
+  ///
+  EFI_SMBUS_DEVICE_ADDRESS  SmbusDeviceAddress;
+  ///
+  /// The SMBUS Unique Device Identifier (UDID) as defined in EFI_SMBUS_UDID.
+  /// Type EFI_SMBUS_UDID is defined in EFI_PEI_SMBUS2_PPI.ArpDevice().
+  ///
+  EFI_SMBUS_UDID            SmbusDeviceUdid;
+} EFI_SMBUS_DEVICE_MAP;
+typedef
+EFI_STATUS
+(EFIAPI *EFI_SMBUS_HC_EXECUTE_OPERATION)(
+  IN CONST  EFI_SMBUS_HC_PROTOCOL     *This,
+  IN        EFI_SMBUS_DEVICE_ADDRESS  SlaveAddress,
+  IN        EFI_SMBUS_DEVICE_COMMAND  Command,
+  IN        EFI_SMBUS_OPERATION       Operation,
+  IN        BOOLEAN                   PecCheck,
+  IN OUT    UINTN                     *Length,
+  IN OUT    VOID                      *Buffer
+);
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_SMBUS_HC_PROTOCOL_ARP_DEVICE)(
+  IN CONST  EFI_SMBUS_HC_PROTOCOL     *This,
+  IN        BOOLEAN                   ArpAll,
+  IN        EFI_SMBUS_UDID            *SmbusUdid,   OPTIONAL
+  IN OUT    EFI_SMBUS_DEVICE_ADDRESS  *SlaveAddress OPTIONAL
+);
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_SMBUS_HC_PROTOCOL_GET_ARP_MAP)(
+  IN CONST  EFI_SMBUS_HC_PROTOCOL   *This,
+  IN OUT    UINTN                   *Length,
+  IN OUT    EFI_SMBUS_DEVICE_MAP    **SmbusDeviceMap
+);
+
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_SMBUS_NOTIFY_FUNCTION)(
+  IN        EFI_SMBUS_DEVICE_ADDRESS  SlaveAddress,
+  IN        UINTN                     Data
+);
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_SMBUS_HC_PROTOCOL_NOTIFY)(
+  IN CONST  EFI_SMBUS_HC_PROTOCOL     *This,
+  IN        EFI_SMBUS_DEVICE_ADDRESS  SlaveAddress,
+  IN        UINTN                     Data,
+  IN        EFI_SMBUS_NOTIFY_FUNCTION NotifyFunction
+);
+
+struct _EFI_SMBUS_HC_PROTOCOL {
+  EFI_SMBUS_HC_EXECUTE_OPERATION    Execute;
+  EFI_SMBUS_HC_PROTOCOL_ARP_DEVICE  ArpDevice;
+  EFI_SMBUS_HC_PROTOCOL_GET_ARP_MAP GetArpMap;
+  EFI_SMBUS_HC_PROTOCOL_NOTIFY      Notify;
+};
+
 typedef
 EFI_STATUS
 (EFIAPI *UNKNOWN_FUNC) (
@@ -7987,4 +8081,5 @@ extern GUID gEfiTrEEProtocolGuid;
 extern GUID gEfiTcgProtocolGuid;
 extern GUID gAmiSmmFlashProtocolGuid;
 extern GUID gEfiUsbProtocolGuid;
+extern GUID gEfiSmbusHcProtocolGuid;
 #endif

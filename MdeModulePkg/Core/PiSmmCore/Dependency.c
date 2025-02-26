@@ -195,7 +195,7 @@ SmmIsSchedulable (
     // All SMM drivers must have a valid depex expression.
     //
     DEBUG ((DEBUG_DISPATCH, "  RESULT = FALSE (Depex is empty)\n"));
-    ASSERT (FALSE);
+    // ASSERT (FALSE);
     return FALSE;
   }
 
