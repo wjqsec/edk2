@@ -3289,6 +3289,15 @@ VOID InstallSmmFuzzProtocol() {
   );
   ASSERT_EFI_ERROR (Status);
 
+  VOID* Tmp = AllocatePool(0x50000);
+  Status = gBS->InstallMultipleProtocolInterfaces (
+    &Handle,
+    &gEfiSystemUsbSupportPolicyProtocol,
+    Tmp,
+    NULL
+  );
+  ASSERT_EFI_ERROR (Status);
+  
   static GUID UnknownSmmFuzzProtocols[] = {
     { 0x5B4CB5FD, 0x42F4, 0x27A0, { 0xCC, 0xEB, 0xD9, 0xA2, 0x8E, 0x6B, 0x91, 0xFC } },
     { 0x01A55897, 0xF83D, 0x43AA, { 0xA4, 0x38, 0x81, 0x62, 0x18, 0xB8, 0xAF, 0xB5 } },
