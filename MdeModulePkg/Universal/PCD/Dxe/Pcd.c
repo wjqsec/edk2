@@ -9,7 +9,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "Service.h"
-
+#include "libafl_qemu.h"
 ///
 /// PCD database lock.
 ///
@@ -476,6 +476,15 @@ DxePcdGetSize (
   UINTN    MaxSize;
   UINTN    TmpTokenNumber;
 
+  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+  EFI_STATUS Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  if (!EFI_ERROR(Status))
+  {
+    if (SmmFuzzGlobalData->in_fuzz) {
+      DEBUG((DEBUG_INFO,"get pcd size in fuzz\n"));
+      return 8;
+    }
+  }
   //
   // TokenNumber Zero is reserved as PCD_INVALID_TOKEN_NUMBER.
   // We have to decrement TokenNumber by 1 to make it usable

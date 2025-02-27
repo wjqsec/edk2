@@ -8064,4 +8064,5 @@ extern GUID gEfiTcgProtocolGuid;
 extern GUID gAmiSmmFlashProtocolGuid;
 extern GUID gEfiUsbProtocolGuid;
 extern GUID gEfiSmbusHcProtocolGuid;
+extern GUID gEfiSystemUsbSupportPolicyProtocol;
 #endif
