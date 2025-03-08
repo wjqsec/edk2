@@ -199,7 +199,7 @@ SmiManage (
     else
       DEBUG((DEBUG_INFO,"SMI hanlder enter %g\n",HandlerType));
     SetCurrentModuleBySmi(HandlerType);
-    LIBAFL_QEMU_SMM_SMI_ENTER();
+    LIBAFL_QEMU_SMM_SMI_ENTER((UINTN)HandlerType, (UINTN)SmiHandler->Handler);
     Status = SmiHandler->Handler (
                            (EFI_HANDLE)SmiHandler,
                            Context,
