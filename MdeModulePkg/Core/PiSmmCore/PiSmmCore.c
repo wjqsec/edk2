@@ -990,32 +990,10 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           {
             DEBUG((DEBUG_INFO,"smram record  %p %p %x %x\n",gSmmCorePrivate->SmramRanges[i].CpuStart, gSmmCorePrivate->SmramRanges[i].PhysicalStart, gSmmCorePrivate->SmramRanges[i].PhysicalSize, gSmmCorePrivate->SmramRanges[i].RegionState));
           }
-          LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&DriverEntry->FileName, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
-          LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,(UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
-          DEBUG((DEBUG_INFO,"vendor smm core start %p-%p\n",DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageBase + DriverEntry->SmmLoadedImage.ImageSize));
-          SmmFuzzGlobalData->in_fuzz = 1;
-
-          UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
-          if (skip == 0)
-            Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(ImageHandle, gST);
-          else {
-            DEBUG((DEBUG_INFO,"skip module %g\n",&DriverEntry->FileName));
-            InsertSkipModule(&DriverEntry->FileName);
-            Status = EFI_SUCCESS;
-          }
-          SmmFuzzGlobalData->in_fuzz = 0;
-          DEBUG((DEBUG_INFO,"vendor smm core end %r\n",Status));
-          if (EFI_ERROR (Status)) {
-            LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT,0,0);  
-          } else {
-            LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
-          }
-          
+          Status = FuzzOneModule(DriverEntry);
+          DriverEntry->SuccessfullyInited = TRUE;
           gSmmCorePrivate->SmramRanges = OldSmramRange;
-          if (skip)
-            return EFI_NOT_FOUND;
-          else
-            return EFI_SUCCESS;
+          return Status;
       }
     }
   }
@@ -1059,6 +1037,8 @@ SmmMain (
   //
   gSmmCorePrivate = (SMM_CORE_PRIVATE_DATA *)ImageHandle;
   GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA}};
+  InsertNewSmmModule(&SMMCORE_GUID, (VOID*)gSmmCorePrivate->PiSmmCoreImageBase, gSmmCorePrivate->PiSmmCoreImageSize);
+  SetCurrentModule(&SMMCORE_GUID);
   LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&SMMCORE_GUID, (UINT64)gSmmCorePrivate->PiSmmCoreImageBase, (UINT64)gSmmCorePrivate->PiSmmCoreImageBase + (UINT64)gSmmCorePrivate->PiSmmCoreImageSize);
   Status = LoadVendorCore(ImageHandle, SystemTable);
   if (!EFI_ERROR(Status))
