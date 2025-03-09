@@ -481,8 +481,11 @@ DxePcdGetSize (
   if (!EFI_ERROR(Status))
   {
     if (SmmFuzzGlobalData->in_fuzz) {
-      DEBUG((DEBUG_INFO,"get pcd size in fuzz\n"));
-      return 8;
+      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0xff, (UINTN)0);
+      if (UseFuzzValue) {
+        DEBUG((DEBUG_INFO,"get pcd size use fuzz value 8\n"));
+        return 8;
+      }
     }
   }
   //
