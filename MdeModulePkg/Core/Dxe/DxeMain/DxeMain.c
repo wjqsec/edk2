@@ -2846,6 +2846,13 @@ VOID InstallSmmFuzzProtocol() {
   EFI_HANDLE Handle = NULL;
   EFI_STATUS Status;
   SmmFuzzGlobalData.in_fuzz = 0;
+  SmmFuzzGlobalData.dxe_module_info = AllocatePool(sizeof(DXE_MODULE_INFOS));
+  ZeroMem (SmmFuzzGlobalData.dxe_module_info, sizeof(DXE_MODULE_INFOS));
+  DXE_MODULE_INFOS *Info = (DXE_MODULE_INFOS *)SmmFuzzGlobalData.dxe_module_info;
+  CopyGuid(&Info->Modules[Info->NumModules].Guid, gDxeCoreFileName);
+  Info->Modules[Info->NumModules].StartAddress = (UINTN)gDxeCoreLoadedImage->ImageBase;
+  Info->Modules[Info->NumModules].Size = gDxeCoreLoadedImage->ImageSize;
+  Info->NumModules++;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gSmmFuzzDataProtocolGuid,

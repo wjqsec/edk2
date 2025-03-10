@@ -1597,6 +1597,8 @@ CoreLoadImage (
                                   entry point.
 
 **/
+UINTN StartAddress;
+UINTN Size;
 EFI_STATUS
 EFIAPI
 CoreStartImage (
@@ -1637,7 +1639,8 @@ CoreStartImage (
     DEBUG ((DEBUG_ERROR, "on %s UEFI system.\n", GetMachineTypeName (mDxeCoreImageMachineType)));
     return EFI_UNSUPPORTED;
   }
-
+  StartAddress = Image->ImageBasePage;
+  Size = Image->NumberOfPages * EFI_PAGE_SIZE;
   if (Image->PeCoffEmu != NULL) {
     Status = Image->PeCoffEmu->RegisterImage (
                                  Image->PeCoffEmu,

@@ -34,8 +34,10 @@
 #include "libafl_qemu.h"
 #include "SmiFuzz.h"
 
+
 EFI_SMM_COMMUNICATION_PROTOCOL *SmmCommunication;
 EFI_SMM_COMMUNICATE_HEADER *CommHeader;
+SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 UINT8 *CommData;
 
 typedef struct _SMI_HANDLER_GROUP {
@@ -199,6 +201,12 @@ VOID ReportSmmModuleInfo() {
     LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&ReportDataBackup->info[i].Guid, (UINTN)ReportDataBackup->info[i].ImageBase, (UINTN)ReportDataBackup->info[i].ImageBase + (UINTN)ReportDataBackup->info[i].ImageSize);   
   }
 }
+VOID ReportDxeModuleInfo() {
+  DXE_MODULE_INFOS *Info = (DXE_MODULE_INFOS *)SmmFuzzGlobalData->dxe_module_info;
+  for (UINTN i = 0; i < Info->NumModules; i++) {
+    LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&Info->Modules[i].Guid, (UINTN)Info->Modules[i].StartAddress, (UINTN)Info->Modules[i].StartAddress + (UINTN)Info->Modules[i].Size);   
+  }
+}
 VOID ReportSmmGroupInfo() {
   for (UINTN i = 0; i < NumGroups; i++) {
     for (UINTN j = 0; j < Groups[i].NumSmiHandlers; j++) {
@@ -239,11 +247,15 @@ SmmFuzzMain(
     IN EFI_HANDLE ImageHandle,
     IN EFI_SYSTEM_TABLE *SystemTable)
 {
-    
+  EFI_STATUS Status;
   DEBUG((DEBUG_INFO,"start SmmFuzzMain\n"));
 
-  EFI_STATUS Status;
-  
+  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  if (EFI_ERROR(Status)) {
+      DEBUG((DEBUG_INFO,"Error: Unable to locate gSmmFuzzDataProtocolGuid. %r\n",Status));
+      return Status;
+  }
+
   UINTN  MinimalSizeNeeded = 3 * 0x1000;
 
   Status = gBS->LocateProtocol(&gEfiSmmCommunicationProtocolGuid, NULL, (void **)&SmmCommunication);
@@ -272,6 +284,7 @@ SmmFuzzMain(
   ReportSmiInfo();
   ReportSkipModuleInfo();
   ReportUnloadModuleInfo();
+  ReportDxeModuleInfo();
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)ReportDataBackup->DummyAddr);
   LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
   LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER));

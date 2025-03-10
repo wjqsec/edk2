@@ -32,7 +32,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "DxeMain.h"
-
+#include "libafl_qemu.h"
+extern SMM_FUZZ_GLOBAL_DATA SmmFuzzGlobalData;
 //
 // The Driver List contains one copy of every driver that has been discovered.
 // Items are never removed from the driver list. List of EFI_CORE_DRIVER_ENTRY
@@ -395,6 +396,8 @@ CoreTrust (
   @retval EFI_SUCCESS           One or more DXE Drivers were dispatched
 
 **/
+extern UINTN StartAddress;
+extern UINTN Size;
 EFI_STATUS
 EFIAPI
 CoreDispatcher (
@@ -459,7 +462,6 @@ CoreDispatcher (
                    0,
                    &DriverEntry->ImageHandle
                    );
-
         //
         // Update the driver state to reflect that it's been loaded
         //
@@ -514,8 +516,12 @@ CoreDispatcher (
           sizeof (DriverEntry->ImageHandle)
           );
         ASSERT (DriverEntry->ImageHandle != NULL);
-
         Status = CoreStartImage (DriverEntry->ImageHandle, NULL, NULL);
+        DXE_MODULE_INFOS *Info = (DXE_MODULE_INFOS *)SmmFuzzGlobalData.dxe_module_info;
+        CopyGuid(&Info->Modules[Info->NumModules].Guid, &DriverEntry->FileName);
+        Info->Modules[Info->NumModules].StartAddress = StartAddress;
+        Info->Modules[Info->NumModules].Size = Size;
+        Info->NumModules++;
 
         REPORT_STATUS_CODE_WITH_EXTENDED_DATA (
           EFI_PROGRESS_CODE,

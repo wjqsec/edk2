@@ -84,6 +84,7 @@
   gEdkiiPiSmmCommunicationRegionTableGuid
   gEfiSmmReportSmmModuleInfoGuid
   gEfiSmmFuzzRootGuid
+  
 
 [Protocols]
   gEfiBdsArchProtocolGuid                       ## PRODUCES
@@ -93,6 +94,7 @@
 
   ## SmmFuzz
   gEfiSmmCommunicationProtocolGuid
+  gSmmFuzzDataProtocolGuid
 
 [FeaturePcd]
   gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLangDeprecate    ## CONSUMES

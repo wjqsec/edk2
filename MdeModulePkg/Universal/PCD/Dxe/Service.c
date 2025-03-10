@@ -11,6 +11,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "Service.h"
 #include <Library/DxeServicesLib.h>
 #include "libafl_qemu.h"
+static SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData = NULL;
 PCD_DATABASE  mPcdDatabase;
 
 UINT32  mPcdTotalTokenCount;
@@ -386,21 +387,18 @@ GetWorker (
   STRING_HEAD    StringTableIdx;
   BOOLEAN        IsPeiDb;
 
-  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
-  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-  if (!EFI_ERROR(Status))
-  {
-    if (SmmFuzzGlobalData->in_fuzz) {
-      DummyPCD = 0;
-      DEBUG((DEBUG_INFO,"get pcd in fuzz\n"));
-      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(GetSize, (UINTN)&DummyPCD);
-      if (UseFuzzValue) {
-        DEBUG((DEBUG_INFO,"get fuzz pcd size:%x value %lx\n",GetSize,DummyPCD));
-        if (GetSize == 0)
-          return (VOID*)DummyPCD;
-        else
-          return (VOID*)&DummyPCD;
-      }
+  if (!SmmFuzzGlobalData)
+    Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  if (SmmFuzzGlobalData->in_fuzz) {
+    DummyPCD = 0;
+    DEBUG((DEBUG_INFO,"get pcd in fuzz\n"));
+    UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(GetSize, (UINTN)&DummyPCD);
+    if (UseFuzzValue) {
+      DEBUG((DEBUG_INFO,"get fuzz pcd size:%x value %lx\n",GetSize,DummyPCD));
+      if (GetSize == 0)
+        return (VOID*)DummyPCD;
+      else
+        return (VOID*)&DummyPCD;
     }
   }
     
@@ -1149,16 +1147,13 @@ SetWorker (
   UINTN          MaxSize; 
   UINTN          TmpTokenNumber;
 
-  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
-  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-  if (!EFI_ERROR(Status))
-  {
-    if (SmmFuzzGlobalData->in_fuzz) {
-      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0xff, (UINTN)&DummyPCD);
-      if (UseFuzzValue) {
-        DEBUG((DEBUG_INFO,"set fuzz pcd\n"));
-        return EFI_SUCCESS;
-      }
+  if (!SmmFuzzGlobalData)
+    gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  if (SmmFuzzGlobalData->in_fuzz) {
+    UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0xff, (UINTN)&DummyPCD);
+    if (UseFuzzValue) {
+      DEBUG((DEBUG_INFO,"set fuzz pcd\n"));
+      return EFI_SUCCESS;
     }
   }
 
@@ -1630,16 +1625,13 @@ GetExPcdTokenNumber (
   EFI_GUID           *MatchGuid;
   UINTN              MatchGuidIdx;
 
-  SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
-  EFI_STATUS Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-  if (!EFI_ERROR(Status))
-  {
-    if (SmmFuzzGlobalData->in_fuzz) {
-      UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0xff, (UINTN)&DummyPCD);
-      if (UseFuzzValue) {
-        DEBUG((DEBUG_INFO,"GetExPcdTokenNumber fuzz pcd\n"));
-        return 0xff;
-      }
+  if (!SmmFuzzGlobalData)
+    gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  if (SmmFuzzGlobalData->in_fuzz) {
+    UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_PCD(0xff, (UINTN)&DummyPCD);
+    if (UseFuzzValue) {
+      DEBUG((DEBUG_INFO,"GetExPcdTokenNumber fuzz pcd\n"));
+      return 0xff;
     }
   }
 

@@ -1,0 +1,10 @@
+#define MAX_NUM_DXE_MODULES 300
+typedef struct DXE_MODULE_INFO {
+  GUID Guid;
+  UINTN StartAddress;
+  UINTN Size;
+}DXE_MODULE_INFO;
+typedef struct DXE_MODULE_INFOS {
+  UINTN NumModules;
+  DXE_MODULE_INFO Modules[MAX_NUM_DXE_MODULES];
+}DXE_MODULE_INFOS;

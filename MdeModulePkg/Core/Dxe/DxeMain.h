@@ -8020,6 +8020,7 @@ EFI_STATUS
 (EFIAPI *UNKNOWN_FUNC) (
 );
 
+#include "SmmFuzzProtocol.h"
 VOID InstallSmmFuzzProtocol();
 VOID HookGBS (VOID);
 extern GUID gSmmFuzzHobGuid;

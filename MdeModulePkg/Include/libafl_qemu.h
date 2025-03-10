@@ -357,5 +357,6 @@ LIBAFL_DEFINE_FUNCTIONS(backdoor, LIBAFL_BACKDOOR_OPCODE)
 
 typedef struct _SMM_FUZZ_GLOBAL_DATA {
   libafl_word in_fuzz;
+  void *dxe_module_info;
 }SMM_FUZZ_GLOBAL_DATA;
 #endif
