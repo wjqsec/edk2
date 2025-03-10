@@ -1038,7 +1038,6 @@ SmmMain (
   gSmmCorePrivate = (SMM_CORE_PRIVATE_DATA *)ImageHandle;
   GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA}};
   InsertNewSmmModule(&SMMCORE_GUID, (VOID*)gSmmCorePrivate->PiSmmCoreImageBase, gSmmCorePrivate->PiSmmCoreImageSize);
-  SetCurrentModule(&SMMCORE_GUID);
   LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&SMMCORE_GUID, (UINT64)gSmmCorePrivate->PiSmmCoreImageBase, (UINT64)gSmmCorePrivate->PiSmmCoreImageBase + (UINT64)gSmmCorePrivate->PiSmmCoreImageSize);
   Status = LoadVendorCore(ImageHandle, SystemTable);
   if (!EFI_ERROR(Status))
