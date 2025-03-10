@@ -517,12 +517,13 @@ CoreDispatcher (
           );
         ASSERT (DriverEntry->ImageHandle != NULL);
         Status = CoreStartImage (DriverEntry->ImageHandle, NULL, NULL);
-        DXE_MODULE_INFOS *Info = (DXE_MODULE_INFOS *)SmmFuzzGlobalData.dxe_module_info;
-        CopyGuid(&Info->Modules[Info->NumModules].Guid, &DriverEntry->FileName);
-        Info->Modules[Info->NumModules].StartAddress = StartAddress;
-        Info->Modules[Info->NumModules].Size = Size;
-        Info->NumModules++;
-
+        if(!EFI_ERROR(Status)) {
+          DXE_MODULE_INFOS *Info = (DXE_MODULE_INFOS *)SmmFuzzGlobalData.dxe_module_info;
+          CopyGuid(&Info->Modules[Info->NumModules].Guid, &DriverEntry->FileName);
+          Info->Modules[Info->NumModules].StartAddress = StartAddress;
+          Info->Modules[Info->NumModules].Size = Size;
+          Info->NumModules++;
+        }
         REPORT_STATUS_CODE_WITH_EXTENDED_DATA (
           EFI_PROGRESS_CODE,
           (EFI_SOFTWARE_DXE_CORE | EFI_SW_PC_INIT_END),
