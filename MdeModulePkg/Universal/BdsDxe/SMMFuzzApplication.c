@@ -286,9 +286,10 @@ SmmFuzzMain(
   ReportUnloadModuleInfo();
   ReportDxeModuleInfo();
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)ReportDataBackup->DummyAddr);
+  LIBAFL_QEMU_SMM_REPORT_REDZONE_BUFFER_ADDR((libafl_word)ReportDataBackup->RedZonePageAddr);
   LIBAFL_QEMU_SMM_REPORT_SMI_SELECT_INFO((UINTN)SmiFuzzSeq,1024);
   LIBAFL_QEMU_SMM_REPORT_COMMBUF_INFO((UINTN)CommData,MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER));
-  
+
 
 
   DEBUG((DEBUG_INFO,"Fuzz Data Report End\n"));

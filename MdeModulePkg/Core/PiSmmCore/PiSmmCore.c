@@ -23,7 +23,6 @@ extern EFI_FREE_PAGES                      SmmFreePagesOld;
 extern EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp;
 extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 
-BOOLEAN FuzzRootSmi = FALSE;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
 //
@@ -685,15 +684,14 @@ InternalIsBufferOverlapped (
 VOID
 EFIAPI
 SmmEntryPoint (
-  IN CONST EFI_SMM_ENTRY_CONTEXT  *SmmEntryContext,
-  BOOLEAN FuzzRoot
+  IN CONST EFI_SMM_ENTRY_CONTEXT  *SmmEntryContext
   )
 {
   EFI_STATUS                  Status;
   EFI_SMM_COMMUNICATE_HEADER  *CommunicateHeader;
   BOOLEAN                     InLegacyBoot;
-  BOOLEAN                     IsOverlapped;
-  BOOLEAN                     IsOverUnderflow;
+  // BOOLEAN                     IsOverlapped;
+  // BOOLEAN                     IsOverUnderflow;
   VOID                        *CommunicationBuffer;
   UINTN                       BufferSize;
   
@@ -738,29 +736,30 @@ SmmEntryPoint (
       //
       // Synchronous SMI for SMM Core or request from Communicate protocol
       //
-      IsOverlapped = InternalIsBufferOverlapped (
-                       (UINT8 *)CommunicationBuffer,
-                       BufferSize,
-                       (UINT8 *)gSmmCorePrivate,
-                       sizeof (*gSmmCorePrivate)
-                       );
+      // IsOverlapped = InternalIsBufferOverlapped (
+      //                  (UINT8 *)CommunicationBuffer,
+      //                  BufferSize,
+      //                  (UINT8 *)gSmmCorePrivate,
+      //                  sizeof (*gSmmCorePrivate)
+      //                  );
       //
       // Check for over or underflows
       //
-      IsOverUnderflow = EFI_ERROR (SafeUintnSub (BufferSize, OFFSET_OF (EFI_SMM_COMMUNICATE_HEADER, Data), &BufferSize));
+      // IsOverUnderflow = EFI_ERROR (SafeUintnSub (BufferSize, OFFSET_OF (EFI_SMM_COMMUNICATE_HEADER, Data), &BufferSize));
 
-      if (!SmmIsBufferOutsideSmmValid ((UINTN)CommunicationBuffer, BufferSize) ||
-          IsOverlapped || IsOverUnderflow)
+      // if (!SmmIsBufferOutsideSmmValid ((UINTN)CommunicationBuffer, BufferSize) ||
+      //     IsOverlapped || IsOverUnderflow)
+      // {
+      //   //
+      //   // If CommunicationBuffer is not in valid address scope,
+      //   // or there is overlap between gSmmCorePrivate and CommunicationBuffer,
+      //   // or there is over or underflow,
+      //   // return EFI_INVALID_PARAMETER
+      //   //
+      //   gSmmCorePrivate->CommunicationBuffer = NULL;
+      //   gSmmCorePrivate->ReturnStatus        = EFI_ACCESS_DENIED;
+      // } else 
       {
-        //
-        // If CommunicationBuffer is not in valid address scope,
-        // or there is overlap between gSmmCorePrivate and CommunicationBuffer,
-        // or there is over or underflow,
-        // return EFI_INVALID_PARAMETER
-        //
-        gSmmCorePrivate->CommunicationBuffer = NULL;
-        gSmmCorePrivate->ReturnStatus        = EFI_ACCESS_DENIED;
-      } else {
         CommunicateHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommunicationBuffer;
         // BufferSize was updated by the SafeUintnSub() call above. 
         Status = SmiManage (
@@ -783,8 +782,7 @@ SmmEntryPoint (
   //
   // Process Asynchronous SMI sources
   //
-  if (FuzzRoot)
-    SmiManage (NULL, NULL, NULL, NULL);
+  // SmiManage (NULL, NULL, NULL, NULL);
 
   //
   // Call platform hook after Smm Dispatch
@@ -812,13 +810,13 @@ SmmEntryPointFuzz (
   )
 {
   if(!gST) {
-    SmmEntryPoint(SmmEntryContext, FuzzRootSmi); 
+    SmmEntryPoint(SmmEntryContext); 
     return;
   }
     
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
-  SmmEntryPoint(SmmEntryContext, FuzzRootSmi);
+  SmmEntryPoint(SmmEntryContext);
   SmmFuzzGlobalData->in_fuzz = OldInFuzz;
 }
 /**
@@ -1183,7 +1181,7 @@ SmmReportHandler (
   EFI_PHYSICAL_ADDRESS    PhysicalStartBegin, PhysicalStartEnd;
   EFI_PHYSICAL_ADDRESS    CpuStartBegin, CpuStartEnd;
   UINT64                  PhysicalSizeEnd;
-  // FuzzRootSmi = TRUE;
+
   if (mSmmMemLibInternalSmramCount > 0) {
     PhysicalStartBegin = PhysicalStartEnd = mSmmMemLibInternalSmramRanges[0].PhysicalStart;
     CpuStartBegin = CpuStartEnd = mSmmMemLibInternalSmramRanges[0].CpuStart;
@@ -1208,7 +1206,9 @@ SmmReportHandler (
   SmmModulesHandlerProtocolInfo.CpuStart = CpuStartBegin;
   SmmModulesHandlerProtocolInfo.PhysicalStart = PhysicalStartBegin;
   SmmModulesHandlerProtocolInfo.DummyAddr = &SmmFuzzDummyMemory;
-  
+  VOID* RedZonePageAddr;
+  SmmAllocatePool(EfiRuntimeServicesData,1,&RedZonePageAddr);
+  SmmModulesHandlerProtocolInfo.RedZonePageAddr = RedZonePageAddr + 8;
   for (Link = mDiscoveredList.ForwardLink; Link != &mDiscoveredList; Link = Link->ForwardLink) {
     DriverEntry = CR (Link, EFI_SMM_DRIVER_ENTRY, Link, EFI_SMM_DRIVER_ENTRY_SIGNATURE);
     if (DriverEntry->Dependent) {
