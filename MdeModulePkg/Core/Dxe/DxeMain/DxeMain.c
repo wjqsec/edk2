@@ -583,6 +583,7 @@ DxeMain (
     EFI_PROGRESS_CODE,
     (EFI_SOFTWARE_DXE_CORE | EFI_SW_DXE_CORE_PC_HANDOFF_TO_NEXT)
     );
+
   //
   // Transfer control to the BDS Architectural Protocol
   //

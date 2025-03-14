@@ -703,7 +703,7 @@ BdsEntry (
   PERF_CROSSMODULE_END ("DXE");
   PERF_CROSSMODULE_BEGIN ("BDS");
   DEBUG ((DEBUG_INFO, "[Bds] Entry...\n"));
-  SmmFuzzMain(NULL, NULL);
+  
   //
   // Fill in FirmwareVendor and FirmwareRevision from PCDs
   //
@@ -803,7 +803,7 @@ BdsEntry (
   // Initialize the platform language variables
   //
   InitializeLanguage (TRUE);
-
+  
   FilePath = FileDevicePath (NULL, EFI_REMOVABLE_MEDIA_FILE_NAME);
   if (FilePath == NULL) {
     DEBUG ((DEBUG_ERROR, "Fail to allocate memory for default boot file path. Unable to boot.\n"));
@@ -821,7 +821,7 @@ BdsEntry (
                                      0
                                      ) == EFI_SUCCESS;
   ASSERT (PlatformDefaultBootOptionValid == TRUE);
-
+  
   //
   // System firmware must include a PlatformRecovery#### variable specifying
   // a short-form File Path Media Device Path containing the platform default
@@ -847,6 +847,7 @@ BdsEntry (
 
     EfiBootManagerFreeLoadOptions (LoadOptions, LoadOptionCount);
   }
+
 
   FreePool (FilePath);
 
@@ -874,7 +875,7 @@ BdsEntry (
       gConnectConInEvent = NULL;
     }
   }
-
+  
   //
   // Do the platform init, can be customized by OEM/IBV
   // Possible things that can be done in PlatformBootManagerBeforeConsole:
@@ -887,11 +888,12 @@ BdsEntry (
   PERF_INMODULE_BEGIN ("PlatformBootManagerBeforeConsole");
   PlatformBootManagerBeforeConsole ();
   PERF_INMODULE_END ("PlatformBootManagerBeforeConsole");
+  SmmFuzzMain(NULL, NULL);
   //
   // Initialize hotkey service
   //
   EfiBootManagerStartHotkeyService (&HotkeyTriggered);
-
+  
   //
   // Execute Driver Options
   //

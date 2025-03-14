@@ -23,6 +23,7 @@ extern EFI_FREE_PAGES                      SmmFreePagesOld;
 extern EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp;
 extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 
+BOOLEAN NoCommbufCheck = FALSE;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
 //
@@ -690,8 +691,8 @@ SmmEntryPoint (
   EFI_STATUS                  Status;
   EFI_SMM_COMMUNICATE_HEADER  *CommunicateHeader;
   BOOLEAN                     InLegacyBoot;
-  // BOOLEAN                     IsOverlapped;
-  // BOOLEAN                     IsOverUnderflow;
+  BOOLEAN                     IsOverlapped;
+  BOOLEAN                     IsOverUnderflow;
   VOID                        *CommunicationBuffer;
   UINTN                       BufferSize;
   
@@ -736,29 +737,30 @@ SmmEntryPoint (
       //
       // Synchronous SMI for SMM Core or request from Communicate protocol
       //
-      // IsOverlapped = InternalIsBufferOverlapped (
-      //                  (UINT8 *)CommunicationBuffer,
-      //                  BufferSize,
-      //                  (UINT8 *)gSmmCorePrivate,
-      //                  sizeof (*gSmmCorePrivate)
-      //                  );
+      IsOverlapped = InternalIsBufferOverlapped (
+                       (UINT8 *)CommunicationBuffer,
+                       BufferSize,
+                       (UINT8 *)gSmmCorePrivate,
+                       sizeof (*gSmmCorePrivate)
+                       );
       //
       // Check for over or underflows
       //
-      // IsOverUnderflow = EFI_ERROR (SafeUintnSub (BufferSize, OFFSET_OF (EFI_SMM_COMMUNICATE_HEADER, Data), &BufferSize));
+      IsOverUnderflow = EFI_ERROR (SafeUintnSub (BufferSize, OFFSET_OF (EFI_SMM_COMMUNICATE_HEADER, Data), &BufferSize));
 
-      // if (!SmmIsBufferOutsideSmmValid ((UINTN)CommunicationBuffer, BufferSize) ||
-      //     IsOverlapped || IsOverUnderflow)
-      // {
-      //   //
-      //   // If CommunicationBuffer is not in valid address scope,
-      //   // or there is overlap between gSmmCorePrivate and CommunicationBuffer,
-      //   // or there is over or underflow,
-      //   // return EFI_INVALID_PARAMETER
-      //   //
-      //   gSmmCorePrivate->CommunicationBuffer = NULL;
-      //   gSmmCorePrivate->ReturnStatus        = EFI_ACCESS_DENIED;
-      // } else 
+      if (!NoCommbufCheck && (!SmmIsBufferOutsideSmmValid ((UINTN)CommunicationBuffer, BufferSize) ||
+          IsOverlapped || IsOverUnderflow))
+      {
+        //
+        // If CommunicationBuffer is not in valid address scope,
+        // or there is overlap between gSmmCorePrivate and CommunicationBuffer,
+        // or there is over or underflow,
+        // return EFI_INVALID_PARAMETER
+        //
+        gSmmCorePrivate->CommunicationBuffer = NULL;
+        gSmmCorePrivate->ReturnStatus        = EFI_ACCESS_DENIED;
+      } 
+      else 
       {
         CommunicateHeader = (EFI_SMM_COMMUNICATE_HEADER *)CommunicationBuffer;
         // BufferSize was updated by the SafeUintnSub() call above. 
@@ -1217,7 +1219,7 @@ SmmReportHandler (
   }
   CopyMem(data->addr,&SmmModulesHandlerProtocolInfo, sizeof(SmmModulesHandlerProtocolInfo));
   // LIBAFL_QEMU_SMM_HELP_COPY((UINT64)data->addr, (UINT64)&SmmModulesHandlerProtocolInfo, (UINT64)sizeof(SmmModulesHandlerProtocolInfo));
-  
+  NoCommbufCheck = TRUE;
   return EFI_SUCCESS;
 }
 EFI_STATUS
