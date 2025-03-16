@@ -350,9 +350,6 @@ SmiManageFuzz (
   IN OUT UINTN           *CommBufferSize  OPTIONAL
   )
 {
-  if (!gST) {
-    return SmiManage(HandlerType, Context, CommBuffer, CommBufferSize);
-  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmiManage(HandlerType, Context, CommBuffer, CommBufferSize);
@@ -431,9 +428,6 @@ SmiHandlerRegisterFuzz (
   OUT EFI_HANDLE                    *DispatchHandle
   )
 {
-  if (!gST) {
-    return SmiHandlerRegister(Handler, HandlerType, DispatchHandle);
-  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmiHandlerRegister(Handler, HandlerType, DispatchHandle);
@@ -527,9 +521,6 @@ SmiHandlerUnRegisterFuzz (
   IN EFI_HANDLE  DispatchHandle
   )
 {
-  if (!gST) {
-    return SmiHandlerUnRegister(DispatchHandle);
-  }
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmiHandlerUnRegister(DispatchHandle);

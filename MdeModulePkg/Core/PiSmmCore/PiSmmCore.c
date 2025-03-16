@@ -811,11 +811,6 @@ SmmEntryPointFuzz (
   IN CONST EFI_SMM_ENTRY_CONTEXT  *SmmEntryContext
   )
 {
-  if(!gST) {
-    SmmEntryPoint(SmmEntryContext); 
-    return;
-  }
-    
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   SmmEntryPoint(SmmEntryContext);
@@ -990,6 +985,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
           {
             DEBUG((DEBUG_INFO,"smram record  %p %p %x %x\n",gSmmCorePrivate->SmramRanges[i].CpuStart, gSmmCorePrivate->SmramRanges[i].PhysicalStart, gSmmCorePrivate->SmramRanges[i].PhysicalSize, gSmmCorePrivate->SmramRanges[i].RegionState));
           }
+          DriverEntry->ImageHandle = ImageHandle;
           Status = FuzzOneModule(DriverEntry);
           DriverEntry->SuccessfullyInited = TRUE;
           gSmmCorePrivate->SmramRanges = OldSmramRange;
