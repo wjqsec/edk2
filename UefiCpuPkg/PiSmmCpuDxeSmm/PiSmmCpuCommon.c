@@ -10,7 +10,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "PiSmmCpuCommon.h"
-
+#include "libafl_qemu.h"
 //
 // SMM CPU Private Data structure that contains SMM Configuration Protocol
 // along its supporting fields.
@@ -223,7 +223,10 @@ SmmReadSaveState (
   )
 {
   EFI_STATUS  Status;
-
+  UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_SAVE_REGISTER_FUZZ_DATA((UINTN)Buffer, Width);
+  if (UseFuzzValue) {
+    return EFI_SUCCESS;
+  }
   //
   // Retrieve pointer to the specified CPU's SMM Save State buffer
   //
@@ -295,7 +298,10 @@ SmmWriteSaveState (
   )
 {
   EFI_STATUS  Status;
-
+  UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_SAVE_REGISTER_FUZZ_DATA((UINTN)Buffer, 0);
+  if (UseFuzzValue) {
+    return EFI_SUCCESS;
+  }
   //
   // Retrieve pointer to the specified CPU's SMM Save State buffer
   //
