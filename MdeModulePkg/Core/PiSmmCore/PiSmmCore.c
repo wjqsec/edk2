@@ -386,6 +386,7 @@ SmmReadyToLockHandler (
   //
   // Install SMM Ready to lock protocol
   //
+  LIBAFL_QEMU_SMM_REPORT_READYTOLOCK_START();
   SmmHandle = NULL;
   Status    = SmmInstallProtocolInterface (
                 &SmmHandle,
@@ -393,7 +394,7 @@ SmmReadyToLockHandler (
                 EFI_NATIVE_INTERFACE,
                 NULL
                 );
-
+  LIBAFL_QEMU_SMM_REPORT_READYTOLOCK_END();
   //
   // Make sure SMM CPU I/O 2 Protocol has been installed into the handle database
   //
@@ -471,6 +472,7 @@ SmmEndOfDxeHandler (
   //
   // Install SMM EndOfDxe protocol
   //
+  LIBAFL_QEMU_SMM_REPORT_READYTOLOCK_START();
   SmmHandle = NULL;
   Status    = SmmInstallProtocolInterface (
                 &SmmHandle,
@@ -478,6 +480,7 @@ SmmEndOfDxeHandler (
                 EFI_NATIVE_INTERFACE,
                 NULL
                 );
+  LIBAFL_QEMU_SMM_REPORT_READYTOLOCK_END();
 
   if (mAcpiS3Enable) {
     //
