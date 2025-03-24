@@ -190,10 +190,28 @@ typedef enum LibaflQemuEndStatus {
         "mov %%rax, %0\n"                                                                         \
         : "=g"(ret)                                                                               \
         : "g"(action), "g"(arg1), "g"(arg2), "g"(arg3)                                            \
-        : "%rax", "%rdi", "%rsi"                                                                  \
+        : "%rax", "%rdi", "%rsi", "%rdx"                                                                  \
         );                                                                                          \
         return ret;                                                                                 \
-      }                                                                                           
+      }                                                                                           \
+      static __attribute__((unused,noinline)) libafl_word LIBAFL_CALLING_CONVENTION _libafl_##name##_call4(                                 \
+        libafl_word action, libafl_word arg1, libafl_word arg2,libafl_word arg3,libafl_word arg4) {                 \
+      libafl_word ret;                                                                            \
+      __asm__ volatile (                                                                        \
+      "mov %1, %%rax\n"                                                                         \
+      "mov %2, %%rdi\n"                                                                         \
+      "mov %3, %%rsi\n"                                                                         \
+      "mov %4, %%rdx\n"                                                                         \
+      "mov %5, %%rcx\n"                                                                         \
+      ".4byte " XSTRINGIFY(opcode) "\n"                                                         \
+      "mov %%rax, %0\n"                                                                         \
+      : "=g"(ret)                                                                               \
+      : "g"(action), "g"(arg1), "g"(arg2), "g"(arg3), "g"(arg4)                                 \
+      : "%rax", "%rdi", "%rsi", "%rdx", "%rcx"                                                                  \
+      );                                                                                          \
+      return ret;                                                                                 \
+    }                                                                                           
+
         
   #elif defined(__arm__)
     #define LIBAFL_DEFINE_FUNCTIONS(name, opcode)                                                   \

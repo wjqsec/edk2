@@ -2655,6 +2655,7 @@ EFIAPI EFI_TREE_GET_CAPABILITY_FUNC (
   IN OUT TREE_BOOT_SERVICE_CAPABILITY *ProtocolCapability
   )
 {
+  ProtocolCapability->TrEEPresentFlag = FALSE;
   return EFI_SUCCESS;  
 }
 

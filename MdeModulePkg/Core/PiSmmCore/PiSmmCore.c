@@ -23,6 +23,8 @@ extern EFI_FREE_PAGES                      SmmFreePagesOld;
 extern EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp;
 extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 
+GUID gEfiEndOfDxeEventGuid = {0x11111111, 0x1111, 0x1111, {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11}};
+GUID gEfiReadyToLockEventGuid = {0x22222222, 0x2222, 0x2222, {0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22}};
 BOOLEAN NoCommbufCheck = FALSE;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
@@ -370,7 +372,7 @@ SmmReadyToLockHandler (
   UINTN       Index;
   EFI_HANDLE  SmmHandle;
   VOID        *Interface;
-  DEBUG((DEBUG_INFO,"SmmReadyToLockHandler start\n"));
+  
 
   PERF_CALLBACK_BEGIN (&gEfiDxeSmmReadyToLockProtocolGuid);
 
@@ -382,19 +384,31 @@ SmmReadyToLockHandler (
       SmiHandlerUnRegister (mSmmCoreSmiHandlers[Index].DispatchHandle);
     }
   }
-
   //
   // Install SMM Ready to lock protocol
   //
-  LIBAFL_QEMU_SMM_REPORT_READYTOLOCK_START();
-  SmmHandle = NULL;
-  Status    = SmmInstallProtocolInterface (
-                &SmmHandle,
-                &gEfiSmmReadyToLockProtocolGuid,
-                EFI_NATIVE_INTERFACE,
-                NULL
-                );
-  LIBAFL_QEMU_SMM_REPORT_READYTOLOCK_END();
+  DEBUG((DEBUG_INFO,"SmmReadyToLockHandler start\n"));
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
+  LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((libafl_word)&gEfiReadyToLockEventGuid,0,0);
+  SmmFuzzGlobalData->in_fuzz = 1;
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
+  UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
+  Status = EFI_SUCCESS;
+  if (skip == 0) {
+    SmmHandle = NULL;
+    Status    = SmmInstallProtocolInterface (
+                  &SmmHandle,
+                  &gEfiSmmReadyToLockProtocolGuid,
+                  EFI_NATIVE_INTERFACE,
+                  NULL
+                  );
+    if (EFI_ERROR(Status)) {
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_ERROR,0,0);
+    }
+  }
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
+  SmmFuzzGlobalData->in_fuzz = 0;
+  DEBUG((DEBUG_INFO,"SmmReadyToLockHandler end\n"));
   //
   // Make sure SMM CPU I/O 2 Protocol has been installed into the handle database
   //
@@ -465,24 +479,37 @@ SmmEndOfDxeHandler (
   EFI_SMM_SX_REGISTER_CONTEXT    EntryRegisterContext;
   EFI_HANDLE                     S3EntryHandle;
 
-  DEBUG ((DEBUG_INFO, "SmmEndOfDxeHandler\n"));
+
 
   PERF_CALLBACK_BEGIN (&gEfiEndOfDxeEventGroupGuid);
 
   //
   // Install SMM EndOfDxe protocol
   //
-  LIBAFL_QEMU_SMM_REPORT_READYTOLOCK_START();
-  SmmHandle = NULL;
-  Status    = SmmInstallProtocolInterface (
-                &SmmHandle,
-                &gEfiSmmEndOfDxeProtocolGuid,
-                EFI_NATIVE_INTERFACE,
-                NULL
-                );
-  LIBAFL_QEMU_SMM_REPORT_READYTOLOCK_END();
-
-  if (mAcpiS3Enable) {
+  DEBUG ((DEBUG_INFO, "SmmEndOfDxeHandler\n"));
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
+  LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((libafl_word)&gEfiEndOfDxeEventGuid,0,0);
+  SmmFuzzGlobalData->in_fuzz = 1;
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
+  UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
+  Status = EFI_SUCCESS;
+  if (skip == 0) {
+    SmmHandle = NULL;
+    Status    = SmmInstallProtocolInterface (
+                  &SmmHandle,
+                  &gEfiSmmEndOfDxeProtocolGuid,
+                  EFI_NATIVE_INTERFACE,
+                  NULL
+                  );
+    if (EFI_ERROR(Status)) {
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_ERROR,0,0);
+    }
+  }
+  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
+  SmmFuzzGlobalData->in_fuzz = 0;
+  DEBUG ((DEBUG_INFO, "SmmEndOfDxeHandler end\n"));                
+  // if (mAcpiS3Enable) {
+  if (FALSE) {
     //
     // Locate SmmSxDispatch2 protocol.
     //
@@ -999,7 +1026,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
   return EFI_NOT_FOUND;
 
 }
-UINT64 SmmFuzzDummyMemory = 10;
+__uint128_t SmmFuzzDummyMemory = 10;
 extern VOID *FuzzHobAddr;
 /**
   The Entry Point for SMM Core

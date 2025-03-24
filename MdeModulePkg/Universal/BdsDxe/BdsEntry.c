@@ -885,6 +885,7 @@ BdsEntry (
   // > Signal ReadyToLock event
   // > Authentication action: 1. connect Auth devices; 2. Identify auto logon user.
   //
+  
   PERF_INMODULE_BEGIN ("PlatformBootManagerBeforeConsole");
   PlatformBootManagerBeforeConsole ();
   PERF_INMODULE_END ("PlatformBootManagerBeforeConsole");
