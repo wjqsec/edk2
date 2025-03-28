@@ -1171,6 +1171,8 @@ EFI_STATUS EFIAPI EFI_INSTALL_PROTOCOL_INTERFACE_FUZZ(
 ) {
   EFI_STATUS Status;
   UINT64 OldInFuzz = SmmFuzzGlobalData.in_fuzz;
+  if (OldInFuzz && CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
+    return EFI_SUCCESS;
   SmmFuzzGlobalData.in_fuzz = 0; 
   Status = EFI_INSTALL_PROTOCOL_INTERFACE_Old(Handle, Protocol, InterfaceType, Interface);
   SmmFuzzGlobalData.in_fuzz = OldInFuzz;

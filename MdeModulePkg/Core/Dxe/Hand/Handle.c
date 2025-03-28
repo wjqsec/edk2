@@ -8,7 +8,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "DxeMain.h"
 #include "Handle.h"
-
+#include "libafl_qemu.h"
+extern SMM_FUZZ_GLOBAL_DATA SmmFuzzGlobalData;
 //
 // mProtocolDatabase     - A list of all protocols in the system.  (simple list for now)
 // gHandleList           - A list of all the handles in the system
@@ -454,7 +455,8 @@ CoreInstallProtocolInterfaceNotify (
   if (InterfaceType != EFI_NATIVE_INTERFACE) {
     return EFI_INVALID_PARAMETER;
   }
-
+  if (SmmFuzzGlobalData.in_fuzz && CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
+    return EFI_SUCCESS;
   //
   // Print debug message
   //
