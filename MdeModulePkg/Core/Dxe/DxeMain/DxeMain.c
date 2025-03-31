@@ -3035,26 +3035,26 @@ VOID InstallSmmFuzzProtocol() {
                   );
   ASSERT_EFI_ERROR (Status);
 
-  mEfiSmiFlashProtocol.GetFlashInfo = GET_FLASH_INFO_FUNC;
-  mEfiSmiFlashProtocol.EnableFlashWrite = ENABLE_FLASH_FUNC;
-  mEfiSmiFlashProtocol.DisableFlashWrite = DISABLE_FLASH_FUNC;
-  mEfiSmiFlashProtocol.ReadFlash = READ_FLASH_FUNC;
-  mEfiSmiFlashProtocol.WriteFlash = WRITE_FLASH_FUNC;
-  mEfiSmiFlashProtocol.EraseFlash = ERASE_FLASH_FUNC;
-  Status = gBS->InstallMultipleProtocolInterfaces (
-                  &Handle,
-                  &gEfiSmiFlashProtocolGuid,
-                  &mEfiSmiFlashProtocol,
-                  NULL
-                  );
-  ASSERT_EFI_ERROR (Status);
-  Status = gBS->InstallMultipleProtocolInterfaces (
-                  &Handle,
-                  &gAmiSmmFlashProtocolGuid,
-                  &mEfiSmiFlashProtocol,
-                  NULL
-                  );
-  ASSERT_EFI_ERROR (Status);
+  // mEfiSmiFlashProtocol.GetFlashInfo = GET_FLASH_INFO_FUNC;
+  // mEfiSmiFlashProtocol.EnableFlashWrite = ENABLE_FLASH_FUNC;
+  // mEfiSmiFlashProtocol.DisableFlashWrite = DISABLE_FLASH_FUNC;
+  // mEfiSmiFlashProtocol.ReadFlash = READ_FLASH_FUNC;
+  // mEfiSmiFlashProtocol.WriteFlash = WRITE_FLASH_FUNC;
+  // mEfiSmiFlashProtocol.EraseFlash = ERASE_FLASH_FUNC;
+  // Status = gBS->InstallMultipleProtocolInterfaces (
+  //                 &Handle,
+  //                 &gEfiSmiFlashProtocolGuid,
+  //                 &mEfiSmiFlashProtocol,
+  //                 NULL
+  //                 );
+  // ASSERT_EFI_ERROR (Status);
+  // Status = gBS->InstallMultipleProtocolInterfaces (
+  //                 &Handle,
+  //                 &gAmiSmmFlashProtocolGuid,
+  //                 &mEfiSmiFlashProtocol,
+  //                 NULL
+  //                 );
+  // ASSERT_EFI_ERROR (Status);
 
   mEfiHeciProtocol.SendwACK = EFI_HECI_SENDWACK_FUNC;
   mEfiHeciProtocol.ReadMsg = EFI_HECI_READ_MESSAGE_FUNC;
@@ -3409,7 +3409,6 @@ VOID InstallSmmFuzzProtocol() {
     { 0xCEA5FC27, 0x5183, 0x4899, { 0xA6, 0x4E, 0x7B, 0x87, 0x49, 0xC9, 0x62, 0xE2 } },
     { 0x6FCE3BB9, 0x9742, 0x4CFD, { 0x8E, 0x9E, 0x39, 0xF9, 0x8D, 0xCA, 0x32, 0x71 } },
     { 0x33381F15, 0x15ED, 0x467A, { 0xA6, 0xC9, 0xCC, 0x1B, 0x86, 0xCA, 0xD8, 0xD8 } },
-    { 0xA6588F10, 0xD165, 0x4EBF, { 0xB7, 0x72, 0x20, 0x6D, 0x36, 0x37, 0xF6, 0x5C } },
     { 0x53AF9368, 0xB844, 0x455B, { 0xAE, 0x8A, 0x15, 0xDB, 0x11, 0xE1, 0x8F, 0x20 } },
     { 0x380D7A5E, 0x1BCA, 0x11E1, { 0xA1, 0x10, 0xE8, 0xEB, 0x47, 0x24, 0x01, 0x9B } },
     { 0x49240652, 0x0D81, 0x445D, { 0xAE, 0x1B, 0x51, 0xEC, 0x24, 0xF8, 0xD0, 0x07 } },

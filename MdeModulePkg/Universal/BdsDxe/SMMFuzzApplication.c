@@ -209,6 +209,7 @@ VOID ReportDxeModuleInfo() {
 }
 VOID ReportSmmGroupInfo() {
   for (UINTN i = 0; i < NumGroups; i++) {
+    LIBAFL_QEMU_SMM_REPORT_SMM_FUZZ_GROUP(i, 0);
     for (UINTN j = 0; j < Groups[i].NumSmiHandlers; j++) {
       UINTN Index = FindSmiHandlerIndex(&Groups[i].Handlers[j]);
       LIBAFL_QEMU_SMM_REPORT_SMM_FUZZ_GROUP(i, Index);
