@@ -840,6 +840,7 @@ GUID OVMFSmmModules[] = {
     { 0xE2EA6F47, 0xE678, 0x47FA, { 0x8C, 0x1B, 0x02, 0xA0, 0x3E, 0x82, 0x5C, 0x6E } },
     { 0xE94F54CD, 0x81EB, 0x47ed, { 0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA } },
 };
+
 BOOLEAN IsOVMFSmmModule(GUID *guid) {
   for (UINTN i = 0; i <  ( sizeof(OVMFSmmModules) / sizeof(GUID)); i++) {
     if (CompareGuid(&OVMFSmmModules[i], guid))
@@ -872,9 +873,10 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
     LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)FuzzHobBackup.Raw, (UINT64)GET_HOB_LENGTH(FuzzHobBackup));
     FuzzHob.Raw = GET_NEXT_HOB (FuzzHob);
     FuzzHob.Header->HobType = EFI_HOB_TYPE_END_OF_HOB_LIST;
+    InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
+    SetCurrentModule(&DriverEntry->FileName);
   }
-  InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
-  SetCurrentModule(&DriverEntry->FileName);
+  
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
   LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINT64)&DriverEntry->FileName, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
   SmmFuzzGlobalData->in_fuzz = 1;  
