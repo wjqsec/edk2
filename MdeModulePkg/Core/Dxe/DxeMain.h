@@ -4964,6 +4964,9 @@ struct _AMI_FLASH_PROTOCOL {
     AMI_FLASH_UPDATE            Update;
     AMI_FLASH_WRITE_ENABLE      DeviceWriteEnable;
     AMI_FLASH_WRITE_DISABLE     DeviceWriteDisable; 
+    VOID*                       Reserved1; // Reserved for future use
+    VOID*                       Reserved2; // Reserved for future use
+    VOID*                       Reserved3; // Reserved for future use
 };
 
 typedef struct {

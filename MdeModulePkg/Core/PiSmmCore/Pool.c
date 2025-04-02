@@ -381,12 +381,12 @@ SmmAllocatePoolFuzz (
   OUT  VOID             **Buffer
   )
 {
-  DEBUG((DEBUG_INFO,"SmmAllocatePoolFuzz %d ret:%p\n",Size,__builtin_return_address(0)));
+  DEBUG((DEBUG_INFO,"SmmAllocatePoolFuzz %d ret_call_addr:%p\n",Size,__builtin_return_address(0)));
   UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
   SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmAllocatePool(PoolType, Size, Buffer);
   SmmFuzzGlobalData->in_fuzz = OldInFuzz;
-  DEBUG((DEBUG_INFO,"SmmAllocatePoolFuzz end %r\n",Status));
+  DEBUG((DEBUG_INFO,"SmmAllocatePoolFuzz end %r %p\n",Status,*Buffer));
   return Status;
 }
 /**

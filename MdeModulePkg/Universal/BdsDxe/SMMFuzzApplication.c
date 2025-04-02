@@ -43,7 +43,7 @@ UINT8 *CommData;
 typedef struct _SMI_HANDLER_GROUP {
   UINTN NumModules;
   UINTN NumSmiHandlers;
-  GUID Handlers[20];
+  GUID Handlers[40];
 }SMI_HANDLER_GROUP;
 
 UINTN NumGroups;
@@ -55,33 +55,8 @@ SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup;
 
 struct _SMI_HANDLER_LIST {
   UINTN NumSmiHandlers;
-  GUID Handlers[200];
+  SMI_HANDLER_INFO Handlers[200];
 } SmiHandlers;
-
-VOID PrintSmmReport(
-  SMM_MODULES_HANDLER_PROTOCOL_INFO *Report
-  )
-{
-    DEBUG((DEBUG_INFO,"SMRAM: %p %p %x %x\n",Report->CpuStart, Report->PhysicalStart, Report->PhysicalSize,sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO)));
-
-    for(int i = 0 ; i < Report->NumModules; i++)
-    {
-      DEBUG((DEBUG_INFO,"smm module: %g %p %x\n",&Report->info[i].Guid,Report->info[i].ImageBase,Report->info[i].ImageSize));
-      for(int j = 0; j < Report->info[i].NumSmiHandlers; j++)
-      {
-        DEBUG((DEBUG_INFO,"  smi handler: %g\n",&Report->info[i].SmiHandlers[j]));
-      }
-      for(int j = 0; j < Report->info[i].NumProduceProtocols; j++)
-      {
-        DEBUG((DEBUG_INFO,"  produce protocol: %g\n",&Report->info[i].ProduceProtocols[j]));
-      }
-      for(int j = 0; j < Report->info[i].NumConsumeProtocols; j++)
-      {
-        DEBUG((DEBUG_INFO,"  consume protocol: %g\n",&Report->info[i].ConsumeProtocols[j]));
-      }
-    }
-    DEBUG((DEBUG_INFO,"%d root handlers found\n",Report->NumRootSmiHandlers));
-}
 
 
 EFI_STATUS GetSmmCommBuffer(UINTN  MinimalSizeNeeded)
@@ -137,16 +112,18 @@ EFI_STATUS SmmCall(GUID *ID, UINTN size)
 }
 
 VOID CollectHandlers() {
-  CopyGuid(&SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++], &gEfiSmmFuzzRootGuid);
+  SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].IsRoot = TRUE;
+  CopyGuid(&SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++].SmiHandler, &gEfiSmmFuzzRootGuid);
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
     for (UINTN j = 0; j < ReportDataBackup->info[i].NumSmiHandlers; j++) {
-      SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++] = ReportDataBackup->info[i].SmiHandlers[j];
+      SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].IsRoot = ReportDataBackup->info[i].SmiHandlers[j].IsRoot;
+      SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++].SmiHandler = ReportDataBackup->info[i].SmiHandlers[j].SmiHandler;
     }
   }
 }
 UINTN FindSmiHandlerIndex(GUID *Guid) {
   for (UINTN i = 0; i < SmiHandlers.NumSmiHandlers; i++) {
-    if (CompareGuid(&SmiHandlers.Handlers[i], Guid)) {
+    if (CompareGuid(&SmiHandlers.Handlers[i].SmiHandler, Guid)) {
       return i;
     }
   }
@@ -157,7 +134,7 @@ UINTN FindSmiHandlerIndex(GUID *Guid) {
 
 VOID InsertModuleSmiToGroup(SMI_HANDLER_GROUP *Group, SMM_MODULE_HANDLER_PROTOCOL_INFO **Dep) {
   for(UINTN i = 0 ; i < (*Dep)->NumSmiHandlers; i++) {
-    CopyGuid(&Group->Handlers[Group->NumSmiHandlers++], &(*Dep)->SmiHandlers[i]);
+    CopyGuid(&Group->Handlers[Group->NumSmiHandlers++], &(*Dep)->SmiHandlers[i].SmiHandler);
   }
   if ((*Dep)->NumSmiHandlers > 0)
     Group->NumModules++;
@@ -209,7 +186,6 @@ VOID ReportDxeModuleInfo() {
 }
 VOID ReportSmmGroupInfo() {
   for (UINTN i = 0; i < NumGroups; i++) {
-    LIBAFL_QEMU_SMM_REPORT_SMM_FUZZ_GROUP(i, 0);
     for (UINTN j = 0; j < Groups[i].NumSmiHandlers; j++) {
       UINTN Index = FindSmiHandlerIndex(&Groups[i].Handlers[j]);
       LIBAFL_QEMU_SMM_REPORT_SMM_FUZZ_GROUP(i, Index);
@@ -219,7 +195,7 @@ VOID ReportSmmGroupInfo() {
 
 VOID ReportSmiInfo() {
   for (UINTN i = 0; i < SmiHandlers.NumSmiHandlers; i++) {
-    LIBAFL_QEMU_SMM_REPORT_SMI_INFO(i, (UINTN)&SmiHandlers.Handlers[i]);
+    LIBAFL_QEMU_SMM_REPORT_SMI_INFO(i, (UINTN)&SmiHandlers.Handlers[i].SmiHandler);
   } 
 }
 VOID ReportSkipModuleInfo() {
@@ -316,11 +292,11 @@ SmmFuzzMain(
     //   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
     // }
 
-    if (index == 0) {
-      SmmCall(&SmiHandlers.Handlers[index], 0);
+    if (SmiHandlers.Handlers[index].IsRoot) {
+      SmmCall(&SmiHandlers.Handlers[index].SmiHandler, 0);
     } else {
       UINTN Sz = LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(index, SmiFuzzTimes[index]);
-      SmmCall(&SmiHandlers.Handlers[index], Sz);
+      SmmCall(&SmiHandlers.Handlers[index].SmiHandler, Sz);
       // if (Sz <= (MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER))) {
       //   SmmCall(&SmiHandlers.Handlers[index], Sz);
       // } 
