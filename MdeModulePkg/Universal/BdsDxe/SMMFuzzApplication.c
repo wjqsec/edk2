@@ -279,7 +279,7 @@ SmmFuzzMain(
   for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
     UINTN index = SmiFuzzSeq[i];
     DEBUG((DEBUG_INFO,"Select %d\n",index));
-
+    LIBAFL_QEMU_SMM_REPORT_SMI_INVOKE_INFO(index, i);
     // LIBAFL_QEMU_SMM_GET_COMMBUF_FUZZ_DATA(index, SmiFuzzTimes[index]);
     // if (*(UINT64*)CommData == 0x1234567887654321)
     // {

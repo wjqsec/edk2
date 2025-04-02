@@ -1380,8 +1380,7 @@ EFI_STATUS EFIAPI RegisterSmmDispatchHandler(
   IN  VOID *This,
   IN  VOID *DispatchFunction,
   IN  VOID *RegisterContext,
-  OUT EFI_HANDLE *Handler,
-  UINTN ContextSize
+  OUT EFI_HANDLE *Handler
 ) {
   EFI_HANDLE Handle = NULL;
   IsRootHandler = TRUE;
