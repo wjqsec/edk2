@@ -202,7 +202,7 @@ SmiManage (
     LIBAFL_QEMU_SMM_SMI_ENTER((UINTN)HandlerType, (UINTN)SmiHandler->Handler);
     Status = SmiHandler->Handler (
                            (EFI_HANDLE)SmiHandler,
-                           SmiHandler->Context,
+                           (VOID*)0xb000000000000000,
                            CommBuffer,
                            CommBufferSize
                            );
@@ -357,7 +357,7 @@ SmiManageFuzz (
   return Status;
 
 }
-VOID *HandlerContext = NULL;
+
 BOOLEAN IsRootHandler = FALSE;
 /**
   Registers a handler to execute within SMM.
@@ -398,7 +398,6 @@ SmiHandlerRegister (
   SmiHandler->Handler    = Handler;
   SmiHandler->CallerAddr = (UINTN)RETURN_ADDRESS (0);
   SmiHandler->ToRemove   = FALSE;
-  SmiHandler->Context    = HandlerContext;
 
   if (HandlerType == NULL) {
     //
