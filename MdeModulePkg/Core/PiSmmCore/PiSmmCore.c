@@ -1279,7 +1279,7 @@ VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageSize = Size;
   SmmModulesHandlerProtocolInfo.NumModules++;
 }
-VOID InsertSmiHandler(CONST GUID *Handler, BOOLEAN IsRoot)
+VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot)
 {
   if (Handler == NULL)
   {
@@ -1301,6 +1301,7 @@ VOID InsertSmiHandler(CONST GUID *Handler, BOOLEAN IsRoot)
     if (SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers >= MAX_NUM_HANDLERS)
       return;
     SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers].IsRoot = IsRoot;
+    SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers].Addr = Addr;
     CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers++].SmiHandler, Handler);
     
     return;

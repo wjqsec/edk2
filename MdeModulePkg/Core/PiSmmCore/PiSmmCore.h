@@ -1470,6 +1470,7 @@ extern EFI_GUID gEfiSmmFuzzRootGuid;
 typedef struct SMI_HANDLER_INFO_
 {
   GUID SmiHandler;
+  VOID *Addr;
   BOOLEAN IsRoot;
 }SMI_HANDLER_INFO;
 typedef struct SMM_MODULE_HANDLER_PROTOCOL_INFO_
@@ -1486,6 +1487,7 @@ typedef struct SMM_MODULE_HANDLER_PROTOCOL_INFO_
 
   UINTN NumConsumeProtocols;
   GUID ConsumeProtocols[MAX_NUM_CONSUME_PROTOCOLS];
+  BOOLEAN Visited;
 }SMM_MODULE_HANDLER_PROTOCOL_INFO;
 
 typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_
@@ -1518,7 +1520,7 @@ typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR_
 EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry);
 extern SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo;
 VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size);
-VOID InsertSmiHandler(CONST GUID *Handler, BOOLEAN IsRoot);
+VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot);
 VOID InsertProduceProtocol(CONST GUID *Protocol);
 VOID InsertConsumeProtocol(CONST GUID *Protocol);
 VOID InsertRootSmiHandler(VOID);

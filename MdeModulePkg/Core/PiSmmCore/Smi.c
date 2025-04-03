@@ -379,7 +379,7 @@ SmiHandlerRegister (
   )
 {
   DEBUG((DEBUG_INFO,"SmiHandlerRegister %g\n",HandlerType));
-  InsertSmiHandler(HandlerType, IsRootHandler);
+  InsertSmiHandler(HandlerType, Handler, IsRootHandler);
   // if (SmiHandlerRegisterOld)
   //   return SmiHandlerRegisterOld(Handler, HandlerType, DispatchHandle);
   SMI_HANDLER  *SmiHandler;

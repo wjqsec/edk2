@@ -113,9 +113,11 @@ EFI_STATUS SmmCall(GUID *ID, UINTN size)
 
 VOID CollectHandlers() {
   SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].IsRoot = TRUE;
+  SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].Addr = NULL;
   CopyGuid(&SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++].SmiHandler, &gEfiSmmFuzzRootGuid);
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
     for (UINTN j = 0; j < ReportDataBackup->info[i].NumSmiHandlers; j++) {
+      SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].Addr = ReportDataBackup->info[i].SmiHandlers[j].Addr;
       SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].IsRoot = ReportDataBackup->info[i].SmiHandlers[j].IsRoot;
       SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++].SmiHandler = ReportDataBackup->info[i].SmiHandlers[j].SmiHandler;
     }
@@ -158,13 +160,18 @@ EFI_STATUS GroupSmiHandlers()
   CopyGuid(&Groups[NumGroups].Handlers[0], &gEfiSmmFuzzRootGuid);
   NumGroups++;
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
-    if (ReportDataBackup->info[i].NumSmiHandlers == 0) 
+    ReportDataBackup->info[i].Visited = FALSE;
+  }
+  for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
+    if (ReportDataBackup->info[i].NumSmiHandlers == 0 || ReportDataBackup->info[i].Visited) 
       continue;
+    ReportDataBackup->info[i].Visited = TRUE;
     UINTN NumDep;
     SMM_MODULE_HANDLER_PROTOCOL_INFO **Dep = CollectModuleDependency(ReportDataBackup, &ReportDataBackup->info[i], &NumDep);
     Groups[NumGroups].NumSmiHandlers = 0;
     Groups[NumGroups].NumModules = 0;
     for (UINTN j = 0; j < NumDep; j++) {
+      Dep[j]->Visited = TRUE;
       InsertModuleSmiToGroup(&Groups[NumGroups], &Dep[j]);
     }
     FreePool(Dep);
@@ -195,7 +202,7 @@ VOID ReportSmmGroupInfo() {
 
 VOID ReportSmiInfo() {
   for (UINTN i = 0; i < SmiHandlers.NumSmiHandlers; i++) {
-    LIBAFL_QEMU_SMM_REPORT_SMI_INFO(i, (UINTN)&SmiHandlers.Handlers[i].SmiHandler);
+    LIBAFL_QEMU_SMM_REPORT_SMI_INFO(i, (UINTN)&SmiHandlers.Handlers[i].SmiHandler, (UINTN)&SmiHandlers.Handlers[i].Addr);
   } 
 }
 VOID ReportSkipModuleInfo() {
