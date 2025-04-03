@@ -202,7 +202,7 @@ VOID ReportSmmGroupInfo() {
 
 VOID ReportSmiInfo() {
   for (UINTN i = 0; i < SmiHandlers.NumSmiHandlers; i++) {
-    LIBAFL_QEMU_SMM_REPORT_SMI_INFO(i, (UINTN)&SmiHandlers.Handlers[i].SmiHandler, (UINTN)&SmiHandlers.Handlers[i].Addr);
+    LIBAFL_QEMU_SMM_REPORT_SMI_INFO(i, (UINTN)&SmiHandlers.Handlers[i].SmiHandler, (UINTN)SmiHandlers.Handlers[i].Addr);
   } 
 }
 VOID ReportSkipModuleInfo() {
