@@ -1192,7 +1192,7 @@ extern EFI_SMRAM_DESCRIPTOR  *mSmmMemLibInternalSmramRanges;
 extern UINTN                 mSmmMemLibInternalSmramCount;
 UINT8 Test;
 SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo = {0};
-GUID CurrentModule = {0};
+GUID CurrentModule;
 EFI_STATUS
 EFIAPI
 SmmReportHandler (
@@ -1272,8 +1272,10 @@ VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
       return;
     }
   }
-  if (SmmModulesHandlerProtocolInfo.NumModules >= MAX_NUM_MODULES)
+  if (SmmModulesHandlerProtocolInfo.NumModules >= MAX_NUM_MODULES) {
     return;
+  }
+
   CopyGuid(&SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].Guid, Guid);
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageBase = Addr;
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageSize = Size;
@@ -1300,6 +1302,7 @@ VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot)
     }
     if (SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers >= MAX_NUM_HANDLERS)
       return;
+    DEBUG((DEBUG_INFO,"InsertSmiHandler %g\n", Handler));
     SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers].IsRoot = IsRoot;
     SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers].Addr = Addr;
     CopyGuid(&SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers++].SmiHandler, Handler);
@@ -1377,6 +1380,10 @@ VOID SetCurrentModule(CONST GUID *guid)
     return;
   }   
   CopyGuid(&CurrentModule, guid);
+}
+GUID GetCurrentModule() 
+{
+  return CurrentModule;
 }
 VOID SetCurrentModuleBySmi(CONST GUID *guid)
 {

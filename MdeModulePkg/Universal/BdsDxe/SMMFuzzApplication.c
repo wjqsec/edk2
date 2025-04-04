@@ -112,9 +112,9 @@ EFI_STATUS SmmCall(GUID *ID, UINTN size)
 }
 
 VOID CollectHandlers() {
-  SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].IsRoot = TRUE;
-  SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].Addr = NULL;
-  CopyGuid(&SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++].SmiHandler, &gEfiSmmFuzzRootGuid);
+  // SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].IsRoot = TRUE;
+  // SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].Addr = NULL;
+  // CopyGuid(&SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++].SmiHandler, &gEfiSmmFuzzRootGuid);
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
     for (UINTN j = 0; j < ReportDataBackup->info[i].NumSmiHandlers; j++) {
       SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].Addr = ReportDataBackup->info[i].SmiHandlers[j].Addr;
@@ -156,9 +156,9 @@ EFI_STATUS GroupSmiHandlers()
 
 
   NumGroups = 0;
-  Groups[NumGroups].NumSmiHandlers = 1;
-  CopyGuid(&Groups[NumGroups].Handlers[0], &gEfiSmmFuzzRootGuid);
-  NumGroups++;
+  // Groups[NumGroups].NumSmiHandlers = 1;
+  // CopyGuid(&Groups[NumGroups].Handlers[0], &gEfiSmmFuzzRootGuid);
+  // NumGroups++;
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
     ReportDataBackup->info[i].Visited = FALSE;
   }

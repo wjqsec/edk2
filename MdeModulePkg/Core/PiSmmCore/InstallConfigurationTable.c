@@ -175,7 +175,23 @@ DummyRuntimeSmm(VOID)
   DEBUG((DEBUG_INFO,"DummyRuntimeSmm Ok\n"));
   return EFI_SUCCESS;
 }
-
+EFI_STATUS
+EFIAPI EFI_GET_VARIABLE_FUZZ(
+  IN     CHAR16                      *VariableName,
+  IN     EFI_GUID                    *VendorGuid,
+  OUT    UINT32                      *Attributes     OPTIONAL,
+  IN OUT UINTN                       *DataSize,
+  OUT    VOID                        *Data           OPTIONAL
+) {
+  LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+  DEBUG((DEBUG_INFO,"get RuntimeServiceGetVariable SMM Fuzz data"));
+  if (StrCmp(VariableName, L"NvramMailBox") == 0) {
+    DEBUG((DEBUG_INFO,"Fuzzing NvramMailBox\n"));
+    UINT64 *DataPtr = (UINT64 *)Data;
+    DataPtr[1] = (UINT64)DummyRuntimeSmm;
+  } 
+  return EFI_SUCCESS;
+}
 
 EFI_STATUS
 EFIAPI
@@ -196,7 +212,7 @@ SmmInstallConfigurationTableFuzz (
     RuntimeServicePtr->SetWakeupTime = (EFI_SET_WAKEUP_TIME)DummyRuntimeSmm;
     RuntimeServicePtr->SetVirtualAddressMap = (EFI_SET_VIRTUAL_ADDRESS_MAP)DummyRuntimeSmm;
     RuntimeServicePtr->ConvertPointer = (EFI_CONVERT_POINTER)DummyRuntimeSmm;
-    RuntimeServicePtr->GetVariable = (EFI_GET_VARIABLE)DummyRuntimeSmm;
+    RuntimeServicePtr->GetVariable = (EFI_GET_VARIABLE)EFI_GET_VARIABLE_FUZZ;
     RuntimeServicePtr->GetNextVariableName = (EFI_GET_NEXT_VARIABLE_NAME)DummyRuntimeSmm;
     RuntimeServicePtr->SetVariable = (EFI_SET_VARIABLE)DummyRuntimeSmm;
     RuntimeServicePtr->GetNextHighMonotonicCount = (EFI_GET_NEXT_HIGH_MONO_COUNT)DummyRuntimeSmm;

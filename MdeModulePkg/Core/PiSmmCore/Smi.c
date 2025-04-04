@@ -198,6 +198,7 @@ SmiManage (
       DEBUG((DEBUG_INFO,"SMI hanlder enter %g commbuffer:%p commbuffersize:%d\n",HandlerType,CommBuffer,*CommBufferSize));
     else
       DEBUG((DEBUG_INFO,"SMI hanlder enter %g\n",HandlerType));
+    GUID OldCurrentModule = GetCurrentModule();
     SetCurrentModuleBySmi(HandlerType);
     LIBAFL_QEMU_SMM_SMI_ENTER((UINTN)HandlerType, (UINTN)SmiHandler->Handler);
     Status = SmiHandler->Handler (
@@ -207,7 +208,7 @@ SmiManage (
                            CommBufferSize
                            );
     LIBAFL_QEMU_SMM_SMI_EXIT();
-    ClearCurrentModule();
+    SetCurrentModule(&OldCurrentModule);
     DEBUG((DEBUG_INFO,"SMI hanlder exit %g %r\n",HandlerType,Status));
 
     switch (Status) {
@@ -359,6 +360,8 @@ SmiManageFuzz (
 }
 
 BOOLEAN IsRootHandler = FALSE;
+extern UINTN NumGuidInUse;
+extern GUID RootHandlerGuids[];
 /**
   Registers a handler to execute within SMM.
 
@@ -379,7 +382,14 @@ SmiHandlerRegister (
   )
 {
   DEBUG((DEBUG_INFO,"SmiHandlerRegister %g\n",HandlerType));
-  InsertSmiHandler(HandlerType, Handler, IsRootHandler);
+  if (HandlerType == NULL) {
+    HandlerType = &RootHandlerGuids[NumGuidInUse++];
+    InsertSmiHandler(HandlerType, Handler, TRUE);
+  } else {
+    InsertSmiHandler(HandlerType, Handler, IsRootHandler);
+  }
+    
+  
   // if (SmiHandlerRegisterOld)
   //   return SmiHandlerRegisterOld(Handler, HandlerType, DispatchHandle);
   SMI_HANDLER  *SmiHandler;

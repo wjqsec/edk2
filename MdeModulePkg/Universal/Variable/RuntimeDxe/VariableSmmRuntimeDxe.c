@@ -744,7 +744,13 @@ FindVariableInSmm (
 Done:
   return Status;
 }
-
+EFI_STATUS
+EFIAPI
+DummyRuntimeDxe(VOID)
+{
+  DEBUG((DEBUG_INFO,"DummyRuntimeDxe Ok\n"));
+  return EFI_SUCCESS;
+}
 /**
   This code finds variable in storage blocks (Volatile or Non-Volatile).
 
@@ -804,10 +810,15 @@ RuntimeServiceGetVariable (
   ASSERT(!EFI_ERROR(Status2));
   (VOID)Status2;
   if (SmmFuzzGlobalData->in_fuzz == 1) {
-    DEBUG((DEBUG_INFO,"get RuntimeServiceGetVariable Fuzz data\n"));
+    DEBUG((DEBUG_INFO,"get RuntimeServiceGetVariable DXE Fuzz data\n"));
     UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)0);
     if (UseFuzzValue != 0) {
       LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+      if (StrCmp(VariableName, L"NvramMailBox") == 0) {
+        DEBUG((DEBUG_INFO,"Fuzzing NvramMailBox\n"));
+        UINT64 *DataPtr = (UINT64 *)Data;
+        DataPtr[1] = (UINT64)DummyRuntimeDxe;
+      } 
       Status = EFI_SUCCESS;
     }
   }

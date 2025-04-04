@@ -1526,6 +1526,7 @@ VOID InsertConsumeProtocol(CONST GUID *Protocol);
 VOID InsertRootSmiHandler(VOID);
 VOID SetCurrentModule(CONST GUID *guid);
 VOID SetCurrentModuleBySmi(CONST GUID *guid);
+GUID GetCurrentModule();
 VOID ClearCurrentModule(VOID);
 VOID InstallSmmFuzzProtocol(VOID);
 VOID InsertUnloadModule(GUID *guid);
