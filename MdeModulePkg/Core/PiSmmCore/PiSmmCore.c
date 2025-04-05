@@ -1295,7 +1295,8 @@ VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot)
     }
     for (UINTN j = 0; j < SmmModulesHandlerProtocolInfo.info[i].NumSmiHandlers; j++)
     {
-      if (CompareGuid(Handler, &SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[j].SmiHandler))
+      if (CompareGuid(Handler, &SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[j].SmiHandler) ||
+      SmmModulesHandlerProtocolInfo.info[i].SmiHandlers[j].Addr == Addr)
       {
         return;
       }
