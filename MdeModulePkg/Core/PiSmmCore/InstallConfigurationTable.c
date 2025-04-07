@@ -192,7 +192,7 @@ EFIAPI EFI_GET_VARIABLE_FUZZ(
   } 
   return EFI_SUCCESS;
 }
-
+EFI_RUNTIME_SERVICES *RuntimeServicePtr = NULL;
 EFI_STATUS
 EFIAPI
 SmmInstallConfigurationTableFuzz (
@@ -205,7 +205,7 @@ SmmInstallConfigurationTableFuzz (
   GUID RuntimeSMMGuid = { 0x395c33fe, 0x287f, 0x413e, { 0xa0, 0x55, 0x80, 0x88, 0xc0, 0xe1, 0xd4, 0x3e } };
   if (CompareGuid(Guid, &RuntimeSMMGuid))
   {
-    EFI_RUNTIME_SERVICES *RuntimeServicePtr = (EFI_RUNTIME_SERVICES *)Table;
+    RuntimeServicePtr = (EFI_RUNTIME_SERVICES *)Table;
     RuntimeServicePtr->GetTime = (EFI_GET_TIME)DummyRuntimeSmm;
     RuntimeServicePtr->SetTime = (EFI_SET_TIME)DummyRuntimeSmm;
     RuntimeServicePtr->GetWakeupTime = (EFI_GET_WAKEUP_TIME)DummyRuntimeSmm;

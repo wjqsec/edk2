@@ -442,9 +442,9 @@ EFI_STATUS EFIAPI UnRegisterDispatchHandler(
 typedef struct _SMM_ROOT_SMI_DISPATCH {
   VOID *Register;
   VOID *UnRegister;
-  UINTN Padding1; // do not remove in case some protocol need it
-  UINTN Padding2; // do not remove in case some protocol need it
-  UINTN Padding3; // do not remove in case some protocol need it
+  VOID *Padding1; // do not remove in case some protocol need it
+  VOID *Padding2; // do not remove in case some protocol need it
+  VOID *Padding3; // do not remove in case some protocol need it
 }SMM_ROOT_SMI_DISPATCH;
 SMM_ROOT_SMI_DISPATCH SmmRootSmiDispatch;
 
@@ -592,6 +592,9 @@ SmmInstallProtocolInterfaceFuzz (
 
   SmmRootSmiDispatch.Register = RegisterDispatchHandler;
   SmmRootSmiDispatch.UnRegister = UnRegisterDispatchHandler;
+  SmmRootSmiDispatch.Padding1 = UnRegisterDispatchHandler;
+  SmmRootSmiDispatch.Padding2 = UnRegisterDispatchHandler;
+  SmmRootSmiDispatch.Padding3 = UnRegisterDispatchHandler;
   for (UINTN i = 0; i < ( sizeof(SmmDispatchHandlerGuids) / sizeof(SmmDispatchHandlerGuids[0])) ; i++)
   {
     if (CompareGuid(Protocol, &SmmDispatchHandlerGuids[i])) {
