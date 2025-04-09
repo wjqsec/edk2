@@ -378,13 +378,14 @@ SmiHandlerRegister (
   OUT EFI_HANDLE                    *DispatchHandle
   )
 {
-  DEBUG((DEBUG_INFO,"SmiHandlerRegister %g\n",HandlerType));
-  if (HandlerType == NULL) {
+  if (HandlerType == NULL)
+  {
     HandlerType = &RootHandlerGuids[NumGuidInUse++];
     InsertSmiHandler(HandlerType, Handler, TRUE);
-  } else {
-    InsertSmiHandler(HandlerType, Handler, FALSE);
   }
+  else
+    InsertSmiHandler(HandlerType, Handler, FALSE);
+  DEBUG((DEBUG_INFO,"SmiHandlerRegister %g\n",HandlerType));
   // if (SmiHandlerRegisterOld)
   //   return SmiHandlerRegisterOld(Handler, HandlerType, DispatchHandle);
   SMI_HANDLER  *SmiHandler;
@@ -435,6 +436,11 @@ SmiHandlerRegisterFuzz (
   OUT EFI_HANDLE                    *DispatchHandle
   )
 {
+  if (SmmFuzzGlobalData->smm_check_func ((UINT64)__builtin_return_address(0)))
+  {
+    if (HandlerType != NULL)
+      HandlerType = &RootHandlerGuids[NumGuidInUse++];
+  }
   EFI_STATUS Status = SmiHandlerRegister(Handler, HandlerType, DispatchHandle);
   return Status;
 }

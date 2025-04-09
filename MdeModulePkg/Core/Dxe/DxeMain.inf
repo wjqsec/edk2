@@ -215,6 +215,7 @@
   gEfiUsbProtocolGuid
   gEfiSmbusHcProtocolGuid
   gEfiSystemUsbSupportPolicyProtocol
+  gEfiPcdProtocolGuid
   
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressBootTimeCodePageNumber    ## SOMETIMES_CONSUMES

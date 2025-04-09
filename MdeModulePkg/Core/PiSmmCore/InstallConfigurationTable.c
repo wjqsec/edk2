@@ -183,7 +183,10 @@ EFIAPI EFI_GET_VARIABLE_FUZZ(
   IN OUT UINTN                       *DataSize,
   OUT    VOID                        *Data           OPTIONAL
 ) {
-  LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+  UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+  if (!UseFuzzValue) {
+    return EFI_NOT_FOUND;
+  }
   DEBUG((DEBUG_INFO,"SmmRuntime EFI_GET_VARIABLE_FUZZ"));
   if (StrCmp(VariableName, L"NvramMailBox") == 0) {
     DEBUG((DEBUG_INFO,"Fuzzing NvramMailBox\n"));

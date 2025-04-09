@@ -23,6 +23,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Protocol/PlatformDriverOverride.h>
 #include <Protocol/Variable.h>
 #include <Protocol/Timer.h>
+#include <Protocol/Pcd.h>
 #include <Protocol/SimpleFileSystem.h>
 #include <Protocol/Bds.h>
 #include <Protocol/RealTimeClock.h>
@@ -46,7 +47,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Protocol/SmmBase2.h>
 #include <Protocol/TrEEProtocol.h>
 #include <Protocol/PeCoffImageEmulator.h>
-#include <Protocol/Pcd.h>
 #include <Guid/MemoryTypeInformation.h>
 #include <Guid/FirmwareFileSystem2.h>
 #include <Guid/FirmwareFileSystem3.h>
@@ -8068,4 +8068,5 @@ extern GUID gAmiSmmFlashProtocolGuid;
 extern GUID gEfiUsbProtocolGuid;
 extern GUID gEfiSmbusHcProtocolGuid;
 extern GUID gEfiSystemUsbSupportPolicyProtocol;
+extern GUID gEfiPcdProtocolGuid;
 #endif

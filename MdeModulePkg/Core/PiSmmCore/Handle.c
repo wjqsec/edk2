@@ -423,7 +423,7 @@ EFI_STATUS EFIAPI RegisterDispatchHandler(
   OUT EFI_HANDLE *Handler
 ) {
   EFI_HANDLE Handle = NULL;
-  EFI_STATUS Status = SmiHandlerRegisterFuzz(
+  EFI_STATUS Status = SmiHandlerRegister(
               DispatchFunction,
               NULL,
               &Handle

@@ -1701,13 +1701,12 @@ EFI_STATUS EFIAPI EFI_LOCATE_PROTOCOL_FUZZ(
 ) {
   
   EFI_STATUS Status;
-  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) && CompareGuid(Protocol, &gPcdProtocolGuid))
+  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) && CompareGuid(Protocol, &gEfiPcdProtocolGuid))
   {
     *Interface = &mPcdInstanceFuzz;
     return EFI_SUCCESS;
   }
   Status = EFI_LOCATE_PROTOCOL_Old(Protocol, SearchKey, Interface);
-
   return Status;
 }
 
@@ -1790,7 +1789,10 @@ EFIAPI EFI_GET_VARIABLE_FUZZ(
   DEBUG((DEBUG_INFO, "gRT EFI_GET_VARIABLE_FUZZ\n"));
   
   if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0))) {
-    LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+    UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+    if (!UseFuzzValue) {
+      return EFI_NOT_FOUND;
+    }
     return EFI_SUCCESS;
   }
   return GetVariableOld(VariableName, VendorGuid, Attributes, DataSize, Data);

@@ -2423,17 +2423,17 @@ VariableServiceGetVariable (
   UINTN                   VarDataSize;
 
   if (SmmFuzzGlobalData->smm_check_func ((UINT64)__builtin_return_address(0))) {
-    DEBUG((DEBUG_INFO,"Smi EFI_GET_VARIABLE_FUZZ\n"));
-    UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)0);
-    if (UseFuzzValue != 0) {
-      LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
-      if (StrCmp(VariableName, L"NvramMailBox") == 0) {
-        DEBUG((DEBUG_INFO,"Fuzzing NvramMailBox\n"));
-        UINT64 *DataPtr = (UINT64 *)Data;
-        DataPtr[1] = (UINT64)DummyRuntimeDxe;
-      } 
-      Status = EFI_SUCCESS;
+    UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+    if (!UseFuzzValue) {
+      return EFI_NOT_FOUND;
     }
+    DEBUG((DEBUG_INFO,"SmmRuntime EFI_GET_VARIABLE_FUZZ"));
+    if (StrCmp(VariableName, L"NvramMailBox") == 0) {
+      DEBUG((DEBUG_INFO,"Fuzzing NvramMailBox\n"));
+      UINT64 *DataPtr = (UINT64 *)Data;
+      DataPtr[1] = (UINT64)DummyRuntimeDxe;
+    } 
+    return EFI_SUCCESS;
   }
   if ((VariableName == NULL) || (VendorGuid == NULL) || (DataSize == NULL)) {
     return EFI_INVALID_PARAMETER;
