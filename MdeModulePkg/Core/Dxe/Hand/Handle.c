@@ -455,8 +455,6 @@ CoreInstallProtocolInterfaceNotify (
   if (InterfaceType != EFI_NATIVE_INTERFACE) {
     return EFI_INVALID_PARAMETER;
   }
-  if (SmmFuzzGlobalData.in_fuzz && CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
-    return EFI_SUCCESS;
   //
   // Print debug message
   //

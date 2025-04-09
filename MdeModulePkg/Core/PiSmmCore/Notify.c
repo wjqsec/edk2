@@ -220,9 +220,6 @@ SmmRegisterProtocolNotifyFuzz (
   OUT VOID               **Registration
   )
 {
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmRegisterProtocolNotify(Protocol, Function, Registration);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }

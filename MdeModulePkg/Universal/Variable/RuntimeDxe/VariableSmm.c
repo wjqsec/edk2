@@ -33,9 +33,9 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "Variable.h"
 #include "VariableParsing.h"
 #include "VariableRuntimeCache.h"
-
+#include "libafl_qemu.h"
 extern VARIABLE_STORE_HEADER  *mNvVariableCache;
-
+SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 BOOLEAN  mAtRuntime              = FALSE;
 UINT8    *mVariableBufferPayload = NULL;
 UINTN    mVariableBufferPayloadSize;
@@ -86,7 +86,11 @@ SmmVariableSetVariable (
   )
 {
   EFI_STATUS  Status;
-
+  if (SmmFuzzGlobalData->smm_check_func ((UINT64)__builtin_return_address(0))) {
+    DEBUG((DEBUG_INFO,"RuntimeServiceSetVariable\n"));
+    Status = EFI_SUCCESS;
+    return Status;
+  }
   //
   // Disable write protection when the calling SetVariable() through EFI_SMM_VARIABLE_PROTOCOL.
   //
@@ -1157,6 +1161,8 @@ MmVariableServiceInitialize (
   VOID        *SmmFtwRegistration;
   VOID        *SmmEndOfDxeRegistration;
 
+  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  ASSERT(!EFI_ERROR(Status));
   //
   // Variable initialize.
   //

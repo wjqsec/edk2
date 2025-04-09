@@ -841,5 +841,5 @@ EFIAPI
 VariableExLibAtRuntime (
   VOID
   );
-
+extern GUID gSmmFuzzDataProtocolGuid;
 #endif

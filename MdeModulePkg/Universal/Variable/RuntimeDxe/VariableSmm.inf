@@ -28,7 +28,7 @@
   INF_VERSION                    = 0x00010005
   BASE_NAME                      = VariableSmm
   MODULE_UNI_FILE                = VariableSmm.uni
-  FILE_GUID                      = 23A089B3-EED5-4ac5-B2AB-43E3298C2343
+  FILE_GUID                      = 23A089B3-EED5-4ac5-B2AB-43E3298C2344 # originial 23A089B3-EED5-4ac5-B2AB-43E3298C2343
   MODULE_TYPE                    = DXE_SMM_DRIVER
   VERSION_STRING                 = 1.0
   PI_SPECIFICATION_VERSION       = 0x0001000A
@@ -97,6 +97,7 @@
   gEdkiiSmmVarCheckProtocolGuid                 ## PRODUCES
   gEfiTcgProtocolGuid                           ## SOMETIMES_CONSUMES
   gEfiTcg2ProtocolGuid                          ## SOMETIMES_CONSUMES
+  gSmmFuzzDataProtocolGuid
 
 [Guids]
   ## SOMETIMES_CONSUMES   ## GUID # Signature of Variable store header

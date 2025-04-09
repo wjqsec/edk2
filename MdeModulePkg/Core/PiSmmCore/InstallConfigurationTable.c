@@ -11,7 +11,7 @@
 #define CONFIG_TABLE_SIZE_INCREASED  0x10
 
 UINTN  mSmmSystemTableAllocateSize = 0;
-
+extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 /**
   The SmmInstallConfigurationTable() function is used to maintain the list
   of configuration tables that are stored in the System Management System
@@ -184,7 +184,7 @@ EFIAPI EFI_GET_VARIABLE_FUZZ(
   OUT    VOID                        *Data           OPTIONAL
 ) {
   LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
-  DEBUG((DEBUG_INFO,"get RuntimeServiceGetVariable SMM Fuzz data"));
+  DEBUG((DEBUG_INFO,"SmmRuntime EFI_GET_VARIABLE_FUZZ"));
   if (StrCmp(VariableName, L"NvramMailBox") == 0) {
     DEBUG((DEBUG_INFO,"Fuzzing NvramMailBox\n"));
     UINT64 *DataPtr = (UINT64 *)Data;

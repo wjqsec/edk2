@@ -46,6 +46,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Protocol/SmmBase2.h>
 #include <Protocol/TrEEProtocol.h>
 #include <Protocol/PeCoffImageEmulator.h>
+#include <Protocol/Pcd.h>
 #include <Guid/MemoryTypeInformation.h>
 #include <Guid/FirmwareFileSystem2.h>
 #include <Guid/FirmwareFileSystem3.h>
@@ -63,7 +64,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Guid/VectorHandoffTable.h>
 #include <Ppi/VectorHandoffInfo.h>
 #include <Guid/MemoryProfile.h>
-
 #include <Library/DxeCoreEntryPoint.h>
 #include <Library/DebugLib.h>
 #include <Library/UefiLib.h>
@@ -8040,7 +8040,6 @@ extern GUID gAmiSmbiosFlashDataProtocolGuid;
 extern GUID gAmiSmbiosProtocolGuid;
 extern GUID gUnknownHpProtocol1Guid;
 extern GUID gUnknownHpProtocol2Guid;
-extern GUID gUnknownHpProtocol4Guid;
 extern GUID gEfiGlobalNvsAreaProtocolGuid;
 extern GUID gEfiSecSmiFlashGuid;
 extern GUID gAmiPciSmmHandoffProtocolGuid;

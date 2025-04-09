@@ -268,13 +268,10 @@ SmmLocateProtocolFuzz (
   OUT VOID      **Interface
   )
 { EFI_STATUS Status;
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   Status = SmmLocateProtocol(Protocol, Registration, Interface);
   DEBUG((DEBUG_INFO,"SmmLocateProtocol: %g %r\n",Protocol,Status));
   if (EFI_ERROR(Status))
     LIBAFL_QEMU_SMM_REPORT_MISSING_PROTOCOL(REPORT_TO_FUZZER, (UINTN)Protocol);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**
@@ -448,11 +445,8 @@ SmmLocateHandleFuzz (
   )
 {
   EFI_STATUS Status;
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   Status = SmmLocateHandle(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   DEBUG((DEBUG_INFO,"SmmLocateHandle: %g %r\n",Protocol,Status));
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**

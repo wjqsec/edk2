@@ -7,6 +7,8 @@
 **/
 
 #include "PiSmmCore.h"
+
+#include "../Dxe/DxeMain/SmmFuzzProtocol.h"
 extern EFI_INSTALL_PROTOCOL_INTERFACE      SmmInstallProtocolInterfaceOld;
 extern EFI_UNINSTALL_PROTOCOL_INTERFACE    SmmUninstallProtocolInterfaceOld;
 extern EFI_HANDLE_PROTOCOL                 SmmHandleProtocolOld;
@@ -390,7 +392,6 @@ SmmReadyToLockHandler (
   DEBUG((DEBUG_INFO,"SmmReadyToLockHandler start\n"));
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
   LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((libafl_word)&gEfiReadyToLockEventGuid,0,0);
-  SmmFuzzGlobalData->in_fuzz = 1;
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
   UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
   Status = EFI_SUCCESS;
@@ -407,7 +408,6 @@ SmmReadyToLockHandler (
     }
   }
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
-  SmmFuzzGlobalData->in_fuzz = 0;
   DEBUG((DEBUG_INFO,"SmmReadyToLockHandler end\n"));
   //
   // Make sure SMM CPU I/O 2 Protocol has been installed into the handle database
@@ -443,7 +443,6 @@ SmmReadyToLockHandler (
   gST = NULL;
   gBS = NULL;
 
-  SmmFuzzGlobalData->in_fuzz = 0;
   SmramProfileReadyToLock ();
 
   PERF_CALLBACK_END (&gEfiDxeSmmReadyToLockProtocolGuid);
@@ -489,7 +488,6 @@ SmmEndOfDxeHandler (
   DEBUG ((DEBUG_INFO, "SmmEndOfDxeHandler\n"));
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
   LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((libafl_word)&gEfiEndOfDxeEventGuid,0,0);
-  SmmFuzzGlobalData->in_fuzz = 1;
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
   UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
   Status = EFI_SUCCESS;
@@ -506,7 +504,6 @@ SmmEndOfDxeHandler (
     }
   }
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
-  SmmFuzzGlobalData->in_fuzz = 0;
   DEBUG ((DEBUG_INFO, "SmmEndOfDxeHandler end\n"));                
   if (mAcpiS3Enable) {
     //
@@ -840,10 +837,7 @@ SmmEntryPointFuzz (
   IN CONST EFI_SMM_ENTRY_CONTEXT  *SmmEntryContext
   )
 {
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   SmmEntryPoint(SmmEntryContext);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
 }
 /**
   Install LoadedImage protocol for SMM Core.
@@ -1054,6 +1048,7 @@ SmmMain (
   UINTN       Index;
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)&SmmFuzzDummyMemory);
   Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  SmmFuzzGlobalData->smm_check_func = IsCallFromFuzzModule;
   ASSERT(!EFI_ERROR(Status));
   Status = gBS->AllocatePool(EfiBootServicesData, 0x1200, (VOID**)&FuzzHobAddr);
   ASSERT(!EFI_ERROR(Status));
@@ -1280,6 +1275,17 @@ VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageBase = Addr;
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageSize = Size;
   SmmModulesHandlerProtocolInfo.NumModules++;
+
+  GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA}};
+  if (CompareGuid(Guid, &SMMCORE_GUID)) {
+    return;
+  }
+  DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData->dxe_smm_module_infos;
+  CopyGuid(&Info->SmmModules[Info->NumSmmModules].Guid, Guid);
+  Info->SmmModules[Info->NumSmmModules].StartAddress = (UINTN)Addr;
+  Info->SmmModules[Info->NumSmmModules].Size = Size;
+  Info->NumSmmModules++;
+
 }
 VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot)
 {
@@ -1447,4 +1453,16 @@ VOID RemoveSkipModule(GUID *guid)
     return;
   CopyMem(&SmmModulesHandlerProtocolInfo.SkipModules[Index], &SmmModulesHandlerProtocolInfo.SkipModules[Index + 1], sizeof(GUID) * (SmmModulesHandlerProtocolInfo.NumSkipModules - Index -1));
   SmmModulesHandlerProtocolInfo.NumSkipModules--;
+}
+UINT64 IsCallFromFuzzModule(UINT64 RetAddr) 
+{
+  DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData->dxe_smm_module_infos;
+  for (UINTN i = 0; i < Info->NumSmmModules; i++)
+  {
+    if (RetAddr >= (UINT64)Info->SmmModules[i].StartAddress && RetAddr < (UINT64)Info->SmmModules[i].StartAddress + (UINT64)Info->SmmModules[i].Size)
+    {
+      return 1;
+    }
+  }
+  return 0;
 }

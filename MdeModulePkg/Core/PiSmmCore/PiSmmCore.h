@@ -1532,6 +1532,7 @@ VOID InstallSmmFuzzProtocol(VOID);
 VOID InsertUnloadModule(GUID *guid);
 VOID InsertSkipModule(GUID *guid);
 VOID RemoveSkipModule(GUID *guid);
+UINT64 IsCallFromFuzzModule(UINT64 RetAddr);
 EFI_STATUS InstallSmmFuzzSmiHandler(VOID);
 EFI_STATUS
 EFIAPI

@@ -836,7 +836,7 @@ GUID OVMFSmmModules[] = {
     { 0xA3FF0EF5, 0x0C28, 0x42F5, { 0xB5, 0x44, 0x8C, 0x7D, 0xE1, 0xE8, 0x00, 0x14 } },
     { 0x2E7DB7A7, 0x608E, 0x4041, { 0xB4, 0x5F, 0x00, 0x35, 0x9E, 0x07, 0x66, 0xC6 } },
     { 0x470CB248, 0xE8AC, 0x473C, { 0xBB, 0x4F, 0x81, 0x06, 0x9A, 0x1F, 0xE6, 0xFD } },
-    { 0x23A089B3, 0xEED5, 0x4AC5, { 0xB2, 0xAB, 0x43, 0xE3, 0x29, 0x8C, 0x23, 0x43 } },
+    { 0x23A089B3, 0xEED5, 0x4AC5, { 0xB2, 0xAB, 0x43, 0xE3, 0x29, 0x8C, 0x23, 0x44 } },
     { 0xE2EA6F47, 0xE678, 0x47FA, { 0x8C, 0x1B, 0x02, 0xA0, 0x3E, 0x82, 0x5C, 0x6E } },
     { 0xE94F54CD, 0x81EB, 0x47ed, { 0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA } },
 };
@@ -848,10 +848,11 @@ BOOLEAN IsOVMFSmmModule(GUID *guid) {
   }
   return FALSE;
 }
-EFI_STATUS EFIAPI DummyRuntimeSmm(VOID);
+
 LIST_ENTRY  mRetryQueue = INITIALIZE_LIST_HEAD_VARIABLE (mRetryQueue);
 VOID *FuzzHobAddr;
 extern EFI_RUNTIME_SERVICES *RuntimeServicePtr;
+EFI_STATUS EFIAPI DummyRuntimeSmm(VOID);
 EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
 {
   EFI_STATUS Status;
@@ -878,12 +879,11 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
     InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
     SetCurrentModule(&DriverEntry->FileName);
   }
-  EFI_SET_VARIABLE OldSetVariable = NULL;
   if (RuntimeServicePtr)
-    OldSetVariable = RuntimeServicePtr->SetVariable;
+    RuntimeServicePtr->SetVariable = (EFI_SET_VARIABLE)DummyRuntimeSmm;
+  
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
   LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINT64)&DriverEntry->FileName, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
-  SmmFuzzGlobalData->in_fuzz = 1;  
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
   DEBUG((DEBUG_INFO,"start fuzzing entry point %g numcpu:%d current cpu:%d\n",&DriverEntry->FileName,gSmmCorePrivate->Smst->NumberOfCpus, gSmmCorePrivate->Smst->CurrentlyExecutingCpu));
   UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
@@ -899,11 +899,6 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
   else {
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
   }
-  if (RuntimeServicePtr) {
-    if (OldSetVariable != RuntimeServicePtr->SetVariable)
-    RuntimeServicePtr->SetVariable = (EFI_SET_VARIABLE)DummyRuntimeSmm;
-  }
-  SmmFuzzGlobalData->in_fuzz = 0;
   ClearCurrentModule();
   if (!IsOVMFSmmModule(&DriverEntry->FileName)) {
     Status = gBS->InstallConfigurationTable(&gEfiHobListGuid, OldHob);

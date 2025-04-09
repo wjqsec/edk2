@@ -416,7 +416,6 @@ GUID RootHandlerGuids[] = {
   { 0x714EBEF7, 0xCD19, 0x4815, { 0xAE, 0xB8, 0x91, 0x25, 0xFF, 0x3A, 0xF4, 0x7F } },
 };
 UINTN NumGuidInUse = 0;
-extern BOOLEAN IsRootHandler;
 EFI_STATUS EFIAPI RegisterDispatchHandler(
   IN  VOID *This,
   IN  VOID *DispatchFunction,
@@ -424,13 +423,11 @@ EFI_STATUS EFIAPI RegisterDispatchHandler(
   OUT EFI_HANDLE *Handler
 ) {
   EFI_HANDLE Handle = NULL;
-  IsRootHandler = TRUE;
-  EFI_STATUS Status = SmiHandlerRegister(
-                DispatchFunction,
-               &RootHandlerGuids[NumGuidInUse++],
-               &Handle
-               );
-  IsRootHandler = FALSE;
+  EFI_STATUS Status = SmiHandlerRegisterFuzz(
+              DispatchFunction,
+              NULL,
+              &Handle
+              );
   return Status;
 }
 EFI_STATUS EFIAPI UnRegisterDispatchHandler(
@@ -467,7 +464,88 @@ typedef struct _SMI_ROOT_SMI_DISPATCH {
   VOID *Register14;
 }SMI_ROOT_SMI_DISPATCH;
 SMI_ROOT_SMI_DISPATCH SmiRootSmiDispatch;
+typedef struct _AMI_DIGITAL_SIGNATURE_PROTOCOL AMI_DIGITAL_SIGNATURE_PROTOCOL;
+typedef struct{
+  EFI_GUID AlgGuid;
+  UINT32 BlobSize;
+  UINT8 *Blob;
+} CRYPT_HANDLE;
+typedef 
+EFI_STATUS
+(EFIAPI *AMI_DIGITAL_SIGNATURE_PKCS1_VERIFY) (
+  IN CONST AMI_DIGITAL_SIGNATURE_PROTOCOL *This,
+  IN CRYPT_HANDLE *PublicKey,
+  IN CRYPT_HANDLE *Hash,
+  IN VOID *Signature,
+  IN UINTN SignatureSize,
+  IN UINT32 Flags
+);
 
+typedef 
+EFI_STATUS
+(EFIAPI *AMI_DIGITAL_SIGNATURE_PKCS7_VERIFY) (
+  IN CONST AMI_DIGITAL_SIGNATURE_PROTOCOL *This,
+  IN CONST UINT8 *P7Data,
+  IN UINTN        P7Size,
+  IN CONST UINT8 *TrustedCert,
+  IN UINTN        CertSize,
+  IN OUT UINT8  **Data,
+  IN OUT UINTN   *DataSize,
+  IN UINT8        Operation,
+  IN UINT32       Flags
+);
+
+typedef 
+EFI_STATUS
+(EFIAPI *AMI_DIGITAL_SIGNATURE_HASH) (
+  IN CONST AMI_DIGITAL_SIGNATURE_PROTOCOL *This,
+  IN CONST EFI_GUID *HashAlgorithm,
+  IN UINTN Num_elem,
+  IN CONST UINT8 *Addr[],
+  IN CONST UINTN *Len,
+  OUT UINT8 *Hash
+);
+
+typedef
+EFI_STATUS
+(EFIAPI *AMI_DIGITAL_SIGNATURE_GET_KEY) (
+  IN CONST AMI_DIGITAL_SIGNATURE_PROTOCOL *This,
+  OUT CRYPT_HANDLE *Key,
+  IN EFI_GUID *AlgId,
+  IN UINTN KeyLen,
+  IN UINT32 Flags
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *AMI_DIGITAL_SIGNATURE_VERIFY_KEY) (
+  IN CONST AMI_DIGITAL_SIGNATURE_PROTOCOL *This,
+  IN EFI_GUID       *AlgId,
+  IN CRYPT_HANDLE   *Key
+  );
+struct _AMI_DIGITAL_SIGNATURE_PROTOCOL  {
+  AMI_DIGITAL_SIGNATURE_PKCS1_VERIFY Pkcs1Verify;
+  AMI_DIGITAL_SIGNATURE_PKCS7_VERIFY Pkcs7Verify;
+  AMI_DIGITAL_SIGNATURE_HASH Hash;
+  AMI_DIGITAL_SIGNATURE_GET_KEY GetKey;
+  AMI_DIGITAL_SIGNATURE_VERIFY_KEY VerifyKey;
+};
+
+EFI_STATUS
+EFIAPI AMI_DIGITAL_SIGNATURE_GET_KEY_FUZZ (
+  IN CONST AMI_DIGITAL_SIGNATURE_PROTOCOL *This,
+  OUT CRYPT_HANDLE *Key,
+  IN EFI_GUID *AlgId,
+  IN UINTN KeyLen,
+  IN UINT32 Flags
+) {
+  Key->BlobSize = 0x20;
+  Key->AlgGuid = *AlgId;
+  if(Key->Blob) 
+    Key->Blob = (UINT8 *)0x2000000000000000;
+  DEBUG((DEBUG_INFO,"AMI_DIGITAL_SIGNATURE_GET_KEY_FUZZ: %g %p %p\n",AlgId, Key, &Key->Blob));
+  return EFI_SUCCESS;
+}
 
 EFI_STATUS
 EFIAPI
@@ -481,7 +559,11 @@ SmmInstallProtocolInterfaceFuzz (
   VOID *TmpInterface;
   if (SmmLocateProtocol(Protocol, NULL, &TmpInterface) == EFI_SUCCESS)
     return EFI_SUCCESS;
-
+  static EFI_GUID gAmiSmmDigitalSignatureProtocolGuid = { 0x91ABC830, 0x16FC, 0x4D9E, {0xA1, 0x89, 0x5F, 0xC8, 0xBB, 0x41, 0x14, 0x02 }};
+  if (CompareGuid(Protocol, &gAmiSmmDigitalSignatureProtocolGuid)) {
+    AMI_DIGITAL_SIGNATURE_PROTOCOL *AmiSmmDigitalSignatureProtocol = (AMI_DIGITAL_SIGNATURE_PROTOCOL *)Interface;
+    AmiSmmDigitalSignatureProtocol->GetKey = AMI_DIGITAL_SIGNATURE_GET_KEY_FUZZ;
+  }
   GUID SmmDispatchHandlerGuids[] = {
     // EFI_SMM_SW_DISPATCH2_PROTOCOL_GUID-
     { 
@@ -640,12 +722,7 @@ SmmInstallProtocolInterfaceFuzz (
       return EFI_SUCCESS;
     }
   }
-
-
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmInstallProtocolInterface(UserHandle, Protocol, InterfaceType, Interface);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**
@@ -892,6 +969,8 @@ SmmUninstallProtocolInterface (
 
   return Status;
 }
+
+
 EFI_STATUS
 EFIAPI
 SmmUninstallProtocolInterfaceFuzz (
@@ -900,10 +979,7 @@ SmmUninstallProtocolInterfaceFuzz (
   IN VOID        *Interface
   )
 {
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmUninstallProtocolInterface(UserHandle, Protocol, Interface);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**
@@ -1025,10 +1101,7 @@ SmmHandleProtocolFuzz (
   )
 {
   EFI_STATUS Status;
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   Status = SmmHandleProtocol(UserHandle, Protocol, Interface);
   DEBUG((DEBUG_INFO,"SmmHandleProtocol: %g %r\n",Protocol, Status));
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }

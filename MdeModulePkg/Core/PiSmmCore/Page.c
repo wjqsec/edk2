@@ -775,10 +775,7 @@ SmmAllocatePagesFuzz (
   OUT EFI_PHYSICAL_ADDRESS  *Memory
   )
 {
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmAllocatePages(Type, MemoryType, NumberOfPages, Memory);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**
@@ -996,10 +993,7 @@ SmmFreePagesFuzz (
   IN UINTN                 NumberOfPages
   )
 {
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmmFreePages(Memory, NumberOfPages);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**

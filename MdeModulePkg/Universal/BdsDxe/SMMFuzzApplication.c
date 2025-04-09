@@ -186,9 +186,9 @@ VOID ReportSmmModuleInfo() {
   }
 }
 VOID ReportDxeModuleInfo() {
-  DXE_MODULE_INFOS *Info = (DXE_MODULE_INFOS *)SmmFuzzGlobalData->dxe_module_info;
-  for (UINTN i = 0; i < Info->NumModules; i++) {
-    LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&Info->Modules[i].Guid, (UINTN)Info->Modules[i].StartAddress, (UINTN)Info->Modules[i].StartAddress + (UINTN)Info->Modules[i].Size);   
+  DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData->dxe_smm_module_infos;
+  for (UINTN i = 0; i < Info->NumDxeModules; i++) {
+    LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&Info->DxeModules[i].Guid, (UINTN)Info->DxeModules[i].StartAddress, (UINTN)Info->DxeModules[i].StartAddress + (UINTN)Info->DxeModules[i].Size);   
   }
 }
 VOID ReportSmmGroupInfo() {
@@ -235,10 +235,7 @@ SmmFuzzMain(
   DEBUG((DEBUG_INFO,"start SmmFuzzMain\n"));
 
   Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-  if (EFI_ERROR(Status)) {
-      DEBUG((DEBUG_INFO,"Error: Unable to locate gSmmFuzzDataProtocolGuid. %r\n",Status));
-      return Status;
-  }
+  ASSERT(!EFI_ERROR(Status));
 
   UINTN  MinimalSizeNeeded = 3 * 0x1000;
 

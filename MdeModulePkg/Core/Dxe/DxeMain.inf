@@ -187,7 +187,6 @@
   gUnknownHpProtocol1Guid
   gUnknownHpProtocol2Guid
   gAmiSmbiosProtocolGuid
-  gUnknownHpProtocol4Guid
   gEfiGlobalNvsAreaProtocolGuid
   gEfiSecSmiFlashGuid
   gAmiPciSmmHandoffProtocolGuid

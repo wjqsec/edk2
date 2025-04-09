@@ -351,15 +351,12 @@ SmiManageFuzz (
   IN OUT UINTN           *CommBufferSize  OPTIONAL
   )
 {
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmiManage(HandlerType, Context, CommBuffer, CommBufferSize);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 
 }
 
-BOOLEAN IsRootHandler = FALSE;
+
 extern UINTN NumGuidInUse;
 extern GUID RootHandlerGuids[];
 /**
@@ -386,10 +383,8 @@ SmiHandlerRegister (
     HandlerType = &RootHandlerGuids[NumGuidInUse++];
     InsertSmiHandler(HandlerType, Handler, TRUE);
   } else {
-    InsertSmiHandler(HandlerType, Handler, IsRootHandler);
+    InsertSmiHandler(HandlerType, Handler, FALSE);
   }
-    
-  
   // if (SmiHandlerRegisterOld)
   //   return SmiHandlerRegisterOld(Handler, HandlerType, DispatchHandle);
   SMI_HANDLER  *SmiHandler;
@@ -440,10 +435,7 @@ SmiHandlerRegisterFuzz (
   OUT EFI_HANDLE                    *DispatchHandle
   )
 {
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmiHandlerRegister(Handler, HandlerType, DispatchHandle);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }
 /**
@@ -533,9 +525,6 @@ SmiHandlerUnRegisterFuzz (
   IN EFI_HANDLE  DispatchHandle
   )
 {
-  UINT64 OldInFuzz = SmmFuzzGlobalData->in_fuzz;
-  SmmFuzzGlobalData->in_fuzz = 0;
   EFI_STATUS Status = SmiHandlerUnRegister(DispatchHandle);
-  SmmFuzzGlobalData->in_fuzz = OldInFuzz;
   return Status;
 }

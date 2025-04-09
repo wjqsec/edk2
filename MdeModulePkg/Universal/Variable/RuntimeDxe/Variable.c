@@ -29,9 +29,9 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "VariableNonVolatile.h"
 #include "VariableParsing.h"
 #include "VariableRuntimeCache.h"
-
+#include "libafl_qemu.h"
 VARIABLE_MODULE_GLOBAL  *mVariableModuleGlobal;
-
+extern   SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 ///
 /// Define a memory cache that improves the search performance for a variable.
 /// For EmuNvMode == TRUE, it will be equal to NonVolatileVariableBase.
@@ -2370,7 +2370,13 @@ Done:
 
   return Status;
 }
-
+EFI_STATUS
+EFIAPI
+DummyRuntimeDxe(VOID)
+{
+  DEBUG((DEBUG_INFO,"DummyRuntimeDxe Ok\n"));
+  return EFI_SUCCESS;
+}
 /**
 
   This code finds variable in storage blocks (Volatile or Non-Volatile).
@@ -2416,6 +2422,19 @@ VariableServiceGetVariable (
   VARIABLE_POINTER_TRACK  Variable;
   UINTN                   VarDataSize;
 
+  if (SmmFuzzGlobalData->smm_check_func ((UINT64)__builtin_return_address(0))) {
+    DEBUG((DEBUG_INFO,"Smi EFI_GET_VARIABLE_FUZZ\n"));
+    UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)0);
+    if (UseFuzzValue != 0) {
+      LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
+      if (StrCmp(VariableName, L"NvramMailBox") == 0) {
+        DEBUG((DEBUG_INFO,"Fuzzing NvramMailBox\n"));
+        UINT64 *DataPtr = (UINT64 *)Data;
+        DataPtr[1] = (UINT64)DummyRuntimeDxe;
+      } 
+      Status = EFI_SUCCESS;
+    }
+  }
   if ((VariableName == NULL) || (VendorGuid == NULL) || (DataSize == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
