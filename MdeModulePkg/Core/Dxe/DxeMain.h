@@ -24,6 +24,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Protocol/Variable.h>
 #include <Protocol/Timer.h>
 #include <Protocol/Pcd.h>
+#include <Protocol/PiPcd.h>
 #include <Protocol/SimpleFileSystem.h>
 #include <Protocol/Bds.h>
 #include <Protocol/RealTimeClock.h>

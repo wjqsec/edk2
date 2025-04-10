@@ -1171,7 +1171,26 @@ PCD_PROTOCOL  mPcdInstanceFuzz = {
   (PCD_PROTOCOL_GET_NEXT_TOKEN)DUMMY_PCD_FUZZ,
   (PCD_PROTOCOL_GET_NEXT_TOKENSPACE)DUMMY_PCD_FUZZ
 };
-
+EFI_PCD_PROTOCOL mEfiPcdInstanceFuzz = {
+  PCD_PROTOCOL_SET_SKU_FUZZ,
+  PCD_PROTOCOL_GET_EX_8_FUZZ,
+  PCD_PROTOCOL_GET_EX_16_FUZZ,
+  PCD_PROTOCOL_GET_EX_32_FUZZ,
+  PCD_PROTOCOL_GET_EX_64_FUZZ,
+  PCD_PROTOCOL_GET_EX_POINTER_FUZZ,
+  PCD_PROTOCOL_GET_EX_BOOLEAN_FUZZ,
+  PCD_PROTOCOL_GET_EX_SIZE_FUZZ,
+  (EFI_PCD_PROTOCOL_SET_8)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_SET_16)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_SET_32)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_SET_64)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_SET_POINTER)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_SET_BOOLEAN)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_CALLBACK_ON_SET)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_CANCEL_CALLBACK)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_GET_NEXT_TOKEN)DUMMY_PCD_FUZZ,
+  (EFI_PCD_PROTOCOL_GET_NEXT_TOKEN_SPACE)DUMMY_PCD_FUZZ
+};
 
 EFI_RAISE_TPL EFI_RAISE_TPL_Old;
 EFI_TPL EFIAPI EFI_RAISE_TPL_FUZZ(
@@ -1274,7 +1293,7 @@ EFI_STATUS EFIAPI EFI_CREATE_EVENT_FUZZ(
 ) {
   
   EFI_STATUS Status;
-  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)))
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)))
     Status = EFI_SUCCESS;
   else
     Status = EFI_CREATE_EVENT_Old(Type, NotifyTpl, NotifyFunction, NotifyContext, Event);
@@ -1356,9 +1375,9 @@ EFI_STATUS EFIAPI EFI_INSTALL_PROTOCOL_INTERFACE_FUZZ(
 ) {
   EFI_STATUS Status;
   
-  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) && CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) && CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
     return EFI_SUCCESS;
-  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0))) {
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0))) {
     VOID *T;
     if (CoreLocateProtocol(Protocol, NULL, &T) == EFI_SUCCESS)
       LIBAFL_QEMU_SMM_REPORT_CONFLICT_DXE_PROTOCOL((UINTN)Protocol);
@@ -1406,7 +1425,7 @@ EFI_STATUS EFIAPI EFI_HANDLE_PROTOCOL_FUZZ(
 ) {
   EFI_STATUS Status;
   
-  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) && CompareGuid(Protocol, &gEfiFirmwareVolume2ProtocolGuid))
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) && CompareGuid(Protocol, &gEfiFirmwareVolume2ProtocolGuid))
     return EFI_NOT_FOUND;
    
   Status = EFI_HANDLE_PROTOCOL_Old(Handle, Protocol, Interface);
@@ -1701,12 +1720,18 @@ EFI_STATUS EFIAPI EFI_LOCATE_PROTOCOL_FUZZ(
 ) {
   
   EFI_STATUS Status;
-  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) && CompareGuid(Protocol, &gEfiPcdProtocolGuid))
-  {
-    *Interface = &mPcdInstanceFuzz;
-    return EFI_SUCCESS;
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) ) {
+    if (CompareGuid(Protocol, &gEfiPcdProtocolGuid) ) {
+      *Interface = &mEfiPcdInstanceFuzz;
+      return EFI_SUCCESS;
+    }
+    if (CompareGuid(Protocol, &gPcdProtocolGuid)) {
+      *Interface = &mPcdInstanceFuzz;
+      return EFI_SUCCESS;
+    }
   }
   Status = EFI_LOCATE_PROTOCOL_Old(Protocol, SearchKey, Interface);
+  DEBUG((DEBUG_INFO,"EFI_LOCATE_PROTOCOL_FUZZ %g %r\n",Protocol,Status));
   return Status;
 }
 
@@ -1788,7 +1813,7 @@ EFIAPI EFI_GET_VARIABLE_FUZZ(
 {
   DEBUG((DEBUG_INFO, "gRT EFI_GET_VARIABLE_FUZZ\n"));
   
-  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0))) {
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0))) {
     UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
     if (!UseFuzzValue) {
       return EFI_NOT_FOUND;
@@ -1811,7 +1836,7 @@ EFIAPI EFI_SET_VARIABLE_FUZZ(
 {
   DEBUG((DEBUG_INFO, "EFI_SET_VARIABLE_FUZZ\n"));
   
-  if (SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)))
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)))
     return EFI_SUCCESS;
   return SetVariableOld(VariableName, VendorGuid, Attributes, DataSize, Data);
 }
