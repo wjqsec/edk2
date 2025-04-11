@@ -1387,6 +1387,38 @@ EFI_STATUS EFIAPI EFI_INSTALL_PROTOCOL_INTERFACE_FUZZ(
   
   return Status;
 }
+EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_Old;
+EFI_STATUS EFIAPI EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_FUZZ (
+  IN OUT EFI_HANDLE  *Handle,
+  ...
+  )
+{
+  GUID UselessProtocol = { 0xD4D2aa01, 0x50E8, 0x4D45, { 0x8E, 0x05, 0xFD, 0x49, 0xA8, 0x2A, 0x15, 0x69 } };
+  VA_LIST     Args;
+  EFI_GUID    *Protocol;
+  VOID        *Interface;
+  EFI_STATUS Status;
+  VA_START (Args, Handle);
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0))) {
+    while (TRUE)
+    {
+      Protocol = VA_ARG (Args, EFI_GUID *);
+      Interface = VA_ARG (Args, VOID *);
+      if (Protocol == NULL) {
+        break;
+      }
+      if (CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
+        CopyGuid(Protocol, &UselessProtocol);
+    }
+  }
+  (VOID)Interface;
+  Status = EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_Old(Handle, Args);
+  
+  return Status;
+  
+
+
+}
 
 EFI_REINSTALL_PROTOCOL_INTERFACE EFI_REINSTALL_PROTOCOL_INTERFACE_Old;
 EFI_STATUS EFIAPI EFI_REINSTALL_PROTOCOL_INTERFACE_FUZZ(
@@ -1908,6 +1940,8 @@ VOID HookGBS (VOID) {
     EFI_INSTALL_CONFIGURATION_TABLE_Old = gBS->InstallConfigurationTable;
     gBS->InstallConfigurationTable = EFI_INSTALL_CONFIGURATION_TABLE_FUZZ;
 
+    EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_Old = gBS->InstallMultipleProtocolInterfaces;
+    gBS->InstallMultipleProtocolInterfaces = EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_FUZZ;
     // Image Services
     EFI_IMAGE_LOAD_Old = gBS->LoadImage;
     gBS->LoadImage = EFI_IMAGE_LOAD_FUZZ;
@@ -3061,7 +3095,18 @@ EFIAPI EFI_SMBUS_HC_PROTOCOL_NOTIFY_FUNC (
 ){
   return EFI_SUCCESS; 
 }
-
+EFI_STATUS
+EFIAPI USB_MEM_ALLOCATE_FUNC(
+  IN SYSTEM_USB_MEMORY_MANAGER_PROTOCOL *This,
+  IN UINTN                             Arg1,
+  IN UINTN                             Arg2,
+  IN UINTN                             Size,
+  OUT VOID                            **Buffer
+  )
+{
+  *Buffer = AllocatePool(Size);
+  return EFI_SUCCESS;
+}
 
 EFI_STATUS EFIAPI UNKNOWN_FUNC_DUMMY()
 {
@@ -3550,7 +3595,32 @@ VOID InstallSmmFuzzProtocol() {
     NULL
   );
   ASSERT_EFI_ERROR (Status);
-  
+
+  SYSTEM_USB_MEMORY_MANAGER_PROTOCOL* mSystemUsbMemoryManagerProtocol = AllocatePool(0x50);
+  mSystemUsbMemoryManagerProtocol->Allocate = USB_MEM_ALLOCATE_FUNC;
+  mSystemUsbMemoryManagerProtocol->Func1 = UNKNOWN_FUNC_DUMMY;
+  mSystemUsbMemoryManagerProtocol->Func2 = UNKNOWN_FUNC_DUMMY;
+  mSystemUsbMemoryManagerProtocol->Func3 = UNKNOWN_FUNC_DUMMY;
+  mSystemUsbMemoryManagerProtocol->Func4 = UNKNOWN_FUNC_DUMMY;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+    &Handle,
+    &gSystemUsbMemoryManagerProtocol,
+    mSystemUsbMemoryManagerProtocol,
+    NULL
+  );
+  ASSERT_EFI_ERROR (Status);
+
+  GUID gThinkpadAcpiVnsDataProtocolGuid = { 0xE6F014AB, 0xCB0E, 0x456E, { 0x8A, 0xF7, 0x72, 0x21, 0xED, 0xB7, 0x02, 0xF7 } };
+  VOID** mThinkpadAcpiVnsDataProtocolGuid = AllocatePool(sizeof(VOID*));
+  *mThinkpadAcpiVnsDataProtocolGuid = DxeBuffer;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+    &Handle,
+    &gThinkpadAcpiVnsDataProtocolGuid,
+    mThinkpadAcpiVnsDataProtocolGuid,
+    NULL
+  );
+  ASSERT_EFI_ERROR (Status);
+
   static GUID UnknownSmmFuzzProtocols[] = {
     { 0x5B4CB5FD, 0x42F4, 0x27A0, { 0xCC, 0xEB, 0xD9, 0xA2, 0x8E, 0x6B, 0x91, 0xFC } },
     { 0x01A55897, 0xF83D, 0x43AA, { 0xA4, 0x38, 0x81, 0x62, 0x18, 0xB8, 0xAF, 0xB5 } },
@@ -3579,7 +3649,7 @@ VOID InstallSmmFuzzProtocol() {
     { 0x784F0BDA, 0xF028, 0x4B89, { 0x9C, 0x04, 0x1D, 0x17, 0x84, 0x82, 0x4D, 0xAE } },//
     { 0x4010D299, 0xDFA3, 0x42CA, { 0xAE, 0x1D, 0x7A, 0x59, 0xD3, 0x4D, 0x94, 0x70 } },
     // { 0x2E78BFC4, 0x4C4A, 0x8350, { 0x50, 0xB1, 0x8D, 0x84, 0x6F, 0x70, 0x0E, 0xA3 } },
-    { 0xE6F014AB, 0xCB0E, 0x456E, { 0x8A, 0xF7, 0x72, 0x21, 0xED, 0xB7, 0x02, 0xF7 } },
+
     { 0xF447D1DD, 0x1205, 0x4AC2, { 0xBA, 0x53, 0xB7, 0xD6, 0x5A, 0x31, 0xD3, 0x12 } },//
     { 0x0E5870E4, 0x0525, 0x40AD, { 0x95, 0xA8, 0x0F, 0xFF, 0x15, 0x5B, 0x8F, 0xC0 } },
     { 0x55EC2F53, 0x5ABC, 0x4D9F, { 0xBB, 0x02, 0xE1, 0xE7, 0x12, 0x61, 0x38, 0x96 } },//
@@ -3658,7 +3728,6 @@ VOID InstallSmmFuzzProtocol() {
     { 0x4E853A1E, 0xCAD3, 0x437C, { 0x9F, 0xE1, 0x5A, 0x05, 0x88, 0x88, 0xFF, 0xB1 } },
     { 0xDAE670DB, 0x2C65, 0x41E9, { 0xBD, 0xF8, 0x06, 0x3C, 0x80, 0x02, 0xDE, 0x0A } },
     // { 0x9B48BE80, 0x57BE, 0x47D3, { 0xB2, 0x51, 0x00, 0xDF, 0x2C, 0xAC, 0xBB, 0xB1 } },
-    { 0x4B5C6808, 0xB65B, 0x4E0A, { 0x82, 0x9A, 0xE2, 0xAB, 0x9B, 0x84, 0x98, 0xF0 } },
     { 0x19DBF79A, 0x3A95, 0x4758, { 0x81, 0x69, 0x86, 0x9A, 0xE2, 0x7F, 0x38, 0x17 } },
     { 0xABBF33F9, 0x3581, 0x44A2, { 0x8D, 0x66, 0x8C, 0x9E, 0x14, 0xC7, 0xA6, 0x56 } },
     { 0xC35F9520, 0x5791, 0x4667, { 0xAD, 0xE4, 0x1C, 0xFD, 0xA8, 0x37, 0x72, 0x2D } },
@@ -3737,6 +3806,8 @@ VOID InstallSmmFuzzProtocol() {
 
     { 0xE8571188, 0x00C1, 0x4ED4, { 0xB1, 0x4E, 0xE3, 0x84, 0x51, 0x35, 0x1E, 0xC4 } },
     { 0XCCF14A29, 0x37E0, 0x48AD, { 0x90, 0x05, 0x1F, 0x89, 0x62, 0x2F, 0xB7, 0x98 } },
+
+    { 0x06607E8F, 0x93A4, 0x49C5, { 0x91, 0xE9, 0xE1, 0x97, 0xC8, 0xB7, 0x7D, 0x44 } },
   };
 
   for (UINTN i = 0; i < ( sizeof(UnknownSmmFuzzProtocols) / sizeof(UnknownSmmFuzzProtocols[0])) ; i++)
@@ -3787,6 +3858,8 @@ VOID InstallSmmFuzzProtocol() {
       );
     ASSERT_EFI_ERROR (Status);
   }
+
+
 
   (VOID)UnknownSmmFuzzProtocols;
   (VOID)Status;

@@ -8019,10 +8019,39 @@ struct _EFI_SMBUS_HC_PROTOCOL {
   EFI_SMBUS_HC_PROTOCOL_NOTIFY      Notify;
 };
 
+
+#define SYSTEM_USB_MEMORY_MANAGER_PROTOCOL_GUID  \
+  { 0x12345678, 0x9abc, 0xdef0, { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0 } }
+
+// Forward declaration of our protocol type.
+typedef struct _SYSTEM_USB_MEMORY_MANAGER_PROTOCOL SYSTEM_USB_MEMORY_MANAGER_PROTOCOL;
+
+// Function to allocate memory for USB operations.
+typedef
+EFI_STATUS
+(EFIAPI *USB_MEM_ALLOCATE)(
+  IN SYSTEM_USB_MEMORY_MANAGER_PROTOCOL *This,
+  IN UINTN                             Arg1,
+  IN UINTN                             Arg2,
+  IN UINTN                             Size,
+  OUT VOID                            **Buffer
+  );
+// The protocol interface structure. Each field is a function pointer.
 typedef
 EFI_STATUS
 (EFIAPI *UNKNOWN_FUNC) (
 );
+
+struct _SYSTEM_USB_MEMORY_MANAGER_PROTOCOL {
+  UNKNOWN_FUNC      Func1;
+  UNKNOWN_FUNC      Func2;
+  UNKNOWN_FUNC      Func3;
+  UNKNOWN_FUNC      Func4;
+  USB_MEM_ALLOCATE  Allocate;
+};
+
+
+
 
 #include "SmmFuzzProtocol.h"
 VOID InstallSmmFuzzProtocol();
@@ -8070,4 +8099,5 @@ extern GUID gEfiUsbProtocolGuid;
 extern GUID gEfiSmbusHcProtocolGuid;
 extern GUID gEfiSystemUsbSupportPolicyProtocol;
 extern GUID gEfiPcdProtocolGuid;
+extern GUID gSystemUsbMemoryManagerProtocol;
 #endif
