@@ -20,4 +20,8 @@ __stack_chk_fail (
   VOID
   )
 {
+  volatile int a = 0;
+  volatile int b = 0;
+  volatile int c = a / b;
+  (VOID)c;
 }
