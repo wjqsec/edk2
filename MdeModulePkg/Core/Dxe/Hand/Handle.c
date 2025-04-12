@@ -403,6 +403,8 @@ CoreInstallProtocolInterface (
   IN VOID                *Interface
   )
 {
+  if (CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
+    return EFI_SUCCESS;
   return CoreInstallProtocolInterfaceNotify (
            UserHandle,
            Protocol,

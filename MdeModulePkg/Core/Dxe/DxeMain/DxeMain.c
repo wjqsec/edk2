@@ -1395,25 +1395,31 @@ EFI_STATUS EFIAPI EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_FUZZ (
 {
   GUID UselessProtocol = { 0xD4D2aa01, 0x50E8, 0x4D45, { 0x8E, 0x05, 0xFD, 0x49, 0xA8, 0x2A, 0x15, 0x69 } };
   VA_LIST     Args;
+  VA_LIST     ArgsBackup;
   EFI_GUID    *Protocol;
   VOID        *Interface;
   EFI_STATUS Status;
   VA_START (Args, Handle);
-  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0))) {
-    while (TRUE)
-    {
-      Protocol = VA_ARG (Args, EFI_GUID *);
-      Interface = VA_ARG (Args, VOID *);
-      if (Protocol == NULL) {
-        break;
-      }
-      if (CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
-        CopyGuid(Protocol, &UselessProtocol);
-    }
-  }
+
+  VA_COPY(ArgsBackup, Args);
+  // if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0))) {
+  //   while (TRUE)
+  //   {
+  //     Protocol = VA_ARG (Args, EFI_GUID *);
+  //     Interface = VA_ARG (Args, VOID *);
+  //     if (Protocol == NULL) {
+  //       break;
+  //     }
+  //     if (CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
+  //       CopyGuid(Protocol, &UselessProtocol);
+  //   }
+  // }
   (VOID)Interface;
-  Status = EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_Old(Handle, Args);
-  
+  (VOID)UselessProtocol;
+  (VOID)Protocol;
+  Status = CoreInstallMultipleProtocolInterfaces(Handle, Args);
+  VA_END(Args);
+  VA_END(ArgsBackup);
   return Status;
   
 
@@ -1940,8 +1946,8 @@ VOID HookGBS (VOID) {
     EFI_INSTALL_CONFIGURATION_TABLE_Old = gBS->InstallConfigurationTable;
     gBS->InstallConfigurationTable = EFI_INSTALL_CONFIGURATION_TABLE_FUZZ;
 
-    EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_Old = gBS->InstallMultipleProtocolInterfaces;
-    gBS->InstallMultipleProtocolInterfaces = EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_FUZZ;
+    // EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_Old = gBS->InstallMultipleProtocolInterfaces;
+    // gBS->InstallMultipleProtocolInterfaces = EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_FUZZ;
     // Image Services
     EFI_IMAGE_LOAD_Old = gBS->LoadImage;
     gBS->LoadImage = EFI_IMAGE_LOAD_FUZZ;
