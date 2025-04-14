@@ -224,7 +224,7 @@ SmmInstallConfigurationTableFuzz (
     RuntimeServicePtr->QueryCapsuleCapabilities = (EFI_QUERY_CAPSULE_CAPABILITIES)DummyRuntimeSmm;
     RuntimeServicePtr->QueryVariableInfo = (EFI_QUERY_VARIABLE_INFO)DummyRuntimeSmm;
   }
-  DEBUG((DEBUG_INFO,"SmmInstallConfigurationTable %g\n",Guid));
+  DEBUG((DEBUG_INFO,"SmmInstallConfigurationTable %g %p %llx\n",Guid,Table,TableSize));
   EFI_STATUS Status = SmmInstallConfigurationTable(SystemTable, Guid, Table, TableSize);
   return Status;
 }

@@ -195,15 +195,9 @@ SmmInstallProtocolInterface (
 {
   DEBUG((DEBUG_INFO,"SmmInstallProtocolInterface: %g %p\n",Protocol,Interface));
   InsertProduceProtocol(Protocol);
-  if (SmmInstallProtocolInterfaceOld) {
-    return SmmInstallProtocolInterfaceOld(UserHandle, Protocol, InterfaceType, Interface);
-    // EFI_HANDLE TmpHandle = NULL;  //install a fake protocol to trigger the installed protocol notification then remove it
-    // EFI_STATUS Status = SmmInstallProtocolInterfaceOld(&TmpHandle, Protocol, InterfaceType, Interface);
-    // ASSERT(!EFI_ERROR(Status));
-    // Status = SmmUninstallProtocolInterfaceOld(TmpHandle, Protocol, Interface);
-    // ASSERT(!EFI_ERROR(Status));
-    // (VOID)Status;
-  }
+  // if (SmmInstallProtocolInterfaceOld) {
+  //   return SmmInstallProtocolInterfaceOld(UserHandle, Protocol, InterfaceType, Interface);
+  // }
   return SmmInstallProtocolInterfaceNotify (
            UserHandle,
            Protocol,
@@ -364,7 +358,7 @@ SmmInstallProtocolInterfaceNotify (
   //
   // Print debug message
   //
-  DEBUG ((DEBUG_LOAD | DEBUG_INFO, "SmmInstallProtocolInterface: %g %p\n", Protocol, Interface));
+  DEBUG ((DEBUG_LOAD | DEBUG_INFO, "SmmInstallProtocolInterface2: %g %p\n", Protocol, Interface));
 
   Status = EFI_OUT_OF_RESOURCES;
   Prot   = NULL;
@@ -453,6 +447,7 @@ SmmInstallProtocolInterfaceNotify (
   // Notify the notification list for this protocol
   //
   if (Notify) {
+    DEBUG((DEBUG_INFO,"Protocol notify %g\n",Protocol));
     SmmNotifyProtocol (Prot);
   }
 
@@ -500,8 +495,8 @@ SmmUninstallProtocolInterface (
   )
 {
   DEBUG((DEBUG_INFO,"SmmUninstallProtocolInterface: %g\n",Protocol));
-  if (SmmUninstallProtocolInterfaceOld)
-    return SmmUninstallProtocolInterfaceOld(UserHandle, Protocol, Interface);
+  // if (SmmUninstallProtocolInterfaceOld)
+  //   return SmmUninstallProtocolInterfaceOld(UserHandle, Protocol, Interface);
   EFI_STATUS          Status;
   IHANDLE             *Handle;
   PROTOCOL_INTERFACE  *Prot;
@@ -641,7 +636,10 @@ SmmHandleProtocol (
 {
   InsertConsumeProtocol(Protocol);
   if (SmmHandleProtocolOld)
-    return SmmHandleProtocolOld(UserHandle, Protocol, Interface);
+  {
+    if (SmmHandleProtocolOld(UserHandle, Protocol, Interface) == EFI_SUCCESS)
+      return EFI_SUCCESS;
+  }
   EFI_STATUS          Status;
   PROTOCOL_INTERFACE  *Prot;
 

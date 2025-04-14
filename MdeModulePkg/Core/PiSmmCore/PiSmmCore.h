@@ -1533,6 +1533,7 @@ VOID InsertUnloadModule(GUID *guid);
 VOID InsertSkipModule(GUID *guid);
 VOID RemoveSkipModule(GUID *guid);
 BOOLEAN IsOVMFSmmModule(GUID *guid);
+BOOLEAN GetModuleFromAddr(UINT64 Addr, GUID *Ret);
 UINT64 IsCallFromFuzzModule(UINT64 RetAddr);
 EFI_STATUS InstallSmmFuzzSmiHandler(VOID);
 EFI_STATUS

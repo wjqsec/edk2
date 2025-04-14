@@ -212,7 +212,10 @@ SmmLocateProtocol (
 {
   InsertConsumeProtocol(Protocol);
   if (SmmLocateProtocolOld)
-    return SmmLocateProtocolOld(Protocol, Registration, Interface);
+  {
+    if (SmmLocateProtocolOld(Protocol, Registration, Interface) == EFI_SUCCESS)
+      return EFI_SUCCESS;
+  }
   EFI_STATUS       Status;
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;
@@ -913,15 +916,6 @@ SmmLocateProtocolFuzz (
   {
     if (CompareGuid(Protocol, &SmmDispatchHandlerGuids[i])) {
       *Interface = &SmmRootSmiDispatch;
-      // EFI_HANDLE Handle = NULL;
-      // EFI_STATUS Status = SmmInstallProtocolInterface (
-      //             &Handle,
-      //             &SmmDispatchHandlerGuids[i],
-      //             EFI_NATIVE_INTERFACE,
-      //             &SmmRootSmiDispatch
-      //             );
-      // ASSERT_EFI_ERROR (Status);
-      // (VOID)Status;
       return EFI_SUCCESS;
     }
   }
@@ -930,15 +924,6 @@ SmmLocateProtocolFuzz (
   {
     if (CompareGuid(Protocol, &SmiDispatchHandlerGuids[i])) {
       *Interface = &SmiRootSmiDispatch;
-      // EFI_HANDLE Handle = NULL;
-      // EFI_STATUS Status = SmmInstallProtocolInterface (
-      //             &Handle,
-      //             &SmiDispatchHandlerGuids[i],
-      //             EFI_NATIVE_INTERFACE,
-      //             &SmiRootSmiDispatch
-      //             );
-      // ASSERT_EFI_ERROR (Status);
-      // (VOID)Status;
       return EFI_SUCCESS;
     }
   }
@@ -978,9 +963,14 @@ SmmLocateHandle (
   OUT    EFI_HANDLE              *Buffer
   )
 {
-  if (SmmLocateHandleOld)
-    return SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
   EFI_STATUS       Status;
+  if (SmmLocateHandleOld)
+  {
+    Status = SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
+    if (Status == EFI_SUCCESS || Status == EFI_BUFFER_TOO_SMALL)
+      return Status;
+  }
+  
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;
   CORE_GET_NEXT    GetNext;

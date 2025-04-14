@@ -36,10 +36,34 @@ SmmNotifyProtocol (
   PROTOCOL_NOTIFY  *ProtNotify;
   LIST_ENTRY       *Link;
 
+  BOOLEAN ToFuzz = CompareGuid(&Prot->Protocol->ProtocolID, &gEfiSmmEndOfDxeProtocolGuid) || CompareGuid(&Prot->Protocol->ProtocolID, &gEfiSmmReadyToLockProtocolGuid);
   ProtEntry = Prot->Protocol;
   for (Link = ProtEntry->Notify.ForwardLink; Link != &ProtEntry->Notify; Link = Link->ForwardLink) {
+    DEBUG((DEBUG_INFO,"Notify %p\n",ProtNotify->Function));
     ProtNotify = CR (Link, PROTOCOL_NOTIFY, Link, PROTOCOL_NOTIFY_SIGNATURE);
-    ProtNotify->Function (&ProtEntry->ProtocolID, Prot->Interface, Prot->Handle);
+    GUID Module;
+    GUID OldModule = GetCurrentModule();
+    if (GetModuleFromAddr((UINT64)ProtNotify->Function, &Module))
+    {
+      if (!IsOVMFSmmModule(&Module)) {
+        SetCurrentModule(&Module);
+      }
+    }
+    if (ToFuzz)
+    {
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
+      LIBAFL_QEMU_SMM_REPORT_LOCKBOX((libafl_word)ProtNotify->Function);
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
+      UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
+      if (skip == 0) {
+        ProtNotify->Function (&ProtEntry->ProtocolID, Prot->Interface, Prot->Handle);
+      }
+      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
+      
+    }
+    else
+      ProtNotify->Function (&ProtEntry->ProtocolID, Prot->Interface, Prot->Handle);
+    SetCurrentModule(&OldModule);
   }
 }
 
@@ -113,8 +137,8 @@ SmmRegisterProtocolNotify (
   )
 {
   DEBUG((DEBUG_INFO,"SmmRegisterProtocolNotify: %g\n",Protocol));
-  if (SmmRegisterProtocolNotifyOld)
-    return SmmRegisterProtocolNotifyOld(Protocol, Function, Registration);
+  // if (SmmRegisterProtocolNotifyOld)
+  //   return SmmRegisterProtocolNotifyOld(Protocol, Function, Registration);
   PROTOCOL_ENTRY   *ProtEntry;
   PROTOCOL_NOTIFY  *ProtNotify;
   LIST_ENTRY       *Link;
@@ -195,8 +219,8 @@ SmmRegisterProtocolNotify (
       // Start at the ending
       //
       ProtNotify->Position = ProtEntry->Protocols.BackLink;
-
       InsertTailList (&ProtEntry->Notify, &ProtNotify->Link);
+      DEBUG((DEBUG_INFO,"Add Notification %g %p\n",Protocol,ProtNotify->Protocol));
     }
   }
 

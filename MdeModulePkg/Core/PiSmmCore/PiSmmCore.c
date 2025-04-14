@@ -25,8 +25,7 @@ extern EFI_FREE_PAGES                      SmmFreePagesOld;
 extern EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp;
 extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 
-GUID gEfiEndOfDxeEventGuid = {0x11111111, 0x1111, 0x1111, {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11}};
-GUID gEfiReadyToLockEventGuid = {0x22222222, 0x2222, 0x2222, {0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22}};
+
 BOOLEAN NoCommbufCheck = FALSE;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
@@ -390,24 +389,13 @@ SmmReadyToLockHandler (
   // Install SMM Ready to lock protocol
   //
   DEBUG((DEBUG_INFO,"SmmReadyToLockHandler start\n"));
-  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
-  LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((libafl_word)&gEfiReadyToLockEventGuid,0,0);
-  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
-  UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
-  Status = EFI_SUCCESS;
-  if (skip == 0) {
-    SmmHandle = NULL;
-    Status    = SmmInstallProtocolInterface (
-                  &SmmHandle,
-                  &gEfiSmmReadyToLockProtocolGuid,
-                  EFI_NATIVE_INTERFACE,
-                  NULL
-                  );
-    if (EFI_ERROR(Status)) {
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_ERROR,0,0);
-    }
-  }
-  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
+  SmmHandle = NULL;
+  Status    = SmmInstallProtocolInterface (
+                &SmmHandle,
+                &gEfiSmmReadyToLockProtocolGuid,
+                EFI_NATIVE_INTERFACE,
+                NULL
+                );
   DEBUG((DEBUG_INFO,"SmmReadyToLockHandler end\n"));
   //
   // Make sure SMM CPU I/O 2 Protocol has been installed into the handle database
@@ -486,24 +474,13 @@ SmmEndOfDxeHandler (
   // Install SMM EndOfDxe protocol
   //
   DEBUG ((DEBUG_INFO, "SmmEndOfDxeHandler\n"));
-  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
-  LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((libafl_word)&gEfiEndOfDxeEventGuid,0,0);
-  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
-  UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
-  Status = EFI_SUCCESS;
-  if (skip == 0) {
-    SmmHandle = NULL;
-    Status    = SmmInstallProtocolInterface (
-                  &SmmHandle,
-                  &gEfiSmmEndOfDxeProtocolGuid,
-                  EFI_NATIVE_INTERFACE,
-                  NULL
-                  );
-    if (EFI_ERROR(Status)) {
-      LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_ERROR,0,0);
-    }
-  }
-  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
+  SmmHandle = NULL;
+  Status    = SmmInstallProtocolInterface (
+                &SmmHandle,
+                &gEfiSmmEndOfDxeProtocolGuid,
+                EFI_NATIVE_INTERFACE,
+                NULL
+                );
   DEBUG ((DEBUG_INFO, "SmmEndOfDxeHandler end\n"));                
   if (mAcpiS3Enable) {
     //
@@ -1464,4 +1441,16 @@ UINT64 IsCallFromFuzzModule(UINT64 RetAddr)
     }
   }
   return 0;
+}
+BOOLEAN GetModuleFromAddr(UINT64 Addr, GUID *Ret)
+{
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
+  {
+    if (Addr >= (UINT64)SmmModulesHandlerProtocolInfo.info[i].ImageBase && Addr < ((UINT64)SmmModulesHandlerProtocolInfo.info[i].ImageBase + (UINT64)SmmModulesHandlerProtocolInfo.info[i].ImageSize))
+    {
+      CopyGuid(Ret, &SmmModulesHandlerProtocolInfo.info[i].Guid);
+      return TRUE;
+    }
+  }
+  return FALSE;
 }

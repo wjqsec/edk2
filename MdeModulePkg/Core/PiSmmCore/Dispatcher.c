@@ -853,6 +853,16 @@ LIST_ENTRY  mRetryQueue = INITIALIZE_LIST_HEAD_VARIABLE (mRetryQueue);
 VOID *FuzzHobAddr;
 extern EFI_RUNTIME_SERVICES *RuntimeServicePtr;
 EFI_STATUS EFIAPI DummyRuntimeSmm(VOID);
+
+
+EFI_STATUS __attribute__((noinline)) EFI_IMAGE_ENTRY_POINT_WRAPPER(EFI_IMAGE_ENTRY_POINT Func, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
+{
+  VOID *OldRetAddr = __builtin_return_address(0);
+  EFI_STATUS Status = Func(ImageHandle, SystemTable);
+  if (OldRetAddr != __builtin_return_address(0))
+    Status = EFI_NOT_FOUND;
+  return Status;
+}
 EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
 {
   EFI_STATUS Status;
@@ -890,7 +900,7 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
   UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
   Status = EFI_SUCCESS;
   if (skip == 0)
-    Status = ((EFI_IMAGE_ENTRY_POINT)(UINTN)DriverEntry->ImageEntryPoint)(DriverEntry->ImageHandle, gST);
+    Status = EFI_IMAGE_ENTRY_POINT_WRAPPER((EFI_IMAGE_ENTRY_POINT)DriverEntry->ImageEntryPoint, DriverEntry->ImageHandle, gST);
   DEBUG((DEBUG_INFO,"end entry point %g %lx %r\n",&DriverEntry->FileName,Status, Status));   
   if (Status == EFI_NOT_FOUND) {
     LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_UNSUPPORT,0,0);
@@ -917,7 +927,7 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
     InsertSkipModule(&DriverEntry->FileName);
     Status = EFI_UNSUPPORTED;
   }
-
+  DEBUG((DEBUG_INFO,"Ret address : %p\n",__builtin_return_address(0)));
   return Status;
 }
 BOOLEAN MissingSmmProtocolSatisfy(EFI_SMM_DRIVER_ENTRY *entry)
