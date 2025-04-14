@@ -876,9 +876,10 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
     LIBAFL_QEMU_SMM_REPORT_HOB_MEM((UINT64)FuzzHobBackup.Raw, (UINT64)GET_HOB_LENGTH(FuzzHobBackup));
     FuzzHob.Raw = GET_NEXT_HOB (FuzzHob);
     FuzzHob.Header->HobType = EFI_HOB_TYPE_END_OF_HOB_LIST;
-    InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
     SetCurrentModule(&DriverEntry->FileName);
   }
+  
+  InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
   if (RuntimeServicePtr)
     RuntimeServicePtr->SetVariable = (EFI_SET_VARIABLE)DummyRuntimeSmm;
   

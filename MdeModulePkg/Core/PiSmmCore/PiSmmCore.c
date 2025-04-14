@@ -1276,8 +1276,7 @@ VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageSize = Size;
   SmmModulesHandlerProtocolInfo.NumModules++;
 
-  GUID SMMCORE_GUID = {0xE94F54CD, 0x81EB, 0x47ed, {0xAE, 0xC3, 0x85, 0x6F, 0x5D, 0xC1, 0x57, 0xAA}};
-  if (CompareGuid(Guid, &SMMCORE_GUID)) {
+  if (IsOVMFSmmModule(Guid)) {
     return;
   }
   DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData->dxe_smm_module_infos;
