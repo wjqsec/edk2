@@ -39,7 +39,7 @@ SmmNotifyProtocol (
   BOOLEAN ToFuzz = CompareGuid(&Prot->Protocol->ProtocolID, &gEfiSmmEndOfDxeProtocolGuid) || CompareGuid(&Prot->Protocol->ProtocolID, &gEfiSmmReadyToLockProtocolGuid);
   ProtEntry = Prot->Protocol;
   for (Link = ProtEntry->Notify.ForwardLink; Link != &ProtEntry->Notify; Link = Link->ForwardLink) {
-    DEBUG((DEBUG_INFO,"Notify %p\n",ProtNotify->Function));
+    
     ProtNotify = CR (Link, PROTOCOL_NOTIFY, Link, PROTOCOL_NOTIFY_SIGNATURE);
     GUID Module;
     GUID OldModule = GetCurrentModule();
@@ -51,6 +51,7 @@ SmmNotifyProtocol (
     }
     if (ToFuzz)
     {
+      DEBUG((DEBUG_INFO,"EndofDXE Notify %p\n",ProtNotify->Function));
       LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
       LIBAFL_QEMU_SMM_REPORT_LOCKBOX((libafl_word)ProtNotify->Function);
       LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);

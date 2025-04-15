@@ -154,7 +154,7 @@ EFI_STATUS GroupSmiHandlers()
       return Status;
   }
 
-
+  DEBUG((DEBUG_INFO,"Got ReportData\n"));
   NumGroups = 0;
   // Groups[NumGroups].NumSmiHandlers = 1;
   // CopyGuid(&Groups[NumGroups].Handlers[0], &gEfiSmmFuzzRootGuid);
@@ -167,7 +167,9 @@ EFI_STATUS GroupSmiHandlers()
       continue;
     ReportDataBackup->info[i].Visited = TRUE;
     UINTN NumDep;
+    DEBUG((DEBUG_INFO,"GroupSmiHandlers %g\n", &ReportDataBackup->info[i].Guid));
     SMM_MODULE_HANDLER_PROTOCOL_INFO **Dep = CollectModuleDependency(ReportDataBackup, &ReportDataBackup->info[i], &NumDep);
+    DEBUG((DEBUG_INFO, "NumDep %d\n", NumDep));
     Groups[NumGroups].NumSmiHandlers = 0;
     Groups[NumGroups].NumModules = 0;
     for (UINTN j = 0; j < NumDep; j++) {
@@ -188,7 +190,7 @@ VOID ReportSmmModuleInfo() {
 VOID ReportDxeModuleInfo() {
   DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData->dxe_smm_module_infos;
   for (UINTN i = 0; i < Info->NumDxeModules; i++) {
-    LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINTN)&Info->DxeModules[i].Guid, (UINTN)Info->DxeModules[i].StartAddress, (UINTN)Info->DxeModules[i].StartAddress + (UINTN)Info->DxeModules[i].Size);   
+    LIBAFL_QEMU_SMM_REPORT_DXE_MODULE_INFO((UINTN)&Info->DxeModules[i].Guid, (UINTN)Info->DxeModules[i].StartAddress, (UINTN)Info->DxeModules[i].StartAddress + (UINTN)Info->DxeModules[i].Size);   
   }
 }
 VOID ReportSmmGroupInfo() {

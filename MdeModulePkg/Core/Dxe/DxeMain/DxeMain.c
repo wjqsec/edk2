@@ -1293,8 +1293,12 @@ EFI_STATUS EFIAPI EFI_CREATE_EVENT_FUZZ(
 ) {
   
   EFI_STATUS Status;
+  DEBUG((DEBUG_INFO,"EFI_CREATE_EVENT_FUZZ\n"));
   if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)))
+  {
+    DEBUG((DEBUG_INFO,"EFI_CREATE_EVENT_FUZZ for fuzz module, return\n"));
     Status = EFI_SUCCESS;
+  }
   else
     Status = EFI_CREATE_EVENT_Old(Type, NotifyTpl, NotifyFunction, NotifyContext, Event);
   
@@ -1477,9 +1481,16 @@ EFI_STATUS EFIAPI EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ(
   OUT VOID                    **Registration
 ) {
   EFI_STATUS Status;
-  
-  
-  Status = EFI_REGISTER_PROTOCOL_NOTIFY_Old(Protocol, Event, Registration);
+  DEBUG((DEBUG_INFO,"EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ %g\n",Protocol));
+  if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) &&
+  (CompareGuid(Protocol, &gEfiDxeSmmReadyToLockProtocolGuid) || CompareGuid(Protocol, &gEfiEndOfDxeEventGroupGuid))
+  )
+  {
+    DEBUG((DEBUG_INFO,"EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ for fuzz module, return\n"));
+    Status = EFI_SUCCESS;
+  }
+  else
+    Status = EFI_REGISTER_PROTOCOL_NOTIFY_Old(Protocol, Event, Registration);
   
   return Status;
 }
@@ -3147,6 +3158,7 @@ VOID InstallSmmFuzzProtocol() {
   Info->DxeModules[Info->NumDxeModules].StartAddress = (UINTN)gDxeCoreLoadedImage->ImageBase;
   Info->DxeModules[Info->NumDxeModules].Size = gDxeCoreLoadedImage->ImageSize;
   Info->NumDxeModules++;
+  LIBAFL_QEMU_SMM_REPORT_DXE_MODULE_INFO((UINTN)gDxeCoreFileName, (UINTN)gDxeCoreLoadedImage->ImageBase, (UINTN)gDxeCoreLoadedImage->ImageBase + gDxeCoreLoadedImage->ImageSize);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gSmmFuzzDataProtocolGuid,

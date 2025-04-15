@@ -258,7 +258,6 @@ SdtGetAcpiTable (
   *TableKey    = CurrentTable->Handle;
   *Version     = CurrentTable->Version;
   *Table       = (EFI_ACPI_SDT_HEADER *)CurrentTable->Table;
-
   return EFI_SUCCESS;
 }
 

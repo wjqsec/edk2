@@ -185,7 +185,7 @@ SmmLegacyBootHandler (
   EFI_STATUS  Status;
   EFI_HANDLE  SmmHandle;
   UINTN       Index;
-
+  DEBUG((DEBUG_INFO,"SmmLegacyBootHandler\n"));
   //
   // Install SMM Legacy Boot protocol.
   //
@@ -210,7 +210,7 @@ SmmLegacyBootHandler (
       break;
     }
   }
-
+  DEBUG((DEBUG_INFO,"SmmLegacyBootHandler end\n"));
   return Status;
 }
 
@@ -240,7 +240,7 @@ SmmExitBootServicesHandler (
   EFI_STATUS  Status;
   EFI_HANDLE  SmmHandle;
   UINTN       Index;
-
+  DEBUG((DEBUG_INFO,"SmmExitBootServicesHandler\n"));
   //
   // Install SMM Exit Boot Services protocol.
   //
@@ -263,7 +263,7 @@ SmmExitBootServicesHandler (
       break;
     }
   }
-
+  DEBUG((DEBUG_INFO,"SmmExitBootServicesHandler end\n"));
   return Status;
 }
 
@@ -325,7 +325,7 @@ SmmReadyToBootHandler (
   EFI_HANDLE  SmmHandle;
 
   PERF_CALLBACK_BEGIN (&gEfiEventReadyToBootGuid);
-
+  DEBUG((DEBUG_INFO,"SmmReadyToBootHandler\n"));
   //
   // Install SMM Ready To Boot protocol.
   //
@@ -338,7 +338,7 @@ SmmReadyToBootHandler (
                 );
 
   SmiHandlerUnRegister (DispatchHandle);
-
+  DEBUG((DEBUG_INFO,"SmmReadyToBootHandler end\n"));
   PERF_CALLBACK_END (&gEfiEventReadyToBootGuid);
   return Status;
 }

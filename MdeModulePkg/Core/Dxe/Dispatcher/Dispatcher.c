@@ -523,6 +523,7 @@ CoreDispatcher (
           Info->DxeModules[Info->NumDxeModules].StartAddress = StartAddress;
           Info->DxeModules[Info->NumDxeModules].Size = Size;
           Info->NumDxeModules++;
+          LIBAFL_QEMU_SMM_REPORT_DXE_MODULE_INFO((UINTN)&DriverEntry->FileName, StartAddress, StartAddress + Size);
         }
         REPORT_STATUS_CODE_WITH_EXTENDED_DATA (
           EFI_PROGRESS_CODE,

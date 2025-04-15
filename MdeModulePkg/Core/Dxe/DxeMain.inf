@@ -217,6 +217,7 @@
   gEfiSystemUsbSupportPolicyProtocol
   gEfiPcdProtocolGuid
   gSystemUsbMemoryManagerProtocol
+  gEfiDxeSmmReadyToLockProtocolGuid
   
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressBootTimeCodePageNumber    ## SOMETIMES_CONSUMES

@@ -16,7 +16,7 @@
   INF_VERSION                    = 0x00010005
   BASE_NAME                      = SmmLockBox
   MODULE_UNI_FILE                = SmmLockBox.uni
-  FILE_GUID                      = 33FB3535-F15E-4c17-B303-5EB94595ECB6
+  FILE_GUID                      = 33FB3535-F15E-4c17-B303-5EB94595ECB7
   MODULE_TYPE                    = DXE_SMM_DRIVER
   VERSION_STRING                 = 1.0
   PI_SPECIFICATION_VERSION       = 0x0001000A

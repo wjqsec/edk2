@@ -8100,4 +8100,5 @@ extern GUID gEfiSmbusHcProtocolGuid;
 extern GUID gEfiSystemUsbSupportPolicyProtocol;
 extern GUID gEfiPcdProtocolGuid;
 extern GUID gSystemUsbMemoryManagerProtocol;
+extern GUID gEfiDxeSmmReadyToLockProtocolGuid;
 #endif

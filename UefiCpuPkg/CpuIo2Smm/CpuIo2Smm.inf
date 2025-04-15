@@ -10,7 +10,7 @@
   INF_VERSION                    = 0x00010005
   BASE_NAME                      = CpuIo2Smm
   MODULE_UNI_FILE                = CpuIo2Smm.uni
-  FILE_GUID                      = A47EE2D8-F60E-42fd-8E58-7BD65EE4C29B
+  FILE_GUID                      = A47EE2D8-F60E-42fd-8E58-7BD65EE4C29C
   MODULE_TYPE                    = DXE_SMM_DRIVER
   VERSION_STRING                 = 1.0
   PI_SPECIFICATION_VERSION       = 0x0001000A

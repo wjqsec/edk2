@@ -15,7 +15,7 @@
   INF_VERSION                    = 0x00010005
   BASE_NAME                      = TcgMorLockSmm
   MODULE_UNI_FILE                = TcgMorLock.uni
-  FILE_GUID                      = E2EA6F47-E678-47FA-8C1B-02A03E825C6E
+  FILE_GUID                      = E2EA6F47-E678-47FA-8C1B-02A03E825C6F
   MODULE_TYPE                    = DXE_SMM_DRIVER
   VERSION_STRING                 = 1.0
   PI_SPECIFICATION_VERSION       = 0x0001000A

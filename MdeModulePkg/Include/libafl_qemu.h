@@ -92,6 +92,7 @@ typedef enum LibaflQemuCommand {
   LIBAFL_QEMU_COMMAND_SMM_REPORT_SMI_INVOKE_INFO = 40,
   LIBAFL_QEMU_COMMAND_SMM_REPORT_TMP_SMI = 41,
   LIBAFL_QEMU_COMMAND_SMM_REPORT_LOCKBOX = 42,
+  LIBAFL_QEMU_COMMAND_SMM_REPORT_DXE_MODULE_INFO = 43,
 } LibaflExit;
 
 typedef enum ReportDirection {
@@ -388,6 +389,8 @@ LIBAFL_DEFINE_FUNCTIONS(backdoor, LIBAFL_BACKDOOR_OPCODE)
 #define LIBAFL_QEMU_SMM_REPORT_TMP_SMI(guid_addr,type,module_addr) _libafl_backdoor_call3(LIBAFL_QEMU_COMMAND_SMM_REPORT_TMP_SMI,guid_addr,type,module_addr)
 
 #define LIBAFL_QEMU_SMM_REPORT_LOCKBOX(addr) _libafl_backdoor_call1(LIBAFL_QEMU_COMMAND_SMM_REPORT_LOCKBOX,addr)
+
+#define LIBAFL_QEMU_SMM_REPORT_DXE_MODULE_INFO(uuid_addr, module_start_addr, module_end_addr) _libafl_backdoor_call3(LIBAFL_QEMU_COMMAND_SMM_REPORT_DXE_MODULE_INFO,uuid_addr, module_start_addr, module_end_addr)
 
 
 #define VENDOR_CORE_HEAP_SIZE 0x100000
