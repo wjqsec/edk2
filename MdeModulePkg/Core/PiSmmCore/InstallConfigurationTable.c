@@ -11,7 +11,7 @@
 #define CONFIG_TABLE_SIZE_INCREASED  0x10
 
 UINTN  mSmmSystemTableAllocateSize = 0;
-extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+
 /**
   The SmmInstallConfigurationTable() function is used to maintain the list
   of configuration tables that are stored in the System Management System
@@ -38,6 +38,7 @@ SmmInstallConfigurationTable (
   IN  UINTN                        TableSize
   )
 {
+  DEBUG((DEBUG_INFO,"SmmInstallConfigurationTable %g %p %llx\n",Guid,Table,TableSize));
   UINTN                    Index;
   EFI_CONFIGURATION_TABLE  *ConfigurationTable;
   EFI_CONFIGURATION_TABLE  *OldTable;
@@ -224,7 +225,6 @@ SmmInstallConfigurationTableFuzz (
     RuntimeServicePtr->QueryCapsuleCapabilities = (EFI_QUERY_CAPSULE_CAPABILITIES)DummyRuntimeSmm;
     RuntimeServicePtr->QueryVariableInfo = (EFI_QUERY_VARIABLE_INFO)DummyRuntimeSmm;
   }
-  DEBUG((DEBUG_INFO,"SmmInstallConfigurationTable %g %p %llx\n",Guid,Table,TableSize));
   EFI_STATUS Status = SmmInstallConfigurationTable(SystemTable, Guid, Table, TableSize);
   return Status;
 }

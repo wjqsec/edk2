@@ -21,7 +21,6 @@ EFI_ALLOCATE_POOL                   SmmAllocatePoolOld = NULL;
 EFI_FREE_POOL                       SmmFreePoolOld = NULL;
 EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld = NULL;
 EFI_FREE_PAGES                      SmmFreePagesOld = NULL;
-SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData = NULL;
 EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp = NULL;
 //
 // mProtocolDatabase     - A list of all protocols in the system.  (simple list for now)
@@ -195,9 +194,6 @@ SmmInstallProtocolInterface (
 {
   DEBUG((DEBUG_INFO,"SmmInstallProtocolInterface: %g %p\n",Protocol,Interface));
   InsertProduceProtocol(Protocol);
-  // if (SmmInstallProtocolInterfaceOld) {
-  //   return SmmInstallProtocolInterfaceOld(UserHandle, Protocol, InterfaceType, Interface);
-  // }
   return SmmInstallProtocolInterfaceNotify (
            UserHandle,
            Protocol,
@@ -495,8 +491,6 @@ SmmUninstallProtocolInterface (
   )
 {
   DEBUG((DEBUG_INFO,"SmmUninstallProtocolInterface: %g\n",Protocol));
-  // if (SmmUninstallProtocolInterfaceOld)
-  //   return SmmUninstallProtocolInterfaceOld(UserHandle, Protocol, Interface);
   EFI_STATUS          Status;
   IHANDLE             *Handle;
   PROTOCOL_INTERFACE  *Prot;
@@ -635,11 +629,6 @@ SmmHandleProtocol (
   )
 {
   InsertConsumeProtocol(Protocol);
-  if (SmmHandleProtocolOld)
-  {
-    if (SmmHandleProtocolOld(UserHandle, Protocol, Interface) == EFI_SUCCESS)
-      return EFI_SUCCESS;
-  }
   EFI_STATUS          Status;
   PROTOCOL_INTERFACE  *Prot;
 
@@ -672,6 +661,8 @@ SmmHandleProtocol (
   //
   Prot = SmmGetProtocolInterface (UserHandle, Protocol);
   if (Prot == NULL) {
+    if (SmmHandleProtocolOld)
+      return SmmHandleProtocolOld(UserHandle, Protocol, Interface);
     return EFI_UNSUPPORTED;
   }
 

@@ -519,10 +519,9 @@ CoreDispatcher (
         Status = CoreStartImage (DriverEntry->ImageHandle, NULL, NULL);
         if(!EFI_ERROR(Status)) {
           DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData.dxe_smm_module_infos;
-          CopyGuid(&Info->DxeModules[Info->NumDxeModules].Guid, &DriverEntry->FileName);
           Info->DxeModules[Info->NumDxeModules].StartAddress = StartAddress;
           Info->DxeModules[Info->NumDxeModules].Size = Size;
-          Info->NumDxeModules++;
+          CopyGuid(&Info->DxeModules[Info->NumDxeModules++].Guid, &DriverEntry->FileName);
           LIBAFL_QEMU_SMM_REPORT_DXE_MODULE_INFO((UINTN)&DriverEntry->FileName, StartAddress, StartAddress + Size);
         }
         REPORT_STATUS_CODE_WITH_EXTENDED_DATA (

@@ -71,12 +71,6 @@ SMM_MODULE_HANDLER_PROTOCOL_INFO ** CollectModuleDependency(SMM_MODULES_HANDLER_
         } 
         if (DepAlreadyCollected(Ret,NumDepTmp,Dep))
           continue;
-        
-        // SMM_MODULE_HANDLER_PROTOCOL_INFO *TmpDependency = *Dependency;
-        
-        // *Dependency = AllocatePool(sizeof(SMM_MODULE_HANDLER_PROTOCOL_INFO *) * (NumDep + 1));
-        // CopyMem(*Dependency, TmpDependency, sizeof(SMM_MODULE_HANDLER_PROTOCOL_INFO *) * NumDep);
-        // FreePool(TmpDependency);
         Ret = ReallocatePool (sizeof(SMM_MODULE_HANDLER_PROTOCOL_INFO *) * NumDepTmp, sizeof(SMM_MODULE_HANDLER_PROTOCOL_INFO *) * ( NumDepTmp + 1 ), Ret);
         ASSERT(Ret != NULL);
         NumDepTmp++;

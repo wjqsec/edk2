@@ -47,15 +47,15 @@ typedef struct _SMI_HANDLER_GROUP {
 }SMI_HANDLER_GROUP;
 
 UINTN NumGroups;
-SMI_HANDLER_GROUP Groups[50];
+SMI_HANDLER_GROUP Groups[500];
 
-UINT32 SmiFuzzTimes[200] = {0};
+UINT32 SmiFuzzTimes[500] = {0};
 SMM_MODULES_HANDLER_PROTOCOL_INFO *ReportDataBackup;
 
 
 struct _SMI_HANDLER_LIST {
   UINTN NumSmiHandlers;
-  SMI_HANDLER_INFO Handlers[200];
+  SMI_HANDLER_INFO Handlers[500];
 } SmiHandlers;
 
 
@@ -112,9 +112,6 @@ EFI_STATUS SmmCall(GUID *ID, UINTN size)
 }
 
 VOID CollectHandlers() {
-  // SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].IsRoot = TRUE;
-  // SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].Addr = NULL;
-  // CopyGuid(&SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers++].SmiHandler, &gEfiSmmFuzzRootGuid);
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
     for (UINTN j = 0; j < ReportDataBackup->info[i].NumSmiHandlers; j++) {
       SmiHandlers.Handlers[SmiHandlers.NumSmiHandlers].Addr = ReportDataBackup->info[i].SmiHandlers[j].Addr;
@@ -134,11 +131,11 @@ UINTN FindSmiHandlerIndex(GUID *Guid) {
 }
 
 
-VOID InsertModuleSmiToGroup(SMI_HANDLER_GROUP *Group, SMM_MODULE_HANDLER_PROTOCOL_INFO **Dep) {
-  for(UINTN i = 0 ; i < (*Dep)->NumSmiHandlers; i++) {
-    CopyGuid(&Group->Handlers[Group->NumSmiHandlers++], &(*Dep)->SmiHandlers[i].SmiHandler);
+VOID InsertModuleSmiToGroup(SMI_HANDLER_GROUP *Group, SMM_MODULE_HANDLER_PROTOCOL_INFO *Dep) {
+  for(UINTN i = 0 ; i < Dep->NumSmiHandlers; i++) {
+    CopyGuid(&Group->Handlers[Group->NumSmiHandlers++], &Dep->SmiHandlers[i].SmiHandler);
   }
-  if ((*Dep)->NumSmiHandlers > 0)
+  if (Dep->NumSmiHandlers > 0)
     Group->NumModules++;
 }
 
@@ -156,9 +153,6 @@ EFI_STATUS GroupSmiHandlers()
 
   DEBUG((DEBUG_INFO,"Got ReportData\n"));
   NumGroups = 0;
-  // Groups[NumGroups].NumSmiHandlers = 1;
-  // CopyGuid(&Groups[NumGroups].Handlers[0], &gEfiSmmFuzzRootGuid);
-  // NumGroups++;
   for (UINTN i = 0; i < ReportDataBackup->NumModules; i++) {
     ReportDataBackup->info[i].Visited = FALSE;
   }
@@ -174,11 +168,12 @@ EFI_STATUS GroupSmiHandlers()
     Groups[NumGroups].NumModules = 0;
     for (UINTN j = 0; j < NumDep; j++) {
       Dep[j]->Visited = TRUE;
-      InsertModuleSmiToGroup(&Groups[NumGroups], &Dep[j]);
+      InsertModuleSmiToGroup(&Groups[NumGroups], Dep[j]);
     }
     FreePool(Dep);
     NumGroups++;
   }
+  DEBUG((DEBUG_INFO,"Group finish\n"));
   return Status;
 }
 
@@ -255,13 +250,10 @@ SmmFuzzMain(
   ReportDataBackup = AllocatePool(sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
   ZeroMem (ReportDataBackup, sizeof(SMM_MODULES_HANDLER_PROTOCOL_INFO));
   UINT8 *SmiFuzzSeq = AllocatePool(1024);
-  GroupSmiHandlers();
-  CollectHandlers();
-  
-
-  
-
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_MODULE_START,0,0);
+  GroupSmiHandlers();
+  DEBUG((DEBUG_INFO,"GroupSmiHandlers %d\n",NumGroups));
+  CollectHandlers();
   ReportSmmModuleInfo();
   ReportSmmGroupInfo();
   ReportSmiInfo();

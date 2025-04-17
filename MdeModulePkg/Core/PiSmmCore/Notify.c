@@ -20,7 +20,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
-extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+
 /**
   Signal event for every protocol in protocol entry.
 
@@ -60,7 +60,6 @@ SmmNotifyProtocol (
         ProtNotify->Function (&ProtEntry->ProtocolID, Prot->Interface, Prot->Handle);
       }
       LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_END,0,0);  
-      
     }
     else
       ProtNotify->Function (&ProtEntry->ProtocolID, Prot->Interface, Prot->Handle);
@@ -138,8 +137,6 @@ SmmRegisterProtocolNotify (
   )
 {
   DEBUG((DEBUG_INFO,"SmmRegisterProtocolNotify: %g\n",Protocol));
-  // if (SmmRegisterProtocolNotifyOld)
-  //   return SmmRegisterProtocolNotifyOld(Protocol, Function, Registration);
   PROTOCOL_ENTRY   *ProtEntry;
   PROTOCOL_NOTIFY  *ProtNotify;
   LIST_ENTRY       *Link;

@@ -9,7 +9,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "DxeMain.h"
 #include "Handle.h"
 #include "libafl_qemu.h"
-extern SMM_FUZZ_GLOBAL_DATA SmmFuzzGlobalData;
+
 //
 // mProtocolDatabase     - A list of all protocols in the system.  (simple list for now)
 // gHandleList           - A list of all the handles in the system

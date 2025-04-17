@@ -20,7 +20,7 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
-extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+
 //
 // ProtocolRequest - Last LocateHandle request ID
 //
@@ -211,11 +211,6 @@ SmmLocateProtocol (
   )
 {
   InsertConsumeProtocol(Protocol);
-  if (SmmLocateProtocolOld)
-  {
-    if (SmmLocateProtocolOld(Protocol, Registration, Interface) == EFI_SUCCESS)
-      return EFI_SUCCESS;
-  }
   EFI_STATUS       Status;
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;
@@ -241,6 +236,8 @@ SmmLocateProtocol (
     //
     Position.ProtEntry = SmmFindProtocolEntry (Protocol, FALSE);
     if (Position.ProtEntry == NULL) {
+      if (SmmLocateProtocolOld)
+        return SmmLocateProtocolOld(Protocol, Registration, Interface);
       return EFI_NOT_FOUND;
     }
 
@@ -253,6 +250,8 @@ SmmLocateProtocol (
 
   if (Handle == NULL) {
     Status = EFI_NOT_FOUND;
+    if (SmmLocateProtocolOld)
+      Status =  SmmLocateProtocolOld(Protocol, Registration, Interface);
   } else if (Registration != NULL) {
     //
     // If this is a search by register notify and a handle was
@@ -964,13 +963,6 @@ SmmLocateHandle (
   )
 {
   EFI_STATUS       Status;
-  if (SmmLocateHandleOld)
-  {
-    Status = SmmLocateHandleOld(SearchType, Protocol, SearchKey, BufferSize, Buffer);
-    if (Status == EFI_SUCCESS || Status == EFI_BUFFER_TOO_SMALL)
-      return Status;
-  }
-  
   LOCATE_POSITION  Position;
   PROTOCOL_NOTIFY  *ProtNotify;
   CORE_GET_NEXT    GetNext;

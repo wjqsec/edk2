@@ -23,7 +23,7 @@ extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
 extern EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp;
-extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
+SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 
 
 BOOLEAN NoCommbufCheck = FALSE;
@@ -1023,6 +1023,7 @@ SmmMain (
   
   EFI_STATUS  Status;
   UINTN       Index;
+
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)&SmmFuzzDummyMemory);
   Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
   SmmFuzzGlobalData->smm_check_func = IsCallFromFuzzModule;
@@ -1039,12 +1040,12 @@ SmmMain (
   Status = LoadVendorCore(ImageHandle, SystemTable);
   if (!EFI_ERROR(Status))
   {
-      VOID *VendorCoreImageProtocol;
-      EFI_HANDLE TmpHandle = NULL;
-      Status = SmmLocateProtocol(&gEfiLoadedImageProtocolGuid, NULL, &VendorCoreImageProtocol);
-      ASSERT(!EFI_ERROR(Status));
-      Status = gSmmCorePrivate->Smst->SmmInstallProtocolInterface(&TmpHandle, &gEfiLoadedImageProtocolGuid, EFI_NATIVE_INTERFACE, VendorCoreImageProtocol);
-      ASSERT(!EFI_ERROR(Status));
+      // VOID *VendorCoreImageProtocol;
+      // EFI_HANDLE TmpHandle = NULL;
+      // Status = SmmLocateProtocol(&gEfiLoadedImageProtocolGuid, NULL, &VendorCoreImageProtocol);
+      // ASSERT(!EFI_ERROR(Status));
+      // Status = gSmmCorePrivate->Smst->SmmInstallProtocolInterface(&TmpHandle, &gEfiLoadedImageProtocolGuid, EFI_NATIVE_INTERFACE, VendorCoreImageProtocol);
+      // ASSERT(!EFI_ERROR(Status));
       SmmInstallProtocolInterfaceOld = gSmmCorePrivate->Smst->SmmInstallProtocolInterface;
       SmmUninstallProtocolInterfaceOld = gSmmCorePrivate->Smst->SmmUninstallProtocolInterface;
       SmmHandleProtocolOld = gSmmCorePrivate->Smst->SmmHandleProtocol;
@@ -1257,11 +1258,9 @@ VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
     return;
   }
   DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData->dxe_smm_module_infos;
-  CopyGuid(&Info->SmmModules[Info->NumSmmModules].Guid, Guid);
   Info->SmmModules[Info->NumSmmModules].StartAddress = (UINTN)Addr;
   Info->SmmModules[Info->NumSmmModules].Size = Size;
-  Info->NumSmmModules++;
-
+  CopyGuid(&Info->SmmModules[Info->NumSmmModules++].Guid, Guid);
 }
 VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot)
 {

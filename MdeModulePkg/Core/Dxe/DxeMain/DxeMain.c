@@ -980,42 +980,6 @@ DxeMainUefiDecompress (
   return UefiDecompress (Source, Destination, Scratch);
 }
 
-// if (!SmmFuzzGlobalData)
-// Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-// ASSERT(!EFI_ERROR(Status));
-// if (SmmFuzzGlobalData->dxe_check_func ((UINT64)__builtin_return_address(0))) {
-// return 8;
-// }
-
-
-// if (!SmmFuzzGlobalData)
-// Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-// ASSERT(!EFI_ERROR(Status));
-// if (SmmFuzzGlobalData->dxe_check_func ((UINT64)__builtin_return_address(0))) {
-// DummyPCD = 0;
-// DEBUG((DEBUG_INFO,"get pcd in fuzz\n"));
-// LIBAFL_QEMU_SMM_GET_PCD(GetSize, (UINTN)&DummyPCD);
-// DEBUG((DEBUG_INFO,"get fuzz pcd size:%x value %lx\n",GetSize,DummyPCD));
-// if (GetSize == 0)
-//   return (VOID*)DummyPCD;
-// else
-//   return (VOID*)&DummyPCD;
-// }
-
-
-// if (!SmmFuzzGlobalData)
-// Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-// ASSERT(!EFI_ERROR(Status));
-// if (SmmFuzzGlobalData->dxe_check_func ((UINT64)__builtin_return_address(0))) {
-// return EFI_SUCCESS;
-// }
-
-// if (!SmmFuzzGlobalData)
-// Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-// ASSERT(!EFI_ERROR(Status));
-// if (SmmFuzzGlobalData->dxe_check_func ((UINT64)__builtin_return_address(0))) {
-// return 0xffffffff;
-// }
 UINT64 DummyPCD = 0;
 VOID EFIAPI PCD_PROTOCOL_SET_SKU_FUZZ(
   IN  UINTN                  SkuId
@@ -1293,7 +1257,7 @@ EFI_STATUS EFIAPI EFI_CREATE_EVENT_FUZZ(
 ) {
   
   EFI_STATUS Status;
-  DEBUG((DEBUG_INFO,"EFI_CREATE_EVENT_FUZZ\n"));
+  DEBUG((DEBUG_INFO,"EFI_CREATE_EVENT_FUZZ %p\n",__builtin_return_address(0)));
   if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)))
   {
     DEBUG((DEBUG_INFO,"EFI_CREATE_EVENT_FUZZ for fuzz module, return\n"));
@@ -1481,7 +1445,7 @@ EFI_STATUS EFIAPI EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ(
   OUT VOID                    **Registration
 ) {
   EFI_STATUS Status;
-  DEBUG((DEBUG_INFO,"EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ %g\n",Protocol));
+  DEBUG((DEBUG_INFO,"EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ %g %p\n",Protocol,__builtin_return_address(0)));
   if (SmmFuzzGlobalData.dxe_check_func && SmmFuzzGlobalData.dxe_check_func ((UINT64)__builtin_return_address(0)) &&
   (CompareGuid(Protocol, &gEfiDxeSmmReadyToLockProtocolGuid) || CompareGuid(Protocol, &gEfiEndOfDxeEventGroupGuid))
   )
@@ -3133,7 +3097,9 @@ UINT64 IsCallFromFuzzModule(UINT64 RetAddr) {
   DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData.dxe_smm_module_infos;
   for (UINTN i = 0; i < Info->NumSmmModules; i++)
   {
-    if (RetAddr >= (UINT64)Info->SmmModules[i].StartAddress && RetAddr < (UINT64)Info->SmmModules[i].StartAddress + (UINT64)Info->SmmModules[i].Size)
+    UINT64 Start = (UINT64)Info->SmmModules[i].StartAddress;
+    UINT64 End = Start + Info->SmmModules[i].Size;
+    if (RetAddr >= Start && RetAddr < End)
     {
       return 1;
     }
@@ -3154,10 +3120,9 @@ VOID InstallSmmFuzzProtocol() {
   SmmFuzzGlobalData.dxe_check_func = IsCallFromFuzzModule;
   ZeroMem (SmmFuzzGlobalData.dxe_smm_module_infos, sizeof(DXE_SMM_MODULE_INFOS));
   DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData.dxe_smm_module_infos;
-  CopyGuid(&Info->DxeModules[Info->NumDxeModules].Guid, gDxeCoreFileName);
   Info->DxeModules[Info->NumDxeModules].StartAddress = (UINTN)gDxeCoreLoadedImage->ImageBase;
   Info->DxeModules[Info->NumDxeModules].Size = gDxeCoreLoadedImage->ImageSize;
-  Info->NumDxeModules++;
+  CopyGuid(&Info->DxeModules[Info->NumDxeModules++].Guid, gDxeCoreFileName);
   LIBAFL_QEMU_SMM_REPORT_DXE_MODULE_INFO((UINTN)gDxeCoreFileName, (UINTN)gDxeCoreLoadedImage->ImageBase, (UINTN)gDxeCoreLoadedImage->ImageBase + gDxeCoreLoadedImage->ImageSize);
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
