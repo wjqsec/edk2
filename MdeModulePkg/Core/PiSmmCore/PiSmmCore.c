@@ -482,7 +482,8 @@ SmmEndOfDxeHandler (
                 NULL
                 );
   DEBUG ((DEBUG_INFO, "SmmEndOfDxeHandler end\n"));                
-  if (mAcpiS3Enable) {
+  // if (mAcpiS3Enable) {
+  if (FALSE) {
     //
     // Locate SmmSxDispatch2 protocol.
     //
