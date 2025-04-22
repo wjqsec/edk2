@@ -843,7 +843,7 @@ GUID OVMFSmmModules[] = {
 };
 
 BOOLEAN IsOVMFSmmModule(GUID *guid) {
-  for (UINTN i = 0; i <  ( sizeof(OVMFSmmModules) / sizeof(GUID)); i++) {
+  for (UINTN i = 0; i <  ( sizeof(OVMFSmmModules) / sizeof(OVMFSmmModules[0])); i++) {
     if (CompareGuid(&OVMFSmmModules[i], guid))
       return TRUE;
   }
