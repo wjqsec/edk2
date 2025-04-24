@@ -723,7 +723,7 @@ SmiPFHandler (
 
   PFAddress = AsmReadCr2 ();
   DEBUG((DEBUG_ERROR,"SmiPFHandler exception pc: %p mem_addr: %p\n",SystemContext.SystemContextX64->Rip,PFAddress));
-  LIBAFL_QEMU_END(LIBAFL_QEMU_END_CRASH,SystemContext.SystemContextX64->Rip,SystemContext.SystemContextX64->Rsp);
+  LIBAFL_QEMU_END_CRASH(SystemContext.SystemContextX64->Rip,SystemContext.SystemContextX64->Rsp,PFAddress);
   if (PFAddress >= LShiftU64 (1, (mPhysicalAddressBits - 1))) {
     DumpCpuContext (InterruptType, SystemContext);
     DEBUG ((DEBUG_ERROR, "Do not support address 0x%lx by processor!\n", PFAddress));

@@ -270,10 +270,10 @@ SmmFuzzMain(
   DEBUG((DEBUG_INFO,"Fuzz Data Report End\n"));
 
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_START,0,0);
-  ZeroMem (SmiFuzzTimes, sizeof (SmiFuzzTimes));
-  ZeroMem (CommData, MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER));
   UINTN SmiFuzzSeqSz = LIBAFL_QEMU_SMM_GET_SMI_SELECT_FUZZ_DATA();
   DEBUG((DEBUG_INFO,"Select len %d\n",SmiFuzzSeqSz));
+  ZeroMem (SmiFuzzTimes, sizeof (SmiFuzzTimes));
+  ZeroMem (CommData, MinimalSizeNeeded - sizeof(EFI_SMM_COMMUNICATE_HEADER));
   for (UINTN i = 0; i < SmiFuzzSeqSz; i++) {
     UINTN index = SmiFuzzSeq[i];
     DEBUG((DEBUG_INFO,"Select %d\n",index));

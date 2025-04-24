@@ -350,6 +350,7 @@ LIBAFL_DEFINE_FUNCTIONS(backdoor, LIBAFL_BACKDOOR_OPCODE)
 
 //used by smm fuzz
 #define LIBAFL_QEMU_END(status,arg1,arg2) _libafl_sync_exit_call3(LIBAFL_QEMU_COMMAND_END, status,arg1,arg2)
+#define LIBAFL_QEMU_END_CRASH(pc,sp,cr2) _libafl_sync_exit_call4(LIBAFL_QEMU_COMMAND_END, LIBAFL_QEMU_END_CRASH,pc,sp,cr2)
 #define LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM(addr) _libafl_backdoor_call1(LIBAFL_QEMU_COMMAND_SMM_REPORT_DUMMY_MEM,addr)
 #define LIBAFL_QEMU_SMM_INIT_ENTER() _libafl_backdoor_call0(LIBAFL_QEMU_COMMAND_SMM_INIT_ENTER)
 #define LIBAFL_QEMU_SMM_INIT_EXIT() _libafl_backdoor_call0(LIBAFL_QEMU_COMMAND_SMM_INIT_EXIT)
