@@ -889,17 +889,15 @@ EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry)
     FuzzHob.Header->HobType = EFI_HOB_TYPE_END_OF_HOB_LIST;
     SetCurrentModule(&DriverEntry->FileName);
   }
-  
   InsertNewSmmModule(&DriverEntry->FileName, DriverEntry->SmmLoadedImage.ImageBase, DriverEntry->SmmLoadedImage.ImageSize);
-  if (RuntimeServicePtr)
-    RuntimeServicePtr->SetVariable = (EFI_SET_VARIABLE)DummyRuntimeSmm;
-  
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_PREPARE,0,0);
   LIBAFL_QEMU_SMM_REPORT_SMM_MODULE_INFO((UINT64)&DriverEntry->FileName, (UINT64)DriverEntry->SmmLoadedImage.ImageBase, (UINT64)DriverEntry->SmmLoadedImage.ImageBase + (UINT64)DriverEntry->SmmLoadedImage.ImageSize);
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_INIT_START,0,0);
   DEBUG((DEBUG_INFO,"start fuzzing entry point %g numcpu:%d current cpu:%d\n",&DriverEntry->FileName,gSmmCorePrivate->Smst->NumberOfCpus, gSmmCorePrivate->Smst->CurrentlyExecutingCpu));
   UINTN skip = LIBAFL_QEMU_SMM_ASK_SKIP_MODULE();
   Status = EFI_SUCCESS;
+  if (RuntimeServicePtr)
+    RuntimeServicePtr->SetVariable = (EFI_SET_VARIABLE)DummyRuntimeSmm;
   if (skip == 0)
     Status = EFI_IMAGE_ENTRY_POINT_WRAPPER((EFI_IMAGE_ENTRY_POINT)DriverEntry->ImageEntryPoint, DriverEntry->ImageHandle, gST);
   DEBUG((DEBUG_INFO,"end entry point %g %lx %r\n",&DriverEntry->FileName,Status, Status));   
