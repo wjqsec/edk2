@@ -1,4 +1,4 @@
-#define MAX_NUM_DXE_MODULES 500
+#define MAX_NUM_DXE_MODULES 100
 typedef struct MODULE_INFO {
   GUID Guid;
   UINTN StartAddress;
@@ -7,6 +7,4 @@ typedef struct MODULE_INFO {
 typedef struct DXE_MODULE_INFOS {
   UINTN NumDxeModules;
   MODULE_INFO DxeModules[MAX_NUM_DXE_MODULES];
-  UINTN NumSmmModules;
-  MODULE_INFO SmmModules[MAX_NUM_DXE_MODULES];
-}DXE_SMM_MODULE_INFOS;
+}DXE_MODULE_INFOS;

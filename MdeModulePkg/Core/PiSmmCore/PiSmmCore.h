@@ -1457,7 +1457,7 @@ SmmLoadImage (
   );
 // #define EFI_SMM_REPORT_SMM_HANDLERS_PROTOCOL_GUID { 0x050a25d2, 0x797b, 0x4666, { 0x1a, 0x93, 0x2a, 0x46, 0xba, 0xe2, 0xf5, 0x08 } }
 
-extern GUID gSmmFuzzDataProtocolGuid;
+
 extern EFI_GUID gEfiSmmReportSmmModuleInfoGuid;
 extern EFI_GUID gEfiSmmFuzzRootGuid;
 #define MAX_NUM_MODULES 300
@@ -1475,6 +1475,7 @@ typedef struct SMI_HANDLER_INFO_
 }SMI_HANDLER_INFO;
 typedef struct SMM_MODULE_HANDLER_PROTOCOL_INFO_
 {
+  BOOLEAN IsOvmfSmmModule;
   GUID Guid;
   VOID *ImageBase;
   UINT64 ImageSize;
@@ -1499,8 +1500,6 @@ typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_
   UINTN NumModules;
   SMM_MODULE_HANDLER_PROTOCOL_INFO info[MAX_NUM_MODULES];
 
-  UINTN NumRootSmiHandlers;
-
   UINTN NumSkipModules;
   GUID SkipModules[MAX_NUM_SKIP_MODULES];
 
@@ -1517,13 +1516,16 @@ typedef struct SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR_
   SMM_MODULES_HANDLER_PROTOCOL_INFO *addr;
 }SMM_MODULES_HANDLER_PROTOCOL_INFO_ADDR;
 
+typedef struct SMM_MODULE_INFOS
+{
+  SMM_MODULES_HANDLER_PROTOCOL_INFO *data;
+}SMM_MODULE_INFOS;
+
 EFI_STATUS FuzzOneModule(EFI_SMM_DRIVER_ENTRY  *DriverEntry);
-extern SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo;
 VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size);
 VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot);
 VOID InsertProduceProtocol(CONST GUID *Protocol);
 VOID InsertConsumeProtocol(CONST GUID *Protocol);
-VOID InsertRootSmiHandler(VOID);
 VOID SetCurrentModule(CONST GUID *guid);
 VOID SetCurrentModuleBySmi(CONST GUID *guid);
 GUID GetCurrentModule();
@@ -1534,7 +1536,7 @@ VOID InsertSkipModule(GUID *guid);
 VOID RemoveSkipModule(GUID *guid);
 BOOLEAN IsOVMFSmmModule(GUID *guid);
 BOOLEAN GetModuleFromAddr(UINT64 Addr, GUID *Ret);
-UINT64 IsCallFromFuzzModule(UINT64 RetAddr);
+BOOLEAN IsCallFromFuzzModule(UINT64 RetAddr);
 EFI_STATUS InstallSmmFuzzSmiHandler(VOID);
 EFI_STATUS
 EFIAPI
@@ -1553,4 +1555,5 @@ SmmFuzzRootHandler (
   IN OUT UINTN       *CommBufferSize  OPTIONAL
   );
 extern GUID gEfiHobListGuid;
+extern GUID gSmmFuzzSmmModuleInfoProtocolGuid;
 #endif

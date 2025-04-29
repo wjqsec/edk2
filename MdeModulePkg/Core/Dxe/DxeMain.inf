@@ -174,7 +174,6 @@
   gEfiWatchdogTimerArchProtocolGuid             ## CONSUMES
 
   ## SmmFuzz
-  gSmmFuzzDataProtocolGuid
   gPchNvsAreaProtocolGuid
   gSaPolicyProtocolGuid
   gDxeCpuPolicyProtocolGuid
@@ -218,6 +217,8 @@
   gEfiPcdProtocolGuid
   gSystemUsbMemoryManagerProtocol
   gEfiDxeSmmReadyToLockProtocolGuid
+  gSmmFuzzDxeModuleInfoProtocolGuid
+  gSmmFuzzSmmModuleInfoProtocolGuid
   
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadFixAddressBootTimeCodePageNumber    ## SOMETIMES_CONSUMES

@@ -20,7 +20,6 @@ extern EFI_ALLOCATE_POOL                   SmmAllocatePoolOld;
 extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
-extern SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 //
 // mSmiManageCallingDepth is used to track the depth of recursive calls of SmiManage.
 //
@@ -436,7 +435,7 @@ SmiHandlerRegisterFuzz (
   OUT EFI_HANDLE                    *DispatchHandle
   )
 {
-  if (SmmFuzzGlobalData->smm_check_func ((UINT64)__builtin_return_address(0)))
+  if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0)))
   {
     if (HandlerType != NULL)
       HandlerType = &RootHandlerGuids[NumGuidInUse++];

@@ -32,8 +32,10 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "DxeMain.h"
+#include "SmmFuzzProtocol.h"
 #include "libafl_qemu.h"
-extern SMM_FUZZ_GLOBAL_DATA SmmFuzzGlobalData;
+
+extern DXE_MODULE_INFOS DxeModuleInfos;
 //
 // The Driver List contains one copy of every driver that has been discovered.
 // Items are never removed from the driver list. List of EFI_CORE_DRIVER_ENTRY
@@ -518,10 +520,10 @@ CoreDispatcher (
         ASSERT (DriverEntry->ImageHandle != NULL);
         Status = CoreStartImage (DriverEntry->ImageHandle, NULL, NULL);
         if(!EFI_ERROR(Status)) {
-          DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData.dxe_smm_module_infos;
-          Info->DxeModules[Info->NumDxeModules].StartAddress = StartAddress;
-          Info->DxeModules[Info->NumDxeModules].Size = Size;
-          CopyGuid(&Info->DxeModules[Info->NumDxeModules++].Guid, &DriverEntry->FileName);
+          DxeModuleInfos.DxeModules[DxeModuleInfos.NumDxeModules].StartAddress = StartAddress;
+          DxeModuleInfos.DxeModules[DxeModuleInfos.NumDxeModules].Size = Size;
+          CopyGuid(&DxeModuleInfos.DxeModules[DxeModuleInfos.NumDxeModules].Guid, &DriverEntry->FileName);
+          DxeModuleInfos.NumDxeModules++;
           LIBAFL_QEMU_SMM_REPORT_DXE_MODULE_INFO((UINTN)&DriverEntry->FileName, StartAddress, StartAddress + Size);
         }
         REPORT_STATUS_CODE_WITH_EXTENDED_DATA (

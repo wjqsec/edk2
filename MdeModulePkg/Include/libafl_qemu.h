@@ -395,12 +395,5 @@ LIBAFL_DEFINE_FUNCTIONS(backdoor, LIBAFL_BACKDOOR_OPCODE)
 
 
 #define VENDOR_CORE_HEAP_SIZE 0x100000
-typedef UINT64 (*is_calling_from_fuzz_module_t)(UINT64);
 /* === The public part ends here === */
-
-typedef struct _SMM_FUZZ_GLOBAL_DATA {
-  void *dxe_smm_module_infos;
-  is_calling_from_fuzz_module_t dxe_check_func;
-  is_calling_from_fuzz_module_t smm_check_func;
-}SMM_FUZZ_GLOBAL_DATA;
 #endif

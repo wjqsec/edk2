@@ -841,5 +841,6 @@ EFIAPI
 VariableExLibAtRuntime (
   VOID
   );
-extern GUID gSmmFuzzDataProtocolGuid;
+
+BOOLEAN IsCallFromFuzzModule(UINT64 RetAddr);
 #endif

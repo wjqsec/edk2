@@ -34,8 +34,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "VariableParsing.h"
 #include "VariableRuntimeCache.h"
 #include "libafl_qemu.h"
+#include "../../../Core/PiSmmCore/PiSmmCore.h"
 extern VARIABLE_STORE_HEADER  *mNvVariableCache;
-SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 BOOLEAN  mAtRuntime              = FALSE;
 UINT8    *mVariableBufferPayload = NULL;
 UINTN    mVariableBufferPayloadSize;
@@ -86,7 +86,7 @@ SmmVariableSetVariable (
   )
 {
   EFI_STATUS  Status;
-  if (SmmFuzzGlobalData->smm_check_func ((UINT64)__builtin_return_address(0))) {
+  if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0))) {
     DEBUG((DEBUG_INFO,"RuntimeServiceSetVariable\n"));
     Status = EFI_SUCCESS;
     return Status;
@@ -1140,7 +1140,21 @@ SmmFtwNotificationEvent (
 
   return EFI_SUCCESS;
 }
-
+SMM_MODULES_HANDLER_PROTOCOL_INFO *SmmModulesHandlerProtocolInfo = NULL;
+BOOLEAN IsCallFromFuzzModule(UINT64 RetAddr) 
+{
+  if (SmmModulesHandlerProtocolInfo == NULL) {
+    return FALSE;
+  }
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo->NumModules; i++)
+  {
+    if (RetAddr >= (UINT64)SmmModulesHandlerProtocolInfo->info[i].ImageBase && RetAddr < ((UINT64)SmmModulesHandlerProtocolInfo->info[i].ImageBase + (UINT64)SmmModulesHandlerProtocolInfo->info[i].ImageSize) && !SmmModulesHandlerProtocolInfo->info[i].IsOvmfSmmModule)
+    {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
 /**
   Variable Driver main entry point. The Variable driver places the 4 EFI
   runtime services in the EFI System Table and installs arch protocols
@@ -1161,7 +1175,9 @@ MmVariableServiceInitialize (
   VOID        *SmmFtwRegistration;
   VOID        *SmmEndOfDxeRegistration;
 
-  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
+  SMM_MODULE_INFOS *SmmModuleInfo;
+  Status = gBS->LocateProtocol (&gSmmFuzzSmmModuleInfoProtocolGuid, NULL, (VOID **)&SmmModuleInfo);
+  SmmModulesHandlerProtocolInfo = SmmModuleInfo->data;
   ASSERT(!EFI_ERROR(Status));
   //
   // Variable initialize.

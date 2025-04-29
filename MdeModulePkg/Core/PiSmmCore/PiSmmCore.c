@@ -23,9 +23,8 @@ extern EFI_FREE_POOL                       SmmFreePoolOld;
 extern EFI_ALLOCATE_PAGES                  SmmAllocatePagesOld;
 extern EFI_FREE_PAGES                      SmmFreePagesOld;
 extern EFI_SMM_STARTUP_THIS_AP             SmmStartupThisAp;
-SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 
-
+SMM_MODULE_INFOS *SmmModuleInfo;
 BOOLEAN NoCommbufCheck = FALSE;
 //
 // Physical pointer to private structure shared between SMM IPL and the SMM Core
@@ -999,6 +998,7 @@ EFI_STATUS LoadVendorCore(  IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE  *Sys
 }
 __uint128_t SmmFuzzDummyMemory = 10;
 extern VOID *FuzzHobAddr;
+SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo = {0};
 /**
   The Entry Point for SMM Core
 
@@ -1026,8 +1026,8 @@ SmmMain (
   UINTN       Index;
 
   LIBAFL_QEMU_SMM_REPORT_DUMMY_MEM((libafl_word)&SmmFuzzDummyMemory);
-  Status = gBS->LocateProtocol (&gSmmFuzzDataProtocolGuid, NULL, (VOID **)&SmmFuzzGlobalData);
-  SmmFuzzGlobalData->smm_check_func = IsCallFromFuzzModule;
+  Status = gBS->LocateProtocol (&gSmmFuzzSmmModuleInfoProtocolGuid, NULL, (VOID **)&SmmModuleInfo);
+  SmmModuleInfo->data = &SmmModulesHandlerProtocolInfo;
   ASSERT(!EFI_ERROR(Status));
   Status = gBS->AllocatePool(EfiBootServicesData, 0x1200, (VOID**)&FuzzHobAddr);
   ASSERT(!EFI_ERROR(Status));
@@ -1164,8 +1164,6 @@ EFI_STATUS InstallSmmFuzzSmiHandler(VOID)
 extern LIST_ENTRY  mDiscoveredList;
 extern EFI_SMRAM_DESCRIPTOR  *mSmmMemLibInternalSmramRanges;
 extern UINTN                 mSmmMemLibInternalSmramCount;
-UINT8 Test;
-SMM_MODULES_HANDLER_PROTOCOL_INFO SmmModulesHandlerProtocolInfo = {0};
 GUID CurrentModule;
 EFI_STATUS
 EFIAPI
@@ -1250,25 +1248,14 @@ VOID InsertNewSmmModule(GUID *Guid, VOID *Addr, UINT64 Size)
     return;
   }
 
-  CopyGuid(&SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].Guid, Guid);
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageBase = Addr;
   SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].ImageSize = Size;
-  SmmModulesHandlerProtocolInfo.NumModules++;
+  SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules].IsOvmfSmmModule = IsOVMFSmmModule(Guid);
+  CopyGuid(&SmmModulesHandlerProtocolInfo.info[SmmModulesHandlerProtocolInfo.NumModules++].Guid, Guid);
 
-  if (IsOVMFSmmModule(Guid)) {
-    return;
-  }
-  DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData->dxe_smm_module_infos;
-  Info->SmmModules[Info->NumSmmModules].StartAddress = (UINTN)Addr;
-  Info->SmmModules[Info->NumSmmModules].Size = Size;
-  CopyGuid(&Info->SmmModules[Info->NumSmmModules++].Guid, Guid);
 }
 VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot)
 {
-  if (Handler == NULL)
-  {
-    return InsertRootSmiHandler();
-  }
   for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
   {
     if (!CompareGuid(&CurrentModule, &SmmModulesHandlerProtocolInfo.info[i].Guid))
@@ -1292,10 +1279,6 @@ VOID InsertSmiHandler(CONST GUID *Handler,VOID *Addr, BOOLEAN IsRoot)
     
     return;
   }
-}
-VOID InsertRootSmiHandler(VOID)
-{
-  SmmModulesHandlerProtocolInfo.NumRootSmiHandlers++;
 }
 VOID InsertProduceProtocol(CONST GUID *Protocol)
 {
@@ -1430,17 +1413,16 @@ VOID RemoveSkipModule(GUID *guid)
   CopyMem(&SmmModulesHandlerProtocolInfo.SkipModules[Index], &SmmModulesHandlerProtocolInfo.SkipModules[Index + 1], sizeof(GUID) * (SmmModulesHandlerProtocolInfo.NumSkipModules - Index -1));
   SmmModulesHandlerProtocolInfo.NumSkipModules--;
 }
-UINT64 IsCallFromFuzzModule(UINT64 RetAddr) 
+BOOLEAN IsCallFromFuzzModule(UINT64 RetAddr) 
 {
-  DXE_SMM_MODULE_INFOS *Info = (DXE_SMM_MODULE_INFOS *)SmmFuzzGlobalData->dxe_smm_module_infos;
-  for (UINTN i = 0; i < Info->NumSmmModules; i++)
+  for (UINTN i = 0; i < SmmModulesHandlerProtocolInfo.NumModules; i++)
   {
-    if (RetAddr >= (UINT64)Info->SmmModules[i].StartAddress && RetAddr < (UINT64)Info->SmmModules[i].StartAddress + (UINT64)Info->SmmModules[i].Size)
+    if (RetAddr >= (UINT64)SmmModulesHandlerProtocolInfo.info[i].ImageBase && RetAddr < ((UINT64)SmmModulesHandlerProtocolInfo.info[i].ImageBase + (UINT64)SmmModulesHandlerProtocolInfo.info[i].ImageSize) && !SmmModulesHandlerProtocolInfo.info[i].IsOvmfSmmModule)
     {
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 BOOLEAN GetModuleFromAddr(UINT64 Addr, GUID *Ret)
 {

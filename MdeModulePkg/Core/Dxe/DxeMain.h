@@ -8053,11 +8053,11 @@ struct _SYSTEM_USB_MEMORY_MANAGER_PROTOCOL {
 
 
 
-#include "SmmFuzzProtocol.h"
+
 VOID InstallSmmFuzzProtocol();
+BOOLEAN IsCallFromFuzzModule(UINT64 RetAddr);
 VOID HookGBS (VOID);
 extern GUID gSmmFuzzHobGuid;
-extern GUID gSmmFuzzDataProtocolGuid;
 extern GUID gPchNvsAreaProtocolGuid;
 extern GUID gSaPolicyProtocolGuid;
 extern GUID gDxeCpuPolicyProtocolGuid;
@@ -8101,4 +8101,6 @@ extern GUID gEfiSystemUsbSupportPolicyProtocol;
 extern GUID gEfiPcdProtocolGuid;
 extern GUID gSystemUsbMemoryManagerProtocol;
 extern GUID gEfiDxeSmmReadyToLockProtocolGuid;
+extern GUID gSmmFuzzDxeModuleInfoProtocolGuid;
+extern GUID gSmmFuzzSmmModuleInfoProtocolGuid;
 #endif

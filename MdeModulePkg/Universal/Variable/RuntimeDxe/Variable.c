@@ -31,7 +31,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "VariableRuntimeCache.h"
 #include "libafl_qemu.h"
 VARIABLE_MODULE_GLOBAL  *mVariableModuleGlobal;
-extern   SMM_FUZZ_GLOBAL_DATA *SmmFuzzGlobalData;
 ///
 /// Define a memory cache that improves the search performance for a variable.
 /// For EmuNvMode == TRUE, it will be equal to NonVolatileVariableBase.
@@ -2422,7 +2421,7 @@ VariableServiceGetVariable (
   VARIABLE_POINTER_TRACK  Variable;
   UINTN                   VarDataSize;
 
-  if (SmmFuzzGlobalData->smm_check_func ((UINT64)__builtin_return_address(0))) {
+  if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0))) {
     UINTN UseFuzzValue = LIBAFL_QEMU_SMM_GET_VARIABLE_FUZZ_DATA((UINTN)Data, (UINTN)*DataSize);
     if (!UseFuzzValue) {
       return EFI_NOT_FOUND;

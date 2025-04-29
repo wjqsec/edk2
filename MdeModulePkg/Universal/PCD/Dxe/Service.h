@@ -1189,5 +1189,4 @@ extern  EFI_GUID  **TmpTokenSpaceBuffer;
 extern  UINTN     TmpTokenSpaceBufferCount;
 
 extern EFI_LOCK  mPcdDatabaseLock;
-extern GUID gSmmFuzzDataProtocolGuid;
 #endif
