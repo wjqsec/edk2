@@ -297,9 +297,9 @@ SmmFuzzMain(
     SmiFuzzTimes[index]++;
   } 
   LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
-  GroupSmiHandlers();
-  ReportSmmGroupInfo();
-  LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
+  // GroupSmiHandlers();
+  // ReportSmmGroupInfo();
+  // LIBAFL_QEMU_END(LIBAFL_QEMU_END_SMM_FUZZ_END,0,0);
   
   return EFI_SUCCESS;
 }
