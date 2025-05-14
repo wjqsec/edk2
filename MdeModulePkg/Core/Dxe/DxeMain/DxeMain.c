@@ -1260,15 +1260,7 @@ EFI_STATUS EFIAPI EFI_CREATE_EVENT_FUZZ(
 ) {
   
   EFI_STATUS Status;
-  DEBUG((DEBUG_INFO,"EFI_CREATE_EVENT_FUZZ %p\n",__builtin_return_address(0)));
-  if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0)))
-  {
-    DEBUG((DEBUG_INFO,"EFI_CREATE_EVENT_FUZZ for fuzz module, return\n"));
-    Status = EFI_SUCCESS;
-  }
-  else
-    Status = EFI_CREATE_EVENT_Old(Type, NotifyTpl, NotifyFunction, NotifyContext, Event);
-  
+  Status = EFI_CREATE_EVENT_Old(Type, NotifyTpl, NotifyFunction, NotifyContext, Event);
   return Status;
 }
 
@@ -1306,7 +1298,10 @@ EFI_STATUS EFIAPI EFI_SIGNAL_EVENT_FUZZ(
 ) {
   EFI_STATUS Status;
   
-   
+  if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0))) {
+    DEBUG((DEBUG_INFO,"EFI_SIGNAL_EVENT_FUZZ for fuzz module, return\n"));
+    return EFI_SUCCESS;
+  }
   Status = EFI_SIGNAL_EVENT_Old(Event);
   
   return Status;
@@ -1364,37 +1359,12 @@ EFI_STATUS EFIAPI EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES_FUZZ (
   ...
   )
 {
-  GUID UselessProtocol = { 0xD4D2aa01, 0x50E8, 0x4D45, { 0x8E, 0x05, 0xFD, 0x49, 0xA8, 0x2A, 0x15, 0x69 } };
   VA_LIST     Args;
-  VA_LIST     ArgsBackup;
-  EFI_GUID    *Protocol;
-  VOID        *Interface;
   EFI_STATUS Status;
   VA_START (Args, Handle);
-
-  VA_COPY(ArgsBackup, Args);
-  // if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0))) {
-  //   while (TRUE)
-  //   {
-  //     Protocol = VA_ARG (Args, EFI_GUID *);
-  //     Interface = VA_ARG (Args, VOID *);
-  //     if (Protocol == NULL) {
-  //       break;
-  //     }
-  //     if (CompareGuid(Protocol, &gEfiDriverBindingProtocolGuid))
-  //       CopyGuid(Protocol, &UselessProtocol);
-  //   }
-  // }
-  (VOID)Interface;
-  (VOID)UselessProtocol;
-  (VOID)Protocol;
   Status = CoreInstallMultipleProtocolInterfaces(Handle, Args);
   VA_END(Args);
-  VA_END(ArgsBackup);
   return Status;
-  
-
-
 }
 
 EFI_REINSTALL_PROTOCOL_INTERFACE EFI_REINSTALL_PROTOCOL_INTERFACE_Old;
@@ -1433,10 +1403,9 @@ EFI_STATUS EFIAPI EFI_HANDLE_PROTOCOL_FUZZ(
   OUT VOID                    **Interface
 ) {
   EFI_STATUS Status;
-  
+  DEBUG((DEBUG_INFO,"EFI_HANDLE_PROTOCOL_FUZZ %g\n",Protocol));
   if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0)) && CompareGuid(Protocol, &gEfiFirmwareVolume2ProtocolGuid))
     return EFI_NOT_FOUND;
-   
   Status = EFI_HANDLE_PROTOCOL_Old(Handle, Protocol, Interface);
   
   return Status;
@@ -1449,8 +1418,8 @@ EFI_STATUS EFIAPI EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ(
 ) {
   EFI_STATUS Status;
   DEBUG((DEBUG_INFO,"EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ %g %p\n",Protocol,__builtin_return_address(0)));
-  if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0)) &&
-  (CompareGuid(Protocol, &gEfiDxeSmmReadyToLockProtocolGuid) || CompareGuid(Protocol, &gEfiEndOfDxeEventGroupGuid))
+  if (IsCallFromFuzzModule ((UINT64)__builtin_return_address(0)) 
+  // && (CompareGuid(Protocol, &gEfiDxeSmmReadyToLockProtocolGuid) || CompareGuid(Protocol, &gEfiEndOfDxeEventGroupGuid))
   )
   {
     DEBUG((DEBUG_INFO,"EFI_REGISTER_PROTOCOL_NOTIFY_FUZZ for fuzz module, return\n"));
@@ -3832,7 +3801,7 @@ VOID InstallSmmFuzzProtocol() {
   { 0x00C7D289, 0x1347, 0x4DE0, { 0xBF, 0x42, 0x0E, 0x26, 0x9D, 0x0E, 0xF3, 0x4A } },
   { 0x173F9091, 0x44B6, 0x43BE, { 0x9D, 0x65, 0x98, 0x94, 0x7B, 0xD9, 0xB9, 0xD7 } },
   { 0x3F557189, 0x8DAE, 0x45AE, { 0xA0, 0xB3, 0x2B, 0x99, 0xCA, 0x7A, 0xA7, 0xA0 } },
-  { 0xC965C76A, 0xD71E, 0x4E66, { 0xAB, 0x06, 0xC6, 0x23, 0x0D, 0x52, 0x84, 0x25 } },
+  // { 0xC965C76A, 0xD71E, 0x4E66, { 0xAB, 0x06, 0xC6, 0x23, 0x0D, 0x52, 0x84, 0x25 } },
   { 0xAC570887, 0x109A, 0x4A8A, { 0x9B, 0x37, 0x85, 0x61, 0xAB, 0xB0, 0x5F, 0xE8 } },
   { 0xCC93A70B, 0xEC27, 0x49C5, { 0x8B, 0x34, 0x13, 0x93, 0x1E, 0xFE, 0xD6, 0xE2 } },
   { 0x3152BCA5, 0xEADE, 0x433D, { 0x86, 0x2E, 0xC0, 0x1C, 0xDC, 0x29, 0x1F, 0x44 } },
